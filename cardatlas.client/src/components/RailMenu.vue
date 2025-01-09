@@ -1,15 +1,18 @@
 <script lang="ts" setup>
-  import router from '@/router'
+  import { useRouter } from 'vue-router'
+  import { useUserStore } from '@/stores/userStore'
 
+  const router = useRouter()
+  const userStore = useUserStore()
+  const userImage = ref<string|undefined>(undefined)// 'https://randomuser.me/api/portraits/men/85.jpg')
+  
   const signOut = () => {
-    // firebaseStore.signOut()
-    router.push('/application-sign-in')
+    userStore.signOut()
+    router.push('/ApplicationSignIn')
   }
 
-  const userImage = ref<string|undefined>(undefined)// 'https://randomuser.me/api/portraits/men/85.jpg')
-
   const displayDrawer = computed(() => {
-    return false //firebaseStore.userIsLoggedIn && router.currentRoute.value.path !== '/application-sign-in'
+    return userStore.userIsLoggedIn && router.currentRoute.value.path !== '/ApplicationSignIn'
   })
 </script>
 
@@ -34,8 +37,7 @@
     <v-divider />
 
     <v-list density="compact" nav>
-      <v-list-item prepend-icon="mdi-chart-line" title="View reports" :to="'/reports'" />
-      <v-list-item prepend-icon="mdi-chart-bar" title="Generate report" :to="'/generate-report'" />
+      <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" :to="'/UserDashboard'" />
     </v-list>
 
     <template #append>
