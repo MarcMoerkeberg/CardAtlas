@@ -1,5 +1,5 @@
-using CardAtlas.Server.DAL;
-using Microsoft.EntityFrameworkCore;
+using CardAtlas.Server.Extensions;
+using CardAtlas.Server.Models.Internal;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,9 +11,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<AppSettings>(builder.Configuration);
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-	options.UseSqlServer("Server=localhost;Database=MyDatabase;User Id=sa;Password=YourStrongPassword123!;TrustServerCertificate=True;Encrypt=True;")
-);
+builder.Services.AddDatabaseContext();
 
 var app = builder.Build();
 
