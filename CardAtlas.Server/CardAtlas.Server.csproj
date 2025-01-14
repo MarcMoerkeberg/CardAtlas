@@ -29,4 +29,9 @@
     </ProjectReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DAL\Migrations\" />
+    <Folder Include="Models\DTOs\" />
+  </ItemGroup>
+
 </Project>
