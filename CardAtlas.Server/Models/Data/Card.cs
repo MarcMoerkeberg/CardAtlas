@@ -1,6 +1,5 @@
-﻿namespace CardAtlas.Server.Models.Data
+﻿namespace CardAtlas.Server.Models.Data;
+
+public class Card
 {
-	public class Card
-	{
-	}
 }

@@ -1,6 +1,5 @@
-﻿namespace CardAtlas.Server.Services.Interfaces
+﻿namespace CardAtlas.Server.Services.Interfaces;
+
+public interface ICardService
 {
-	public interface ICardService
-	{
-	}
 }

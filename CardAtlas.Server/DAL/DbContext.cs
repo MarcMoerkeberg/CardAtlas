@@ -1,6 +1,5 @@
-﻿namespace CardAtlas.Server.DAL
+﻿namespace CardAtlas.Server.DAL;
+
+public class DbContext
 {
-	public class DbContext
-	{
-	}
 }

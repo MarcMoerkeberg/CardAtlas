@@ -1,6 +1,5 @@
-﻿namespace CardAtlas.Server.Services
+﻿namespace CardAtlas.Server.Services;
+
+public class CardService
 {
-	public class CardService
-	{
-	}
 }
