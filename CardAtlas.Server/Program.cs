@@ -10,7 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//Temp, move into extensionfile
+builder.Services.Configure<AppSettings>(builder.Configuration);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 	options.UseSqlServer("Server=localhost;Database=MyDatabase;User Id=sa;Password=YourStrongPassword123!;TrustServerCertificate=True;Encrypt=True;")
 );
