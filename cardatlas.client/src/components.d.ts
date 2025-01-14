@@ -7,9 +7,6 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    ChartLine: typeof import('./components/charts/chart-line.vue')['default']
-    HelloWorld: typeof import('./components/HelloWorld.vue')['default']
-    OptionBox: typeof import('./components/OptionBox.vue')['default']
     RailMenu: typeof import('./components/RailMenu.vue')['default']
     ResetPassword: typeof import('./components/account-sign-in/ResetPassword.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
