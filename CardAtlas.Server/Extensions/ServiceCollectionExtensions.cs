@@ -1,4 +1,5 @@
-﻿using Asp.Versioning.ApiExplorer;
+﻿using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using CardAtlas.Server.DAL;
 using CardAtlas.Server.Guards;
 using CardAtlas.Server.Models.Internal;
@@ -11,6 +12,7 @@ namespace CardAtlas.Server.Extensions;
 public static class ServiceCollectionExtensions
 {
 	private static AppSettings? _appSettings;
+	private static readonly ApiVersion _defaultApiVersion = new(1, 0);
 
 	/// <summary>
 	/// Returns the <see cref="AppSettings"/> object from the <see cref="IServiceCollection"/>.<br/>
@@ -72,6 +74,28 @@ public static class ServiceCollectionExtensions
 
 				options.SwaggerDoc(apiDescriptiontion.GroupName, openApiInfo);
 			}
+		});
+	}
+
+	/// <summary>
+	/// Adds API versioning to the application
+	/// </summary>
+	public static void AddVersioning(this IServiceCollection services)
+	{
+		services.AddApiVersioning(options =>
+		{
+			options.DefaultApiVersion = _defaultApiVersion;
+			options.AssumeDefaultVersionWhenUnspecified = true;
+			options.ReportApiVersions = true; //Adds headers "api-supported-versions" and "api-deprecated-versions" to the response
+			options.ApiVersionReader = ApiVersionReader.Combine(
+				new HeaderApiVersionReader("api-version"), //Reads request the header "api-version"
+				new QueryStringApiVersionReader("api-version") //Reads the query string parameter "api-version"
+			);
+		})
+		.AddApiExplorer(options =>
+		{
+			options.GroupNameFormat = "'v'VVV"; //Version formatting: "v1.0", "v2.0", etc.
+			options.SubstituteApiVersionInUrl = true;
 		});
 	}
 }
