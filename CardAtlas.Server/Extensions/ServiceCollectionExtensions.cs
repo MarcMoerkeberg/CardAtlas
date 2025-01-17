@@ -1,7 +1,7 @@
-﻿using CardAtlas.Server.DAL;
+﻿using Asp.Versioning.ApiExplorer;
+using CardAtlas.Server.DAL;
 using CardAtlas.Server.Guards;
 using CardAtlas.Server.Models.Internal;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
