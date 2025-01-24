@@ -2,6 +2,7 @@
 using Asp.Versioning.ApiExplorer;
 using CardAtlas.Server.DAL;
 using CardAtlas.Server.Guards;
+using CardAtlas.Server.Helpers;
 using CardAtlas.Server.Models.Internal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -11,17 +12,18 @@ namespace CardAtlas.Server.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+	private const string _servicesNamespace = "CardAtlas.Server.Services";
 	private static AppSettings? _appSettings;
 	private static readonly ApiVersion _defaultApiVersion = new(1, 0);
 
 	/// <summary>
 	/// Returns the <see cref="AppSettings"/> object from the <see cref="IServiceCollection"/>.<br/>
-	/// Throws a <see cref="NullReferenceException"/> if the <see cref="AppSettings"/> object is null. This is usually due to an invalid appsettings.json file or the buildprovider not being properly configured.
+	/// Throws a <see cref="NullReferenceException"/> if the <see cref="AppSettings"/> object is null. This is usually due to an invalid appsettings.json file or the buildprovider not being configured.
 	/// </summary>
 	/// <exception cref="NullReferenceException"></exception>
 	private static AppSettings GetAppSettings(IServiceCollection services)
 	{
-		if(_appSettings != null) return _appSettings;
+		if (_appSettings != null) return _appSettings;
 
 		AppSettings? appSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AppSettings>>().Value;
 
@@ -55,7 +57,6 @@ public static class ServiceCollectionExtensions
 	/// <summary>
 	/// Adds all the swagger documents to the API for each ApiVersion.
 	/// </summary>
-	/// <param name="services"></param>
 	public static void AddSwagger(this IServiceCollection services)
 	{
 		IReadOnlyList<ApiVersionDescription> apiDescriptiontions = services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>().ApiVersionDescriptions;
@@ -78,7 +79,7 @@ public static class ServiceCollectionExtensions
 	}
 
 	/// <summary>
-	/// Adds API versioning to the application
+	/// Adds API versioning to the application.
 	/// </summary>
 	public static void AddVersioning(this IServiceCollection services)
 	{
@@ -97,5 +98,45 @@ public static class ServiceCollectionExtensions
 			options.GroupNameFormat = "'v'VVV"; //Version formatting: "v1.0", "v2.0", etc.
 			options.SubstituteApiVersionInUrl = true;
 		});
+	}
+
+	/// <summary>
+	/// Adds dependency injection for all classes implementing an interface within the application.
+	/// </summary>
+	public static void AddDependencyInjection(this IServiceCollection services)
+	{
+		AddScopedServiceDependencies(services);
+		AddMemoryCache(services);
+	}
+
+	/// <summary>
+	/// Adds scoped lifetime dependency injection for all services within CardAtlas.Server.Services namespace.
+	/// </summary>
+	private static void AddScopedServiceDependencies(IServiceCollection services)
+	{
+		IEnumerable<Type> servicesWithInterfaces = AssemblyHelper.GetClassesThatImplementInterfaces(_servicesNamespace);
+
+		foreach (Type service in servicesWithInterfaces)
+		{
+			IEnumerable<Type> serviceInterfaces = service.GetInterfaces()
+					.Where(@interface =>
+						!string.IsNullOrEmpty(@interface.Namespace) &&
+						@interface.Namespace.StartsWith(_servicesNamespace, StringComparison.Ordinal)
+					);
+
+			foreach (Type @interface in serviceInterfaces)
+			{
+				services.AddScoped(@interface, service);
+			}
+		}
+	}
+
+	/// <summary>
+	/// <b>WARNING: This method is not implemented!</b><br/><br/>
+	/// Adds memory cache to the application.
+	/// </summary>
+	private static void AddMemoryCache(IServiceCollection services)
+	{
+		//Consider adding a memory cache to the application some time during development.
 	}
 }

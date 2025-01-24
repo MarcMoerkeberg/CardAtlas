@@ -9,6 +9,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddVersioning();
 builder.Services.AddSwagger();
 builder.Services.AddDatabaseContext();
+builder.Services.AddDependencyInjection();
 
 WebApplication app = builder.Build();
 

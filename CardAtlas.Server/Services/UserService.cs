@@ -1,5 +1,7 @@
-﻿namespace CardAtlas.Server.Services;
+﻿using CardAtlas.Server.Services.Interfaces;
 
-public class UserService
+namespace CardAtlas.Server.Services;
+
+public class UserService : IUserService
 {
 }
