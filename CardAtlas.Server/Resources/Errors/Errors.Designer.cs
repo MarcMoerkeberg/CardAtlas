@@ -70,6 +70,15 @@ namespace CardAtlas.Server.Resources.Errors {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid Argument.
+        /// </summary>
+        internal static string BadRequest {
+            get {
+                return ResourceManager.GetString("BadRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not initialize AppSettings from appsettings.json..
         /// </summary>
         internal static string ErrorInitializingAppSettings {
@@ -102,6 +111,33 @@ namespace CardAtlas.Server.Resources.Errors {
         internal static string FailedLoadingTypesFromAssembly {
             get {
                 return ResourceManager.GetString("FailedLoadingTypesFromAssembly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Internal Server Error.
+        /// </summary>
+        internal static string InternalServerError {
+            get {
+                return ResourceManager.GetString("InternalServerError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not Found.
+        /// </summary>
+        internal static string NotFound {
+            get {
+                return ResourceManager.GetString("NotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unauthorized.
+        /// </summary>
+        internal static string Unauthorized {
+            get {
+                return ResourceManager.GetString("Unauthorized", resourceCulture);
             }
         }
     }

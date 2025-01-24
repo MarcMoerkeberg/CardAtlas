@@ -120,6 +120,9 @@
   <data name="AppSettingsIsNotConfigured" xml:space="preserve">
     <value>AppSettings.cs has not been configured from appsettings.json.</value>
   </data>
+  <data name="BadRequest" xml:space="preserve">
+    <value>Invalid Argument</value>
+  </data>
   <data name="ErrorInitializingAppSettings" xml:space="preserve">
     <value>Could not initialize AppSettings from appsettings.json.</value>
   </data>
@@ -131,5 +134,14 @@
   </data>
   <data name="FailedLoadingTypesFromAssembly" xml:space="preserve">
     <value>Failed while loading types from assembly.</value>
+  </data>
+  <data name="InternalServerError" xml:space="preserve">
+    <value>Internal Server Error</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>Not Found</value>
+  </data>
+  <data name="Unauthorized" xml:space="preserve">
+    <value>Unauthorized</value>
   </data>
 </root>

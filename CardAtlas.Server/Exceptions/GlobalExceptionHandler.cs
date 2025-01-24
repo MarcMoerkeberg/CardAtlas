@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using CardAtlas.Server.Resources.Errors;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -11,6 +12,9 @@ public class GlobalExceptionHandler : IExceptionHandler
 		//TODO: Log error message with exception.
 		ProblemDetails problemDetails = GetProblemDetails(exception, httpContext);
 
+		httpContext.Response.StatusCode = problemDetails.Status ?? (int)HttpStatusCode.InternalServerError;
+		httpContext.Response.ContentType = "application/problem+json";
+
 		await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
 		return true; //bool is returned to indicate that the exception has been handled.
@@ -20,52 +24,25 @@ public class GlobalExceptionHandler : IExceptionHandler
 	{
 		ProblemDetails problemDetails = exception switch
 		{
-			KeyNotFoundException => GetNotFoundDetails(),
-			ArgumentException => GetBadRequestDetails(),
-			UnauthorizedAccessException => GetUnauthorizedDetails(),
-			_ => GetInternalServerErrorDetails(),
+			KeyNotFoundException => CreateProblemDetails(HttpStatusCode.NotFound, Errors.NotFound, exception),
+			ArgumentException => CreateProblemDetails(HttpStatusCode.BadRequest, Errors.BadRequest, exception),
+			UnauthorizedAccessException => CreateProblemDetails(HttpStatusCode.Unauthorized, Errors.Unauthorized, exception),
+			_ => CreateProblemDetails(HttpStatusCode.InternalServerError, Errors.InternalServerError, exception),
 		};
 
-		problemDetails.Detail = exception.Message;
-		problemDetails.Type = exception.GetType().Name;
 		problemDetails.Instance = httpContext.Request.Path;
 
 		return problemDetails;
 	}
 
-	private static ProblemDetails GetNotFoundDetails()
+	private static ProblemDetails CreateProblemDetails(HttpStatusCode status, string title, Exception exception)
 	{
 		return new ProblemDetails
 		{
-			Status = (int)HttpStatusCode.NotFound,
-			Title = HttpStatusCode.NotFound.ToString(),
-		};
-	}
-
-	private static ProblemDetails GetBadRequestDetails()
-	{
-		return new ProblemDetails
-		{
-			Status = (int)HttpStatusCode.BadRequest,
-			Title = HttpStatusCode.BadRequest.ToString(),
-		};
-	}
-
-	private static ProblemDetails GetUnauthorizedDetails()
-	{
-		return new ProblemDetails
-		{
-			Status = (int)HttpStatusCode.Unauthorized,
-			Title = HttpStatusCode.Unauthorized.ToString(),
-		};
-	}
-
-	private static ProblemDetails GetInternalServerErrorDetails()
-	{
-		return new ProblemDetails
-		{
-			Status = (int)HttpStatusCode.InternalServerError,
-			Title = HttpStatusCode.InternalServerError.ToString(),
+			Status = (int)status,
+			Title = title,
+			Detail = exception.Message,
+			Type = exception.GetType().Name
 		};
 	}
 }

@@ -24,4 +24,9 @@ app.MapFallbackToFile("/index.html");
 app.UseSwaggerUI();
 app.UseProblemDetails();
 
+if (app.Environment.IsDevelopment())
+{
+	app.UseDeveloperExceptionPage(); // Remove to get production-like errors
+}
+
 app.Run();

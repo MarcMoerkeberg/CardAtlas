@@ -151,7 +151,6 @@ public static class ServiceCollectionExtensions
 	/// <summary>
 	/// Adds global error handling with <see cref="GlobalExceptionHandler"/> and <see cref="ProblemDetails"/>.
 	/// </summary>
-	/// <param name="services"></param>
 	public static void AddGlobalExceptionHandling(this IServiceCollection services)
 	{
 		services.AddExceptionHandler<GlobalExceptionHandler>();
