@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning.ApiExplorer;
 using CardAtlas.Server.Models.Internal;
+using CardAtlas.Server.Resources.Errors;
 
 namespace CardAtlas.Server.Extensions
 {
@@ -18,7 +19,7 @@ namespace CardAtlas.Server.Extensions
 
 			AppSettings? appSettings = configuration.Get<AppSettings>();
 
-			if (appSettings is null) throw new NullReferenceException("AppSettings has not been configured from appsettings.");
+			if (appSettings is null) throw new NullReferenceException(Errors.AppSettingsIsNotConfigured);
 
 			return appSettings;
 		}

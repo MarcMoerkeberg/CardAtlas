@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using CardAtlas.Server.Resources.Errors;
+using System.Reflection;
 
 namespace CardAtlas.Server.Helpers;
 
@@ -38,11 +39,11 @@ public static class AssemblyHelper
 		}
 		catch (ReflectionTypeLoadException ex)
 		{
-			throw new InvalidOperationException("Failed to load types from the assembly.", ex);
+			throw new InvalidOperationException(Errors.FailedLoadingTypesFromAssembly, ex);
 		}
 		catch (TargetInvocationException ex)
 		{
-			throw new InvalidOperationException("An error occurred while loading interface types from the assembly.", ex);
+			throw new InvalidOperationException(Errors.FailedGettingInterfaces, ex);
 		}
 	}
 }

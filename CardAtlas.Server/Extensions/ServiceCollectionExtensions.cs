@@ -4,6 +4,8 @@ using CardAtlas.Server.DAL;
 using CardAtlas.Server.Guards;
 using CardAtlas.Server.Helpers;
 using CardAtlas.Server.Models.Internal;
+using CardAtlas.Server.Resources;
+using CardAtlas.Server.Resources.Errors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
@@ -12,9 +14,8 @@ namespace CardAtlas.Server.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-	private const string _servicesNamespace = "CardAtlas.Server.Services";
-	private static AppSettings? _appSettings;
 	private static readonly ApiVersion _defaultApiVersion = new(1, 0);
+	private static AppSettings? _appSettings;
 
 	/// <summary>
 	/// Returns the <see cref="AppSettings"/> object from the <see cref="IServiceCollection"/>.<br/>
@@ -27,9 +28,9 @@ public static class ServiceCollectionExtensions
 
 		AppSettings? appSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AppSettings>>().Value;
 
-		if (appSettings is null) throw new NullReferenceException("Could not initialize AppSettings from appsettings.json.");
-		if (string.IsNullOrEmpty(appSettings.AppName)) throw new NullReferenceException("Could not initialize AppName from appsettings.json.");
-		if (!appSettings.HasValidConnectionStrings()) throw new NullReferenceException("Could not initialize connectionstrings from appsettings.json.");
+		if (appSettings is null) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
+		if (string.IsNullOrEmpty(appSettings.AppName)) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
+		if (!appSettings.HasValidConnectionStrings()) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
 
 		return appSettings;
 	}
@@ -70,7 +71,7 @@ public static class ServiceCollectionExtensions
 				{
 					Title = $"{appSettings.AppName} {apiDescriptiontion.GroupName}",
 					Version = apiDescriptiontion.ApiVersion.ToString(),
-					Description = apiDescriptiontion.IsDeprecated ? "This version has been deprecated." : string.Empty
+					Description = apiDescriptiontion.IsDeprecated ? ApplicationSettings.ApiVersionDeprecated : string.Empty
 				};
 
 				options.SwaggerDoc(apiDescriptiontion.GroupName, openApiInfo);
@@ -83,19 +84,22 @@ public static class ServiceCollectionExtensions
 	/// </summary>
 	public static void AddVersioning(this IServiceCollection services)
 	{
+		const string apiVersionHeader = "api-version";
+		const string apiVersionFormat = "'v'VVV";
+
 		services.AddApiVersioning(options =>
 		{
 			options.DefaultApiVersion = _defaultApiVersion;
 			options.AssumeDefaultVersionWhenUnspecified = true;
 			options.ReportApiVersions = true; //Adds headers "api-supported-versions" and "api-deprecated-versions" to the response
 			options.ApiVersionReader = ApiVersionReader.Combine(
-				new HeaderApiVersionReader("api-version"), //Reads request the header "api-version"
-				new QueryStringApiVersionReader("api-version") //Reads the query string parameter "api-version"
+				new HeaderApiVersionReader(apiVersionHeader), //Reads request the header "api-version"
+				new QueryStringApiVersionReader(apiVersionHeader) //Reads the query string parameter "api-version"
 			);
 		})
 		.AddApiExplorer(options =>
 		{
-			options.GroupNameFormat = "'v'VVV"; //Version formatting: "v1.0", "v2.0", etc.
+			options.GroupNameFormat = apiVersionFormat; //Version formatting: "v1.0", "v2.0", etc.
 			options.SubstituteApiVersionInUrl = true;
 		});
 	}
@@ -114,14 +118,15 @@ public static class ServiceCollectionExtensions
 	/// </summary>
 	private static void AddScopedServiceDependencies(IServiceCollection services)
 	{
-		IEnumerable<Type> servicesWithInterfaces = AssemblyHelper.GetClassesThatImplementInterfaces(_servicesNamespace);
+		const string servicesNamespace = "CardAtlas.Server.Services";
+		IEnumerable<Type> servicesWithInterfaces = AssemblyHelper.GetClassesThatImplementInterfaces(servicesNamespace);
 
 		foreach (Type service in servicesWithInterfaces)
 		{
 			IEnumerable<Type> serviceInterfaces = service.GetInterfaces()
 					.Where(@interface =>
 						!string.IsNullOrEmpty(@interface.Namespace) &&
-						@interface.Namespace.StartsWith(_servicesNamespace, StringComparison.Ordinal)
+						@interface.Namespace.StartsWith(servicesNamespace, StringComparison.Ordinal)
 					);
 
 			foreach (Type @interface in serviceInterfaces)
