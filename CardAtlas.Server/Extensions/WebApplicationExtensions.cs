@@ -40,7 +40,7 @@ namespace CardAtlas.Server.Extensions
 				foreach (ApiVersionDescription apiDescriptiontion in apiDescriptiontions)
 				{
 					string url = $"/swagger/{apiDescriptiontion.GroupName}/swagger.json";
-					string name = apiDescriptiontion.GroupName.ToUpperInvariant();
+					string name = $"{appSettings.AppName} {apiDescriptiontion.GroupName}";
 
 					options.SwaggerEndpoint(url, name);
 				}

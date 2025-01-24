@@ -67,7 +67,7 @@ public static class ServiceCollectionExtensions
 			{
 				var openApiInfo = new OpenApiInfo
 				{
-					Title = $"{appSettings.AppName} {apiDescriptiontion.GroupName.ToUpperInvariant()}",
+					Title = $"{appSettings.AppName} {apiDescriptiontion.GroupName}",
 					Version = apiDescriptiontion.ApiVersion.ToString(),
 					Description = apiDescriptiontion.IsDeprecated ? "This version has been deprecated." : string.Empty
 				};
