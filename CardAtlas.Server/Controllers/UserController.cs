@@ -4,7 +4,7 @@ namespace CardAtlas.Server.Controllers
 {
 	[ApiController]
 	[ApiVersion("1.0")]
-	[Route("api/[controller]")]
+	[Route("api/[controller]/[action]")]
 	public class UserController
 	{
 		[HttpPost]
