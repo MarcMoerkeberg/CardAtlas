@@ -1,11 +1,14 @@
 ﻿using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using CardAtlas.Server.DAL;
+using CardAtlas.Server.Exceptions;
 using CardAtlas.Server.Guards;
 using CardAtlas.Server.Helpers;
 using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Resources;
 using CardAtlas.Server.Resources.Errors;
+using Hellang.Middleware.ProblemDetails;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
@@ -143,5 +146,15 @@ public static class ServiceCollectionExtensions
 	private static void AddMemoryCache(IServiceCollection services)
 	{
 		//Consider adding a memory cache to the application some time during development.
+	}
+
+	/// <summary>
+	/// Adds global error handling with <see cref="GlobalExceptionHandler"/> and <see cref="ProblemDetails"/>.
+	/// </summary>
+	/// <param name="services"></param>
+	public static void AddGlobalExceptionHandling(this IServiceCollection services)
+	{
+		services.AddExceptionHandler<GlobalExceptionHandler>();
+		ProblemDetailsExtensions.AddProblemDetails(services);
 	}
 }

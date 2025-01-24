@@ -1,5 +1,6 @@
 using CardAtlas.Server.Extensions;
 using CardAtlas.Server.Models.Internal;
+using Hellang.Middleware.ProblemDetails;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,7 @@ builder.Services.AddVersioning();
 builder.Services.AddSwagger();
 builder.Services.AddDatabaseContext();
 builder.Services.AddDependencyInjection();
+builder.Services.AddGlobalExceptionHandling();
 
 WebApplication app = builder.Build();
 
@@ -20,5 +22,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapFallbackToFile("/index.html");
 app.UseSwaggerUI();
+app.UseProblemDetails();
 
 app.Run();
