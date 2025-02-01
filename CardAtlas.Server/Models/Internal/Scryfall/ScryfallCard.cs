@@ -41,6 +41,7 @@ public class ScryfallCoreCard
 
 	[JsonPropertyName("layout")]
 	public required string Layout { get; set; }
+	public ScryfallLayoutType LayoutType => Layout.ParseAsScryfallEnum<ScryfallLayoutType>();
 
 	[JsonPropertyName("oracle_id")]
 	public Guid? OracleId { get; set; }
@@ -56,8 +57,6 @@ public class ScryfallCoreCard
 
 	[JsonPropertyName("uri")]
 	public required Uri Uri { get; set; }
-
-	public ScryfallLayoutType LayoutType => Layout.ParseAsScryfallEnum<ScryfallLayoutType>();
 }
 
 public class ScryfallGameplay
@@ -86,38 +85,89 @@ public class ScryfallGameplay
 	[JsonPropertyName("hand_modifier")]
 	public string? HandModifier { get; set; }
 
-	//CONTINUE ...
+	[JsonPropertyName("keywords")]
+	public required string[] Keywords { get; set; }
+
+	[JsonPropertyName("legalities")]
+	public required Dictionary<string, string> Legalities { get; set; }
+	public Dictionary<ScryfallFormat, ScryfallLegalFormat> FormatLegalities
+	{
+		get
+		{
+			var formatsAndLegalities = new Dictionary<ScryfallFormat, ScryfallLegalFormat>();
+
+			foreach (var format in Legalities)
+			{
+				formatsAndLegalities.Add(format.Key.ParseAsScryfallEnum<ScryfallFormat>(), format.Value.ParseAsScryfallEnum<ScryfallLegalFormat>());
+			}
+
+			return formatsAndLegalities;
+		}
+	}
+
+	[JsonPropertyName("life_modifier")]
+	public string? VanguardLifeModifier { get; set; }
+
+	[JsonPropertyName("loyalty")]
+	public string? Loyalty { get; set; }
+
+	[JsonPropertyName("mana_cost")]
+	public string? ManaCost { get; set; }
+
+	[JsonPropertyName("name")]
+	public required string Name { get; set; }
+
+	[JsonPropertyName("oracle_text")]
+	public string? OracleText { get; set; }
+
+	[JsonPropertyName("penny_rank")]
+	public int? PennyDreadfulRank { get; set; }
+
+	[JsonPropertyName("power")]
+	public string? Power { get; set; }
+
+	[JsonPropertyName("produced_mana")]
+	public string[]? ProducesManaColor { get; set; }
+
+	[JsonPropertyName("reserved")]
+	public bool IsOnReservedList { get; set; }
+
+	[JsonPropertyName("toughness")]
+	public string? Toughness { get; set; }
+
+	[JsonPropertyName("type_line")]
+	public required string TypeLine { get; set; }
 }
 
 public class ScryfallRelatedCard
 {
 	[JsonPropertyName("id")]
 	public Guid Id { get; set; }
-	
+
 	[JsonPropertyName("object")]
 	public required string ObjectType { get; set; }
+	public ScryfallObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ScryfallObjectType>();
 
 	[JsonPropertyName("component")]
 	public required string ComponentType { get; set; }
+	public ScryfallComponentType ScryfallComponentType => ComponentType.ParseAsScryfallEnum<ScryfallComponentType>();
 
 	[JsonPropertyName("name")]
 	public required string Name { get; set; }
 
 	[JsonPropertyName("type_line")]
 	public required string TypeLine { get; set; }
-	
+
 	[JsonPropertyName("uri")]
 	public required Uri Uri { get; set; }
 
-	public ScryfallObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ScryfallObjectType>();
-	public ScryfallComponentType ScryfallComponentType => ComponentType.ParseAsScryfallEnum<ScryfallComponentType>();
 }
 
 public class ScryfallCardFace
 {
 	[JsonPropertyName("artist")]
 	public string? Artist { get; set; }
-	
+
 	[JsonPropertyName("artist_id")]
 	public Guid? ArtistId { get; set; }
 
@@ -138,51 +188,171 @@ public class ScryfallCardFace
 
 	[JsonPropertyName("illustration_id")]
 	public Guid? IllustrationId { get; set; }
-	
+
 	[JsonPropertyName("image_uris")]
 	public Dictionary<string, Uri>? ImageUris { get; set; }
+	public Dictionary<ScryfallImageFormat, Uri>? ScryfallImageUris
+	{
+		get
+		{
+			if (ImageUris == null) return null;
+
+			var imageFormatsAndUris = new Dictionary<ScryfallImageFormat, Uri>();
+
+			foreach (var format in ImageUris)
+			{
+				imageFormatsAndUris.Add(format.Key.ParseAsScryfallEnum<ScryfallImageFormat>(), format.Value);
+			}
+
+			return imageFormatsAndUris;
+		}
+	}
 
 	[JsonPropertyName("layout")]
 	public string? Layout { get; set; }
 
 	[JsonPropertyName("loyalty")]
 	public string? Loyalty { get; set; }
-	
+
 	[JsonPropertyName("mana_cost")]
 	public required string ManaCost { get; set; }
-	
+
 	[JsonPropertyName("name")]
 	public required string Name { get; set; }
 
 	[JsonPropertyName("object")]
 	public required string ObjectType { get; set; }
+	public ScryfallObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ScryfallObjectType>();
 
 	[JsonPropertyName("oracle_id")]
 	public Guid? OracleId { get; set; }
-	
+
 	[JsonPropertyName("oracle_text")]
 	public string? OracleText { get; set; }
 
 	[JsonPropertyName("power")]
 	public string? Power { get; set; }
-	
+
 	[JsonPropertyName("printed_name")]
 	public string? LocalizedName { get; set; }
-	
+
 	[JsonPropertyName("printed_text")]
 	public string? LocalizedText { get; set; }
-	
+
 	[JsonPropertyName("printed_type_line")]
 	public string? LocalizedTypeLine { get; set; }
-	
+
 	[JsonPropertyName("toughness")]
 	public string? Toughness { get; set; }
-	
+
 	[JsonPropertyName("type_line")]
 	public string? TypeLine { get; set; }
-	
+
 	[JsonPropertyName("watermark")]
 	public string? Watermark { get; set; }
+}
 
-	public ScryfallObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ScryfallObjectType>();
+public class ScryfallPrintInformation
+{
+	[JsonPropertyName("artist")]
+	public string? ArtistName { get; set; }
+
+	[JsonPropertyName("artist_ids")]
+	public Guid[]? ArtistIds { get; set; }
+
+	[JsonPropertyName("attraction_lights")]
+	public int[]? UnfinityAttractionLights { get; set; }
+
+	[JsonPropertyName("booster")]
+	public bool CanBeFoundInBoosterPacks { get; set; }
+
+	[JsonPropertyName("border_color")]
+	public required string BorderColor { get; set; }
+	public ScryfallBorderColor ScryfallBorderColor => BorderColor.ParseAsScryfallEnum<ScryfallBorderColor>();
+
+	[JsonPropertyName("card_back_id")]
+	public Guid CardBackId { get; set; }
+
+	[JsonPropertyName("collector_number")]
+	public required string CollectorNumber { get; set; }
+
+	[JsonPropertyName("content_warning")]
+	public bool? HasContentWarning { get; set; }
+
+	[JsonPropertyName("digital")]
+	public bool IsOnlyDigitalPrint { get; set; }
+
+	[JsonPropertyName("finishes")]
+	public required string[] ComesInFinishes { get; set; }
+	public ScryfallFinish[] ComesInScryfallFinishes => ComesInFinishes.ParseAsScryfallEnum<ScryfallFinish>().ToArray();
+
+	[JsonPropertyName("flavor_name")]
+	public string? FlavorName { get; set; }
+
+	[JsonPropertyName("flavor_text")]
+	public string? FlavorText { get; set; }
+
+	[JsonPropertyName("frame_effects")]
+	public string[]? FrameEffects { get; set; }
+	public ScryfallFrameEffect[]? ScryfallFrameEffects
+	{
+		get
+		{
+			return FrameEffects == null
+				? null
+				: FrameEffects.ParseAsScryfallEnum<ScryfallFrameEffect>().ToArray();
+		}
+	}
+
+	[JsonPropertyName("frame")]
+	public required string FrameType { get; set; }
+
+	[JsonPropertyName("full_art")]
+	public bool IsFullArt { get; set; }
+
+	[JsonPropertyName("games")]
+	public required string[] PrintIsAvailableInGameModes { get; set; }
+	public ScryfallGameMode[] PrintIsAvailableInScryfallGameModes => PrintIsAvailableInGameModes.ParseAsScryfallEnum<ScryfallGameMode>().ToArray();
+
+	[JsonPropertyName("highres_image")]
+	public bool ImageIsHighResolution { get; set; }
+
+	[JsonPropertyName("illustration_id")]
+	public Guid? IllustrationId { get; set; }
+
+	[JsonPropertyName("image_status")]
+	public required string ImageStatus { get; set; }
+	public ScryfallImageStatus ScryfallImageStatus => ImageStatus.ParseAsScryfallEnum<ScryfallImageStatus>();
+
+	[JsonPropertyName("image_uris")]
+	public required Dictionary<string, Uri>? ImageUris { get; set; }
+	public Dictionary<ScryfallImageFormat, Uri>? ScryfallImageUris
+	{
+		get
+		{
+			if (ImageUris == null) return null;
+
+			var imageFormatsAndUris = new Dictionary<ScryfallImageFormat, Uri>();
+
+			foreach (var format in ImageUris)
+			{
+				imageFormatsAndUris.Add(format.Key.ParseAsScryfallEnum<ScryfallImageFormat>(), format.Value);
+			}
+
+			return imageFormatsAndUris;
+		}
+	}
+
+	[JsonPropertyName("oversized")]
+	public bool CardIsOversized { get; set; }
+
+	[JsonPropertyName("prices")]
+	public required Dictionary<string, string> CardPrices { get; set; }
+	public Dictionary<ScryfallCardPriceType, string> ScryfallCardPrices
+	{
+		get
+		{
+
+		}
+	}
 }
