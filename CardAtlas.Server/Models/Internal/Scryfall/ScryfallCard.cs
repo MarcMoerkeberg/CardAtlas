@@ -284,7 +284,7 @@ public class ScryfallPrintInformation
 
 	[JsonPropertyName("finishes")]
 	public required string[] ComesInFinishes { get; set; }
-	public ScryfallFinish[] ComesInScryfallFinishes => ComesInFinishes.ParseAsScryfallEnum<ScryfallFinish>().ToArray();
+	public IEnumerable<ScryfallFinish> ComesInScryfallFinishes => ComesInFinishes.ParseAsScryfallEnum<ScryfallFinish>();
 
 	[JsonPropertyName("flavor_name")]
 	public string? FlavorName { get; set; }
@@ -294,13 +294,13 @@ public class ScryfallPrintInformation
 
 	[JsonPropertyName("frame_effects")]
 	public string[]? FrameEffects { get; set; }
-	public ScryfallFrameEffect[]? ScryfallFrameEffects
+	public IEnumerable<ScryfallFrameEffect>? ScryfallFrameEffects
 	{
 		get
 		{
 			return FrameEffects == null
 				? null
-				: FrameEffects.ParseAsScryfallEnum<ScryfallFrameEffect>().ToArray();
+				: FrameEffects.ParseAsScryfallEnum<ScryfallFrameEffect>();
 		}
 	}
 
@@ -312,7 +312,7 @@ public class ScryfallPrintInformation
 
 	[JsonPropertyName("games")]
 	public required string[] PrintIsAvailableInGameModes { get; set; }
-	public ScryfallGameMode[] PrintIsAvailableInScryfallGameModes => PrintIsAvailableInGameModes.ParseAsScryfallEnum<ScryfallGameMode>().ToArray();
+	public IEnumerable<ScryfallGameMode> PrintIsAvailableInScryfallGameModes => PrintIsAvailableInGameModes.ParseAsScryfallEnum<ScryfallGameMode>();
 
 	[JsonPropertyName("highres_image")]
 	public bool ImageIsHighResolution { get; set; }
@@ -348,7 +348,7 @@ public class ScryfallPrintInformation
 
 	[JsonPropertyName("prices")]
 	public required Dictionary<string, string> CardPrices { get; set; }
-	public Dictionary<ScryfallCardPriceType, string> ScryfallCardPrices
+	public Dictionary<ScryfallCardPriceType, decimal?> ScryfallCardPrices
 	{
 		get
 		{
