@@ -50,6 +50,9 @@ public static class ScryfallHelper
 		Type type = typeof(T);
 		var errorResult = (false, default(T)!);
 
+		//Handle strings
+		//Handle enums
+		//Handle Uris
 		return type switch
 		{
 			_ when type == typeof(bool) => (bool.TryParse(target, out bool boolValue), (T)(object)boolValue),
