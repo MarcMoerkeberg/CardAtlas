@@ -2,11 +2,21 @@
 
 public static class ScryfallHelper
 {
+	/// <summary>
+	/// Parses the <paramref name="targets"/> into keys of the provided <typeparamref name="TEnum"/>.<br/>
+	/// Normalizes the string before parsing it as the enum key.
+	/// </summary>
+	/// <param name="targets">Should exist as en entry within <typeparamref name="TEnum"/>.</param>
 	public static IEnumerable<TEnum> ParseAsScryfallEnum<TEnum>(this IEnumerable<string> targets) where TEnum : struct, Enum
 	{
 		return targets.Select(target => target.ParseAsScryfallEnum<TEnum>());
 	}
 
+	/// <summary>
+	/// Parses the <paramref name="target"/> into a key of the provided <typeparamref name="TEnum"/>.<br/>
+	/// Normalizes the string before parsing it as the enum.
+	/// </summary>
+	/// <param name="target">Should exist as en entry within <typeparamref name="TEnum"/>.</param>
 	public static TEnum ParseAsScryfallEnum<TEnum>(this string target) where TEnum : struct, Enum
 	{
 		string normalizedTarget = NormalizeStringForEnumParsing(target);
@@ -15,28 +25,36 @@ public static class ScryfallHelper
 			: default;
 	}
 
+	/// <summary>
+	/// Returns new normalized string for parsing enum key.
+	/// </summary>
 	private static string NormalizeStringForEnumParsing(string target)
 	{
 		return target.Replace("_", string.Empty);
 	}
 
-	public static Dictionary<TKey, TValue> ToEnumKeyDictionary<TKey, TValue>(this Dictionary<string, string>? targetDictionary) where TKey : struct, Enum
+	/// <summary>
+	/// Creates a dictionary with keys from <paramref name="targetDictionary"/> that matches an entry within <typeparamref name="TEnum"/>.
+	/// </summary>
+	/// <typeparam name="TEnum">The enum to match keys from <paramref name="targetDictionary"/>.</typeparam>
+	/// <typeparam name="TValue">The <see cref="Type"/> to parse <paramref name="targetDictionary"/> values to.</typeparam>
+	/// <param name="targetDictionary"></param>
+	/// <returns></returns>
+	public static Dictionary<TEnum, TValue> ToEnumKeyDictionary<TEnum, TValue>(this Dictionary<string, string>? targetDictionary) where TEnum : struct, Enum
 	{
-		var result = new Dictionary<TKey, TValue>();
+		var result = new Dictionary<TEnum, TValue>();
 		if (targetDictionary is null)
 		{
-			return new Dictionary<TKey, TValue>();
+			return result;
 		}
 
 		foreach (var (key, value) in targetDictionary)
 		{
-			bool keyParsed = Enum.TryParse(key, ignoreCase: true, out TKey parsedKey);
-			bool valueIsNullable = Nullable.GetUnderlyingType(typeof(TValue)) != null;
-			(bool parseValueSuccess, TValue? parsedValue) = valueIsNullable
-				? (true, default)
-				: ParseAs<TValue>(value);
+			(bool parseKeySuccess, TEnum parsedKey) = ParseEnum<TEnum>(key);
+			(bool parseValueSuccess, TValue? parsedValue) = ParseAs<TValue>(value);
+			//TODO: add logging for failing parsing.
 
-			if (keyParsed && parseValueSuccess)
+			if (parseKeySuccess && parseValueSuccess && !result.ContainsKey(parsedKey))
 			{
 				result.Add(parsedKey, parsedValue!);
 			}
@@ -45,51 +63,115 @@ public static class ScryfallHelper
 		return result;
 	}
 
+	/// <summary>
+	/// Parses <paramref name="target"/> to type <typeparamref name="T"/>.<br/>
+	/// WARNING: Does not parse all types.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="target"></param>
+	/// <returns>Tuple with flag indicating wether the parsing was successfull or not, and the parsed value.</returns>
 	private static (bool parsingSuccess, T parsedValue) ParseAs<T>(string target)
 	{
+		(bool, T) errorResult = (false, default(T)!);
 		Type type = typeof(T);
-		var errorResult = (false, default(T)!);
 
-		//Handle strings
-		//Handle enums
-		//Handle Uris
+		if (target is null) return errorResult;
+
 		return type switch
 		{
-			_ when type == typeof(bool) => (bool.TryParse(target, out bool boolValue), (T)(object)boolValue),
-			_ when type == typeof(byte) => (byte.TryParse(target, out byte byteValue), (T)(object)byteValue),
-			_ when type == typeof(char) => (char.TryParse(target, out char charValue), (T)(object)charValue),
-			_ when type == typeof(decimal) => (decimal.TryParse(target, out decimal decimalValue), (T)(object)decimalValue),
-			_ when type == typeof(double) => (double.TryParse(target, out double doubleValue), (T)(object)doubleValue),
-			_ when type == typeof(float) => (float.TryParse(target, out float floatValue), (T)(object)floatValue),
-			_ when type == typeof(int) => (int.TryParse(target, out int intValue), (T)(object)intValue),
-			_ when type == typeof(long) => (long.TryParse(target, out long longValue),(T)(object)longValue),
-			_ when type == typeof(sbyte) => (sbyte.TryParse(target, out sbyte sbyteValue), (T)(object)sbyteValue),
-			_ when type == typeof(short) => (short.TryParse(target, out short shortValue), (T)(object)shortValue),
-			_ when type == typeof(uint) => (uint.TryParse(target, out uint uintValue), (T)(object)uintValue),
-			_ when type == typeof(ulong) => (ulong.TryParse(target, out ulong ulongValue), (T)(object)ulongValue),
-			_ when type == typeof(ushort) => (ushort.TryParse(target, out ushort ushortValue), (T)(object)ushortValue),
-			_ when type.IsEnum => ParseEnum<T>(target),
-			_ => (false, default!)
+			_ when type == typeof(string) =>
+			(true, (T)(object)target),
+
+			_ when type == typeof(bool) =>
+			(bool.TryParse(target, out bool boolValue), (T)(object)boolValue),
+
+			_ when type == typeof(byte) =>
+			(byte.TryParse(target, out byte byteValue), (T)(object)byteValue),
+
+			_ when type == typeof(char) =>
+			(char.TryParse(target, out char charValue), (T)(object)charValue),
+
+			_ when type == typeof(decimal) =>
+			(decimal.TryParse(target, out decimal decimalValue), (T)(object)decimalValue),
+
+			_ when type == typeof(double) =>
+			(double.TryParse(target, out double doubleValue), (T)(object)doubleValue),
+
+			_ when type == typeof(float) =>
+			(float.TryParse(target, out float floatValue), (T)(object)floatValue),
+
+			_ when type == typeof(int) =>
+			(int.TryParse(target, out int intValue), (T)(object)intValue),
+
+			_ when type == typeof(long) =>
+			(long.TryParse(target, out long longValue), (T)(object)longValue),
+
+			_ when type == typeof(sbyte) =>
+			(sbyte.TryParse(target, out sbyte sbyteValue), (T)(object)sbyteValue),
+
+			_ when type == typeof(short) =>
+			(short.TryParse(target, out short shortValue), (T)(object)shortValue),
+
+			_ when type == typeof(uint) =>
+			(uint.TryParse(target, out uint uintValue), (T)(object)uintValue),
+
+			_ when type == typeof(ulong) =>
+			(ulong.TryParse(target, out ulong ulongValue), (T)(object)ulongValue),
+
+			_ when type == typeof(ushort) =>
+			(ushort.TryParse(target, out ushort ushortValue), (T)(object)ushortValue),
+
+			_ when type.IsEnum =>
+			ParseEnum<T>(target),
+
+			_ when type == typeof(Uri) =>
+			ParseUri<T>(target),
+
+			_ => errorResult
 		};
 	}
 
-	private static (bool parsingResult, T parsedValue) ParseEnum<T>(string value)
+	/// <summary>
+	/// Parses <paramref name="value"/> to enum of type <typeparamref name="TEnum"/>.<br/>
+	/// Fails if <typeparamref name="TEnum"/> is not an enum or <paramref name="value"/> is not a key within the enum.<br/>
+	/// </summary>
+	/// <typeparam name="TEnum">Should be a scryfall Enum type.</typeparam>
+	/// <param name="value">Should be a key within the enum.</param>
+	/// <returns>Tuple containing flag wether the parsing was successfull or not, and the parsed value.</returns>
+	private static (bool parsingResult, TEnum parsedValue) ParseEnum<TEnum>(string value)
 	{
-		var result = (false, default(T)!);
+		var errorResult = (false, default(TEnum)!);
+
+		if (string.IsNullOrEmpty(value)) return errorResult;
+		if (!typeof(TEnum).IsEnum) return errorResult;
 
 		try
 		{
-			Type enumType = typeof(T);
+			Type enumType = typeof(TEnum);
 			string normalizedTarget = NormalizeStringForEnumParsing(value);
 
-			T parsedEnum = (T)Enum.Parse(enumType, normalizedTarget, ignoreCase: true);
+			TEnum parsedEnum = (TEnum)Enum.Parse(enumType, normalizedTarget, ignoreCase: true);
 
-			result = (true, parsedEnum);
+			return (true, parsedEnum);
 		}
-		catch (Exception)
+		catch
 		{
+			return errorResult;
 		}
-		
-		return result;
+	}
+
+	/// <summary>
+	/// Returns a new <see cref="Uri"/> with <paramref name="value"/> as the absolute url. <br/>
+	/// Fails if <paramref name="value"/> is not well formatted for uri consumption.
+	/// </summary>
+	/// <param name="value">Should be an absolute string uri.</param>
+	private static (bool parsingResult, T parsedValue) ParseUri<T>(string value)
+	{
+		var errorResult = (false, default(T)!);
+
+		if (string.IsNullOrEmpty(value)) return errorResult;
+		if (!Uri.IsWellFormedUriString(value, UriKind.Absolute)) return errorResult;
+
+		return (Uri.TryCreate(value, UriKind.Absolute, out Uri? uriResult), (T)(object)uriResult!);
 	}
 }
