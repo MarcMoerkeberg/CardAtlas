@@ -170,8 +170,8 @@ public class ScryfallCard
 	public bool IsOnlyDigitalPrint { get; set; }
 
 	[JsonPropertyName("finishes")]
-	public required string[] ComesInFinishes { get; set; }
-	public IEnumerable<Finish> ComesInScryfallFinishes => ComesInFinishes.ParseAsScryfallEnum<Finish>();
+	public required string[] ScryfallComesInFinishes { get; set; }
+	public IEnumerable<Finish> ComesInFinishes => ScryfallComesInFinishes.ParseAsScryfallEnum<Finish>();
 
 	[JsonPropertyName("flavor_name")]
 	public string? FlavorName { get; set; }
@@ -182,6 +182,9 @@ public class ScryfallCard
 	[JsonPropertyName("frame_effects")]
 	public string[]? ScryfallFrameEffects { get; set; }
 	private FrameEffects? _frameEffects { get; set; }
+	/// <summary>
+	/// Is <see cref="ScryfallFrameEffects"/> typed as a model.
+	/// </summary>
 	public FrameEffects? FrameEffects
 	{
 		get
@@ -208,6 +211,9 @@ public class ScryfallCard
 	[JsonPropertyName("games")]
 	public required string[] PrintAvailableInGameModes { get; set; }
 	private PrintAvailability? _printAvailability { get; set; }
+	/// <summary>
+	/// Is <see cref="PrintAvailableInGameModes"/> typed as a model.
+	/// </summary>
 	public PrintAvailability PrintAvailability
 	{
 		get
