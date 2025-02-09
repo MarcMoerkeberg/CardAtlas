@@ -1,11 +1,10 @@
 ﻿using CardAtlas.Server.Helpers;
 using CardAtlas.Server.Models.Scryfall.Types;
-using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace CardAtlas.Server.Models.Scryfall;
 
-public class Card
+public class ScryfallCard
 {
 	//Core card properties
 	[JsonPropertyName("arena_id")]
@@ -96,21 +95,11 @@ public class Card
 		{
 			if (_formatLegalities == null)
 			{
-				var formatsAndLegalities = new FormatLegalities();
+				FormatLegalities formatLegalities = ScryfallHelper.BindDictionaryToModel<FormatLegalities, string>(
+					ScryfallLegalities,
+					dictionaryValue => dictionaryValue.ParseAsScryfallEnum<Legality>());
 
-				foreach (KeyValuePair<string, string> format in ScryfallLegalities)
-				{
-					PropertyInfo? property = typeof(FormatLegalities)
-						.GetProperty(format.Key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-
-					if (property != null && property.CanWrite)
-					{
-						var propertyValue = format.Value.ParseAsScryfallEnum<Legality>();
-						property.SetValue(formatsAndLegalities, propertyValue);
-					}
-				}
-
-				_formatLegalities = formatsAndLegalities;
+				_formatLegalities = formatLegalities;
 			}
 
 			return _formatLegalities;
@@ -197,22 +186,11 @@ public class Card
 	{
 		get
 		{
-			if (ScryfallFrameEffects == null || ScryfallFrameEffects.Length == 0) return null;
+			if (ScryfallFrameEffects is null) return null;
 
 			if (_frameEffects is null)
 			{
-				var frameEffects = new FrameEffects();
-
-				foreach (string scryfallFrameEffect in ScryfallFrameEffects)
-				{
-					PropertyInfo? property = typeof(FrameEffects)
-						.GetProperty(scryfallFrameEffect, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-
-					if (property != null && property.CanWrite)
-					{
-						property.SetValue(frameEffects, true);
-					}
-				}
+				FrameEffects frameEffects = ScryfallHelper.BindJsonStringsToModel<FrameEffects>(ScryfallFrameEffects, property => true);
 
 				_frameEffects = frameEffects;
 			}
@@ -236,18 +214,7 @@ public class Card
 		{
 			if (_printAvailability is null)
 			{
-				var printAvailability = new PrintAvailability();
-
-				foreach (string gamemode in PrintAvailableInGameModes)
-				{
-					PropertyInfo? property = typeof(PrintAvailability)
-						.GetProperty(gamemode, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-
-					if (property != null && property.CanWrite)
-					{
-						property.SetValue(printAvailability, true);
-					}
-				}
+				PrintAvailability printAvailability = ScryfallHelper.BindJsonStringsToModel<PrintAvailability>(PrintAvailableInGameModes, property => true);
 
 				_printAvailability = printAvailability;
 			}
@@ -273,22 +240,12 @@ public class Card
 	{
 		get
 		{
-			if (ScryfallImageUris == null || ScryfallImageUris.Count == 0) return null;
+			if (ScryfallImageUris is null) return null;
 
 			if (_imageUris is null)
 			{
-				var imageUris = new ImageUris();
+				ImageUris imageUris = ScryfallHelper.BindDictionaryToModel<ImageUris, Uri?>(ScryfallImageUris, dictionaryValue => dictionaryValue);
 
-				foreach (KeyValuePair<string, Uri?> scryfallImageUri in ScryfallImageUris)
-				{
-					PropertyInfo? property = typeof(ImageUris)
-						.GetProperty(scryfallImageUri.Key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-
-					if (property != null && property.CanWrite)
-					{
-						property.SetValue(imageUris, scryfallImageUri.Value);
-					}
-				}
 				_imageUris = imageUris;
 			}
 
@@ -326,7 +283,7 @@ public class Card
 	public Rarity Rarity => ScryfallRarity.ParseAsScryfallEnum<Rarity>();
 
 	[JsonPropertyName("related_uris")]
-	public required RelatedUris propertyname { get; set; }
+	public required RelatedUris RelatedUris { get; set; }
 
 	[JsonPropertyName("released_at")]
 	public DateOnly ReleasedDate { get; set; }
@@ -358,7 +315,7 @@ public class Card
 	public Guid SetId { get; set; }
 
 	[JsonPropertyName("story_spotlight")]
-	public bool IsStyorySpotlight { get; set; }
+	public bool IsStorySpotlight { get; set; }
 
 	[JsonPropertyName("textless")]
 	public bool IsTextlessPrint { get; set; }
