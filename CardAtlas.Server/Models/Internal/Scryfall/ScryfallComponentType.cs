@@ -6,5 +6,5 @@ public enum ScryfallComponentType
 	MeldPart,
 	MeldResult,
 	ComboPiece,
-	Unknown = 0
+	NotImplemented = 0
 }

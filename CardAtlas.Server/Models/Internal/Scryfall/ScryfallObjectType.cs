@@ -7,5 +7,5 @@ public enum ScryfallObjectType
 	Card,
 	RelatedCard,
 	CardFace,
-	Unknown = 0
+	NotImplemented = 0
 }

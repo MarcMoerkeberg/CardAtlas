@@ -25,5 +25,5 @@ public enum ScryfallLayoutType
 	Host,
 	ArtSeries,
 	ReversibleCard,
-	Unknown = 0
+	NotImplemented = 0
 }

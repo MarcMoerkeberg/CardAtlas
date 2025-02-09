@@ -5,5 +5,5 @@ public enum ScryfallFinish
 	Foil,
 	Nonfoil,
 	Etched,
-	Unknown = 0
+	NotImplemented = 0
 }

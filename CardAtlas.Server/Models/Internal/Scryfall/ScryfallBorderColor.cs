@@ -8,5 +8,5 @@ public enum ScryfallBorderColor
 	Yellow,
 	Silver,
 	Gold,
-	Unknown = 0
+	NotImplemented = 0
 }

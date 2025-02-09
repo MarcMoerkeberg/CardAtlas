@@ -1,14 +1,12 @@
 ﻿using CardAtlas.Server.Helpers;
+using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace CardAtlas.Server.Models.Internal.Scryfall;
 
 public class ScryfallCard
 {
-}
-
-public class ScryfallCoreCard
-{
+	//Core card properties
 	[JsonPropertyName("arena_id")]
 	public int? ArenaId { get; set; }
 
@@ -38,6 +36,7 @@ public class ScryfallCoreCard
 
 	[JsonPropertyName("object")]
 	public required string ObjectType { get; set; }
+	public ScryfallObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ScryfallObjectType>();
 
 	[JsonPropertyName("layout")]
 	public required string Layout { get; set; }
@@ -56,11 +55,10 @@ public class ScryfallCoreCard
 	public required Uri ScryfallUri { get; set; }
 
 	[JsonPropertyName("uri")]
-	public required Uri Uri { get; set; }
-}
+	public required Uri ScryfallCardUri { get; set; }
 
-public class ScryfallGameplay
-{
+
+	//Gameplay properties
 	[JsonPropertyName("all_parts")]
 	public ScryfallRelatedCard[]? AllParts { get; set; }
 
@@ -89,19 +87,32 @@ public class ScryfallGameplay
 	public required string[] Keywords { get; set; }
 
 	[JsonPropertyName("legalities")]
-	public required Dictionary<string, string> Legalities { get; set; }
-	public Dictionary<ScryfallFormat, ScryfallLegalFormat> FormatLegalities
+	public required Dictionary<string, string> ScryfallLegalities { get; set; }
+	private FormatLegalities? _formatLegalities { get; set; }
+	public FormatLegalities FormatLegalities
 	{
 		get
 		{
-			var formatsAndLegalities = new Dictionary<ScryfallFormat, ScryfallLegalFormat>();
-
-			foreach (var format in Legalities)
+			if (_formatLegalities == null)
 			{
-				formatsAndLegalities.Add(format.Key.ParseAsScryfallEnum<ScryfallFormat>(), format.Value.ParseAsScryfallEnum<ScryfallLegalFormat>());
+				var formatsAndLegalities = new FormatLegalities();
+
+				foreach (KeyValuePair<string, string> format in ScryfallLegalities)
+				{
+					PropertyInfo? property = typeof(FormatLegalities)
+						.GetProperty(format.Key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+					if (property != null && property.CanWrite)
+					{
+						var propertyValue = format.Value.ParseAsScryfallEnum<ScryfallLegalFormat>();
+						property.SetValue(formatsAndLegalities, propertyValue);
+					}
+				}
+
+				_formatLegalities = formatsAndLegalities;
 			}
 
-			return formatsAndLegalities;
+			return _formatLegalities;
 		}
 	}
 
@@ -137,123 +148,9 @@ public class ScryfallGameplay
 
 	[JsonPropertyName("type_line")]
 	public required string TypeLine { get; set; }
-}
 
-public class ScryfallRelatedCard
-{
-	[JsonPropertyName("id")]
-	public Guid Id { get; set; }
 
-	[JsonPropertyName("object")]
-	public required string ObjectType { get; set; }
-	public ScryfallObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ScryfallObjectType>();
-
-	[JsonPropertyName("component")]
-	public required string ComponentType { get; set; }
-	public ScryfallComponentType ScryfallComponentType => ComponentType.ParseAsScryfallEnum<ScryfallComponentType>();
-
-	[JsonPropertyName("name")]
-	public required string Name { get; set; }
-
-	[JsonPropertyName("type_line")]
-	public required string TypeLine { get; set; }
-
-	[JsonPropertyName("uri")]
-	public required Uri Uri { get; set; }
-
-}
-
-public class ScryfallCardFace
-{
-	[JsonPropertyName("artist")]
-	public string? Artist { get; set; }
-
-	[JsonPropertyName("artist_id")]
-	public Guid? ArtistId { get; set; }
-
-	[JsonPropertyName("cmc")]
-	public decimal? ConvertedManaCost { get; set; }
-
-	[JsonPropertyName("color_indicator")]
-	public string[]? ColorIndicator { get; set; }
-
-	[JsonPropertyName("colors")]
-	public string[]? Colors { get; set; }
-
-	[JsonPropertyName("defense")]
-	public string? Defense { get; set; }
-
-	[JsonPropertyName("flavor_text")]
-	public string? FlavorText { get; set; }
-
-	[JsonPropertyName("illustration_id")]
-	public Guid? IllustrationId { get; set; }
-
-	[JsonPropertyName("image_uris")]
-	public Dictionary<string, Uri>? ImageUris { get; set; }
-	public Dictionary<ScryfallImageFormat, Uri>? ScryfallImageUris
-	{
-		get
-		{
-			if (ImageUris == null) return null;
-
-			var imageFormatsAndUris = new Dictionary<ScryfallImageFormat, Uri>();
-
-			foreach (var format in ImageUris)
-			{
-				imageFormatsAndUris.Add(format.Key.ParseAsScryfallEnum<ScryfallImageFormat>(), format.Value);
-			}
-
-			return imageFormatsAndUris;
-		}
-	}
-
-	[JsonPropertyName("layout")]
-	public string? Layout { get; set; }
-
-	[JsonPropertyName("loyalty")]
-	public string? Loyalty { get; set; }
-
-	[JsonPropertyName("mana_cost")]
-	public required string ManaCost { get; set; }
-
-	[JsonPropertyName("name")]
-	public required string Name { get; set; }
-
-	[JsonPropertyName("object")]
-	public required string ObjectType { get; set; }
-	public ScryfallObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ScryfallObjectType>();
-
-	[JsonPropertyName("oracle_id")]
-	public Guid? OracleId { get; set; }
-
-	[JsonPropertyName("oracle_text")]
-	public string? OracleText { get; set; }
-
-	[JsonPropertyName("power")]
-	public string? Power { get; set; }
-
-	[JsonPropertyName("printed_name")]
-	public string? LocalizedName { get; set; }
-
-	[JsonPropertyName("printed_text")]
-	public string? LocalizedText { get; set; }
-
-	[JsonPropertyName("printed_type_line")]
-	public string? LocalizedTypeLine { get; set; }
-
-	[JsonPropertyName("toughness")]
-	public string? Toughness { get; set; }
-
-	[JsonPropertyName("type_line")]
-	public string? TypeLine { get; set; }
-
-	[JsonPropertyName("watermark")]
-	public string? Watermark { get; set; }
-}
-
-public class ScryfallPrintInformation
-{
+	//Print properties
 	[JsonPropertyName("artist")]
 	public string? ArtistName { get; set; }
 
@@ -293,14 +190,33 @@ public class ScryfallPrintInformation
 	public string? FlavorText { get; set; }
 
 	[JsonPropertyName("frame_effects")]
-	public string[]? FrameEffects { get; set; }
-	public IEnumerable<ScryfallFrameEffect>? ScryfallFrameEffects
+	public string[]? ScryfallFrameEffects { get; set; }
+	private FrameEffects? _frameEffects { get; set; }
+	public FrameEffects? FrameEffects
 	{
 		get
 		{
-			return FrameEffects == null
-				? null
-				: FrameEffects.ParseAsScryfallEnum<ScryfallFrameEffect>();
+			if (ScryfallFrameEffects == null || ScryfallFrameEffects.Length == 0) return null;
+
+			if (_frameEffects is null)
+			{
+				var frameEffects = new FrameEffects();
+
+				foreach (string scryfallFrameEffect in ScryfallFrameEffects)
+				{
+					PropertyInfo? property = typeof(FrameEffects)
+						.GetProperty(scryfallFrameEffect, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+					if (property != null && property.CanWrite)
+					{
+						property.SetValue(frameEffects, true);
+					}
+				}
+
+				_frameEffects = frameEffects;
+			}
+
+			return _frameEffects;
 		}
 	}
 
@@ -311,8 +227,33 @@ public class ScryfallPrintInformation
 	public bool IsFullArt { get; set; }
 
 	[JsonPropertyName("games")]
-	public required string[] PrintIsAvailableInGameModes { get; set; }
-	public IEnumerable<ScryfallGameMode> PrintIsAvailableInScryfallGameModes => PrintIsAvailableInGameModes.ParseAsScryfallEnum<ScryfallGameMode>();
+	public required string[] PrintAvailableInGameModes { get; set; }
+	private PrintAvailability? _printAvailability { get; set; }
+	public PrintAvailability PrintAvailability
+	{
+		get
+		{
+			if (_printAvailability is null)
+			{
+				var printAvailability = new PrintAvailability();
+
+				foreach (string gamemode in PrintAvailableInGameModes)
+				{
+					PropertyInfo? property = typeof(PrintAvailability)
+						.GetProperty(gamemode, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+					if (property != null && property.CanWrite)
+					{
+						property.SetValue(printAvailability, true);
+					}
+				}
+
+				_printAvailability = printAvailability;
+			}
+
+			return _printAvailability;
+		}
+	}
 
 	[JsonPropertyName("highres_image")]
 	public bool ImageIsHighResolution { get; set; }
@@ -325,21 +266,32 @@ public class ScryfallPrintInformation
 	public ScryfallImageStatus ScryfallImageStatus => ImageStatus.ParseAsScryfallEnum<ScryfallImageStatus>();
 
 	[JsonPropertyName("image_uris")]
-	public required Dictionary<string, Uri>? ImageUris { get; set; }
-	public Dictionary<ScryfallImageFormat, Uri>? ScryfallImageUris
+	public required Dictionary<string, Uri?>? ScryfallImageUris { get; set; }
+	private ImageUris? _imageUris { get; set; }
+	public ImageUris? ImageUris
 	{
 		get
 		{
-			if (ImageUris == null) return null;
+			if (ScryfallImageUris == null || ScryfallImageUris.Count == 0) return null;
 
-			var imageFormatsAndUris = new Dictionary<ScryfallImageFormat, Uri>();
-
-			foreach (var format in ImageUris)
+			if (_imageUris is null)
 			{
-				imageFormatsAndUris.Add(format.Key.ParseAsScryfallEnum<ScryfallImageFormat>(), format.Value);
+				var imageUris = new ImageUris();
+
+				foreach (KeyValuePair<string, Uri?> scryfallImageUri in ScryfallImageUris)
+				{
+					PropertyInfo? property = typeof(ImageUris)
+						.GetProperty(scryfallImageUri.Key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+					if (property != null && property.CanWrite)
+					{
+						property.SetValue(imageUris, scryfallImageUri.Value);
+					}
+				}
+				_imageUris = imageUris;
 			}
 
-			return imageFormatsAndUris;
+			return _imageUris;
 		}
 	}
 
@@ -347,12 +299,96 @@ public class ScryfallPrintInformation
 	public bool CardIsOversized { get; set; }
 
 	[JsonPropertyName("prices")]
-	public required Dictionary<string, string> CardPrices { get; set; }
-	public Dictionary<ScryfallCardPriceType, decimal?> ScryfallCardPrices
+	public required CardPrices Prices { get; set; }
+
+	[JsonPropertyName("printed_name")]
+	public string? LocalizedName { get; set; }
+
+	[JsonPropertyName("printed_text")]
+	public string? LocalizedText { get; set; }
+
+	[JsonPropertyName("printed_type_line")]
+	public string? LocalizedTypeLine { get; set; }
+
+	[JsonPropertyName("promo")]
+	public bool IsPromoPrint { get; set; }
+
+	//Is probably static types, but there is no api documentation for this. Consider handling manually after parsing data.
+	[JsonPropertyName("promo_types")]
+	public string[]? PromoTypes { get; set; }
+
+	[JsonPropertyName("purchase_uris")]
+	public VendorUris? VendorUris { get; set; }
+
+	[JsonPropertyName("rarity")]
+	public required string ScryfallRarity { get; set; }
+	public ScryfallRarityType Rarity => ScryfallRarity.ParseAsScryfallEnum<ScryfallRarityType>();
+
+	[JsonPropertyName("related_uris")]
+	public required ScryfallRelatedUris propertyname { get; set; }
+
+	[JsonPropertyName("released_at")]
+	public DateOnly ReleasedDate { get; set; }
+
+	[JsonPropertyName("reprint")]
+	public bool IsReprint { get; set; }
+
+	[JsonPropertyName("scryfall_set_uri")]
+	public required Uri ScryfallSetUri { get; set; }
+
+	[JsonPropertyName("set_name")]
+	public required string FullSetName { get; set; }
+
+	[JsonPropertyName("set_search_uri")]
+	public required Uri ScryfallSetSearchUri { get; set; }
+
+	//Is probably static types, but there is no api documentation for this. Consider handling manually after parsing data.
+	[JsonPropertyName("set_type")]
+	public required string SetType { get; set; }
+
+	[JsonPropertyName("set_uri")]
+	public required Uri SetUri { get; set; }
+
+	//Seems to be an abbreviation of the set, there is currently no info on scryfall api documentation (feb2025). This is most likely static, but keeping it as a string should be fine for now.
+	[JsonPropertyName("set")]
+	public required string SetCode { get; set; }
+
+	[JsonPropertyName("set_id")]
+	public Guid SetId { get; set; }
+
+	[JsonPropertyName("story_spotlight")]
+	public bool IsStyorySpotlight { get; set; }
+
+	[JsonPropertyName("textless")]
+	public bool IsTextlessPrint { get; set; }
+
+	[JsonPropertyName("variation")]
+	public bool IsPrintVariation { get; set; }
+
+	[JsonPropertyName("variation_of")]
+	public Guid? VariationOfId { get; set; }
+
+	[JsonPropertyName("security_stamp")]
+	public string? SecurityStamp { get; set; }
+	public ScryfallSecurityStampType SecurityStampType
 	{
 		get
 		{
-
+			return string.IsNullOrEmpty(SecurityStamp)
+				? ScryfallSecurityStampType.None
+				: SecurityStamp.ParseAsScryfallEnum<ScryfallSecurityStampType>();
 		}
 	}
+
+	[JsonPropertyName("watermark")]
+	public string? WaterMark { get; set; }
+
+	[JsonPropertyName("preview.previewed_at")]
+	public DateOnly? PreviewDate { get; set; }
+
+	[JsonPropertyName("preview.source_uri")]
+	public Uri? PreviewSourceUri { get; set; }
+
+	[JsonPropertyName("preview.source")]
+	public string? PreviewSourceName { get; set; }
 }
