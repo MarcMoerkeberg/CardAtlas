@@ -1,9 +1,10 @@
 ﻿using CardAtlas.Server.Helpers;
+using CardAtlas.Server.Models.Scryfall.Types;
 using System.Text.Json.Serialization;
 
-namespace CardAtlas.Server.Models.Internal.Scryfall;
+namespace CardAtlas.Server.Models.Scryfall;
 
-public class ScryfallSet
+public class Set
 {
 	[JsonPropertyName("object")]
 	public required string ObjectType { get; set; }
@@ -68,6 +69,6 @@ public class ScryfallSet
 	[JsonPropertyName("search_uri")]
 	public required Uri SearchUri { get; set; }
 
-	public ScryfallSetType ScryfallSetType => SetType.ParseAsScryfallEnum<ScryfallSetType>();
-	public ScryfallObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ScryfallObjectType>();
+	public SetType ScryfallSetType => SetType.ParseAsScryfallEnum<SetType>();
+	public ObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ObjectType>();
 }

@@ -1,7 +1,8 @@
 ﻿using CardAtlas.Server.Helpers;
+using CardAtlas.Server.Models.Scryfall.Types;
 using System.Text.Json.Serialization;
 
-namespace CardAtlas.Server.Models.Internal.Scryfall;
+namespace CardAtlas.Server.Models.Scryfall;
 
 public class ScryfallList<T>
 {
@@ -23,6 +24,6 @@ public class ScryfallList<T>
 	[JsonPropertyName("warnings")]
 	public string[]? Warnings { get; set; }
 
-	public ScryfallObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ScryfallObjectType>();
+	public ObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ObjectType>();
 
 }

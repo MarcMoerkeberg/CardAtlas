@@ -1,6 +1,6 @@
-﻿namespace CardAtlas.Server.Models.Internal.Scryfall;
+﻿namespace CardAtlas.Server.Models.Scryfall.Types;
 
-public enum ScryfallLayoutType
+public enum LayoutType
 {
 	Normal,
 	Split,

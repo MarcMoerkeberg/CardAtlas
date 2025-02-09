@@ -1,4 +1,4 @@
-﻿namespace CardAtlas.Server.Models.Internal.Scryfall;
+﻿namespace CardAtlas.Server.Models.Scryfall;
 
 public class PrintAvailability
 {

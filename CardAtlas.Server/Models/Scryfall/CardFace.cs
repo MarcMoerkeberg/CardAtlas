@@ -1,10 +1,11 @@
 ﻿using CardAtlas.Server.Helpers;
+using CardAtlas.Server.Models.Scryfall.Types;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
-namespace CardAtlas.Server.Models.Internal.Scryfall;
+namespace CardAtlas.Server.Models.Scryfall;
 
-public class ScryfallCardFace
+public class CardFace
 {
 	[JsonPropertyName("artist")]
 	public string? Artist { get; set; }
@@ -75,7 +76,7 @@ public class ScryfallCardFace
 
 	[JsonPropertyName("object")]
 	public required string ObjectType { get; set; }
-	public ScryfallObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ScryfallObjectType>();
+	public ObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ObjectType>();
 
 	[JsonPropertyName("oracle_id")]
 	public Guid? OracleId { get; set; }

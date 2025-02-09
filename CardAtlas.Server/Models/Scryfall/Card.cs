@@ -1,10 +1,11 @@
 ﻿using CardAtlas.Server.Helpers;
+using CardAtlas.Server.Models.Scryfall.Types;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
-namespace CardAtlas.Server.Models.Internal.Scryfall;
+namespace CardAtlas.Server.Models.Scryfall;
 
-public class ScryfallCard
+public class Card
 {
 	//Core card properties
 	[JsonPropertyName("arena_id")]
@@ -36,11 +37,11 @@ public class ScryfallCard
 
 	[JsonPropertyName("object")]
 	public required string ObjectType { get; set; }
-	public ScryfallObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ScryfallObjectType>();
+	public ObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ObjectType>();
 
 	[JsonPropertyName("layout")]
 	public required string Layout { get; set; }
-	public ScryfallLayoutType LayoutType => Layout.ParseAsScryfallEnum<ScryfallLayoutType>();
+	public LayoutType LayoutType => Layout.ParseAsScryfallEnum<LayoutType>();
 
 	[JsonPropertyName("oracle_id")]
 	public Guid? OracleId { get; set; }
@@ -60,10 +61,10 @@ public class ScryfallCard
 
 	//Gameplay properties
 	[JsonPropertyName("all_parts")]
-	public ScryfallRelatedCard[]? AllParts { get; set; }
+	public RelatedCard[]? AllParts { get; set; }
 
 	[JsonPropertyName("card_faces")]
-	public ScryfallCardFace[]? CardFaces { get; set; }
+	public CardFace[]? CardFaces { get; set; }
 
 	[JsonPropertyName("color_identity")]
 	public required string[] ColorIdentity { get; set; }
@@ -104,7 +105,7 @@ public class ScryfallCard
 
 					if (property != null && property.CanWrite)
 					{
-						var propertyValue = format.Value.ParseAsScryfallEnum<ScryfallLegalFormat>();
+						var propertyValue = format.Value.ParseAsScryfallEnum<Legality>();
 						property.SetValue(formatsAndLegalities, propertyValue);
 					}
 				}
@@ -165,7 +166,7 @@ public class ScryfallCard
 
 	[JsonPropertyName("border_color")]
 	public required string BorderColor { get; set; }
-	public ScryfallBorderColor ScryfallBorderColor => BorderColor.ParseAsScryfallEnum<ScryfallBorderColor>();
+	public BorderColor ScryfallBorderColor => BorderColor.ParseAsScryfallEnum<BorderColor>();
 
 	[JsonPropertyName("card_back_id")]
 	public Guid CardBackId { get; set; }
@@ -181,7 +182,7 @@ public class ScryfallCard
 
 	[JsonPropertyName("finishes")]
 	public required string[] ComesInFinishes { get; set; }
-	public IEnumerable<ScryfallFinish> ComesInScryfallFinishes => ComesInFinishes.ParseAsScryfallEnum<ScryfallFinish>();
+	public IEnumerable<Finish> ComesInScryfallFinishes => ComesInFinishes.ParseAsScryfallEnum<Finish>();
 
 	[JsonPropertyName("flavor_name")]
 	public string? FlavorName { get; set; }
@@ -263,7 +264,7 @@ public class ScryfallCard
 
 	[JsonPropertyName("image_status")]
 	public required string ImageStatus { get; set; }
-	public ScryfallImageStatus ScryfallImageStatus => ImageStatus.ParseAsScryfallEnum<ScryfallImageStatus>();
+	public ImageStatus ScryfallImageStatus => ImageStatus.ParseAsScryfallEnum<ImageStatus>();
 
 	[JsonPropertyName("image_uris")]
 	public required Dictionary<string, Uri?>? ScryfallImageUris { get; set; }
@@ -322,10 +323,10 @@ public class ScryfallCard
 
 	[JsonPropertyName("rarity")]
 	public required string ScryfallRarity { get; set; }
-	public ScryfallRarityType Rarity => ScryfallRarity.ParseAsScryfallEnum<ScryfallRarityType>();
+	public Rarity Rarity => ScryfallRarity.ParseAsScryfallEnum<Rarity>();
 
 	[JsonPropertyName("related_uris")]
-	public required ScryfallRelatedUris propertyname { get; set; }
+	public required RelatedUris propertyname { get; set; }
 
 	[JsonPropertyName("released_at")]
 	public DateOnly ReleasedDate { get; set; }
@@ -370,13 +371,13 @@ public class ScryfallCard
 
 	[JsonPropertyName("security_stamp")]
 	public string? SecurityStamp { get; set; }
-	public ScryfallSecurityStampType SecurityStampType
+	public SecurityStampType SecurityStampType
 	{
 		get
 		{
 			return string.IsNullOrEmpty(SecurityStamp)
-				? ScryfallSecurityStampType.None
-				: SecurityStamp.ParseAsScryfallEnum<ScryfallSecurityStampType>();
+				? SecurityStampType.None
+				: SecurityStamp.ParseAsScryfallEnum<SecurityStampType>();
 		}
 	}
 

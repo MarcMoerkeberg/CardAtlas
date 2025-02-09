@@ -1,6 +1,6 @@
-﻿namespace CardAtlas.Server.Models.Internal.Scryfall;
+﻿namespace CardAtlas.Server.Models.Scryfall.Types;
 
-public enum ScryfallSetType
+public enum SetType
 {
 	Core,
 	Expansion,
@@ -25,5 +25,5 @@ public enum ScryfallSetType
 	Token,
 	Memorabilia,
 	MiniGame,
-	Unknown = 0
+	NotImplemented = 0
 }

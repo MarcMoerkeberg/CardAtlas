@@ -1,20 +1,21 @@
 ﻿using CardAtlas.Server.Helpers;
+using CardAtlas.Server.Models.Scryfall.Types;
 using System.Text.Json.Serialization;
 
-namespace CardAtlas.Server.Models.Internal.Scryfall;
+namespace CardAtlas.Server.Models.Scryfall;
 
-public class ScryfallRelatedCard
+public class RelatedCard
 {
 	[JsonPropertyName("id")]
 	public Guid Id { get; set; }
 
 	[JsonPropertyName("object")]
 	public required string ObjectType { get; set; }
-	public ScryfallObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ScryfallObjectType>();
+	public ObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ObjectType>();
 
 	[JsonPropertyName("component")]
 	public required string ComponentType { get; set; }
-	public ScryfallComponentType ScryfallComponentType => ComponentType.ParseAsScryfallEnum<ScryfallComponentType>();
+	public ComponentType ScryfallComponentType => ComponentType.ParseAsScryfallEnum<ComponentType>();
 
 	[JsonPropertyName("name")]
 	public required string Name { get; set; }
