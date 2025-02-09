@@ -234,24 +234,7 @@ public class ScryfallCard
 	public ImageStatus ScryfallImageStatus => ImageStatus.ParseAsScryfallEnum<ImageStatus>();
 
 	[JsonPropertyName("image_uris")]
-	public required Dictionary<string, Uri?>? ScryfallImageUris { get; set; }
-	private ImageUris? _imageUris { get; set; }
-	public ImageUris? ImageUris
-	{
-		get
-		{
-			if (ScryfallImageUris is null) return null;
-
-			if (_imageUris is null)
-			{
-				ImageUris imageUris = ScryfallHelper.BindDictionaryToModel<ImageUris, Uri?>(ScryfallImageUris, dictionaryValue => dictionaryValue);
-
-				_imageUris = imageUris;
-			}
-
-			return _imageUris;
-		}
-	}
+	public ImageUris? ImageUris { get; set; }
 
 	[JsonPropertyName("oversized")]
 	public bool CardIsOversized { get; set; }

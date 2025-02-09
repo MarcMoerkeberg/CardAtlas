@@ -1,6 +1,5 @@
 ﻿using CardAtlas.Server.Helpers;
 using CardAtlas.Server.Models.Scryfall.Types;
-using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace CardAtlas.Server.Models.Scryfall;
@@ -32,35 +31,7 @@ public class CardFace
 	public Guid? IllustrationId { get; set; }
 
 	[JsonPropertyName("image_uris")]
-	public Dictionary<string, Uri?>? ScryfallImageUris { get; set; }
-	private ImageUris? _imageUris { get; set; }
-	public ImageUris? ImageUris
-	{
-		get
-		{
-			if (ScryfallImageUris == null || ScryfallImageUris.Count == 0) return null;
-
-			if (_imageUris is null)
-			{
-				var imageUris = new ImageUris();
-
-				foreach (KeyValuePair<string, Uri?> scryfallImageUri in ScryfallImageUris)
-				{
-					PropertyInfo? property = typeof(ImageUris)
-						.GetProperty(scryfallImageUri.Key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-
-					if (property != null && property.CanWrite)
-					{
-						property.SetValue(imageUris, scryfallImageUri.Value);
-					}
-				}
-
-				_imageUris = imageUris;
-			}
-
-			return _imageUris;
-		}
-	}
+	public ImageUris? ImageUris { get; set; }
 
 	[JsonPropertyName("layout")]
 	public string? Layout { get; set; }
