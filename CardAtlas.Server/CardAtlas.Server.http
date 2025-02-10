@@ -1,6 +1,6 @@
 @CardAtlas.Server_HostAddress = http://localhost:5288
 
-GET {{CardAtlas.Server_HostAddress}}/weatherforecast/
+GET {{CardAtlas.Server_HostAddress}}/api/cards/
 Accept: application/json
 
 ###

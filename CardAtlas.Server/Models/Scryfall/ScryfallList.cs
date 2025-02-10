@@ -4,13 +4,15 @@ using System.Text.Json.Serialization;
 
 namespace CardAtlas.Server.Models.Scryfall;
 
-public class ScryfallList<T>
+public class ScryfallList<TData>
 {
 	[JsonPropertyName("object")]
-	public required string ObjectType { get; set; }
+	public required string ScryfallObjectType { get; set; }
+	[JsonIgnore]
+	public ObjectType ObjectType => ScryfallObjectType.ParseAsScryfallEnum<ObjectType>();
 
 	[JsonPropertyName("data")]
-	public required T[] Data { get; set; }
+	public required IEnumerable<TData> Data { get; set; }
 
 	[JsonPropertyName("has_more")]
 	public bool HasMore { get; set; }
@@ -23,7 +25,4 @@ public class ScryfallList<T>
 
 	[JsonPropertyName("warnings")]
 	public string[]? Warnings { get; set; }
-
-	public ObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ObjectType>();
-
 }

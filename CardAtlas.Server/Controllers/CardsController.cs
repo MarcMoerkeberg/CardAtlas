@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using CardAtlas.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CardAtlas.Server.Controllers
@@ -8,10 +9,17 @@ namespace CardAtlas.Server.Controllers
 	[Route("api/[controller]")]
 	public class CardsController : ControllerBase
 	{
+		private readonly IScryfallApi _scryfallApi;
+
+		public CardsController(IScryfallApi scryfallApi)
+		{
+			_scryfallApi = scryfallApi;
+		}
 
 		[HttpGet]
-		public IEnumerable<string> Get()
+		public async Task<IEnumerable<string>> Get()
 		{
+			await _scryfallApi.GetAllCardsAsync();
 			throw new NotImplementedException();
 		}
 
