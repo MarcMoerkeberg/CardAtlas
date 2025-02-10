@@ -1,6 +1,6 @@
 using Asp.Versioning;
-using CardAtlas.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using ScryfallApi;
 
 namespace CardAtlas.Server.Controllers
 {

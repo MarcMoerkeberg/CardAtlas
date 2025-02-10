@@ -29,6 +29,7 @@
     <ProjectReference Include="..\cardatlas.client\cardatlas.client.esproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\ScryfallApi\ScryfallApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>

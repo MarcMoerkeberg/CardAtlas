@@ -114,6 +114,7 @@ public static class ServiceCollectionExtensions
 	{
 		AddScopedServiceDependencies(services);
 		AddMemoryCache(services);
+		AddScryfallApi(services);
 	}
 
 	/// <summary>
@@ -146,6 +147,19 @@ public static class ServiceCollectionExtensions
 	private static void AddMemoryCache(IServiceCollection services)
 	{
 		//Consider adding a memory cache to the application some time during development.
+	}
+
+	/// <summary>
+	/// Dependency injects <see cref="ScryfallApi.ScryfallApi"/>.
+	/// </summary>
+	private static void AddScryfallApi(IServiceCollection services)
+	{
+		AppSettings appSettings = GetAppSettings(services);
+
+		services.AddSingleton<ScryfallApi.IScryfallApi>(serviceProvider =>
+		{
+			return new ScryfallApi.ScryfallApi(appSettings.AppName);
+		});
 	}
 
 	/// <summary>
