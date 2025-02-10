@@ -3,26 +3,26 @@ using System.Reflection;
 
 namespace ScryfallApi;
 
-public static class ScryfallHelper
+public static class ScryfallParser
 {
 	/// <summary>
-	/// Parses the <paramref name="targets"/> into keys of the provided <typeparamref name="TEnum"/>.<br/>
+	/// Parses the <paramref name="enumKeyStrings"/> into keys of <typeparamref name="TEnum"/>.<br/>
 	/// Normalizes the string before parsing it as the enum key.
 	/// </summary>
-	/// <param name="targets">Should exist as en entry within <typeparamref name="TEnum"/>.</param>
-	public static IEnumerable<TEnum> ParseAsScryfallEnum<TEnum>(this IEnumerable<string> targets) where TEnum : struct, Enum
+	/// <param name="enumKeyStrings">Should exist as en entry within <typeparamref name="TEnum"/> when normalized.</param>
+	public static IEnumerable<TEnum> ToEnumKey<TEnum>(IEnumerable<string> enumKeyStrings) where TEnum : struct, Enum
 	{
-		return targets.Select(target => target.ParseAsScryfallEnum<TEnum>());
+		return enumKeyStrings.Select(ToEnumKey<TEnum>);
 	}
 
 	/// <summary>
-	/// Parses the <paramref name="target"/> into a key of the provided <typeparamref name="TEnum"/>.<br/>
+	/// Parses <paramref name="enumKeyString"/> into a key of <typeparamref name="TEnum"/>.<br/>
 	/// Normalizes the string before parsing it as the enum.
 	/// </summary>
-	/// <param name="target">Should exist as en entry within <typeparamref name="TEnum"/>.</param>
-	public static TEnum ParseAsScryfallEnum<TEnum>(this string target) where TEnum : struct, Enum
+	/// <param name="enumKeyString">Should exist as en entry within <typeparamref name="TEnum"/> when normalized.</param>
+	public static TEnum ToEnumKey<TEnum>(string enumKeyString) where TEnum : struct, Enum
 	{
-		string normalizedTarget = NormalizeStringForEnumParsing(target);
+		string normalizedTarget = NormalizeStringForEnumParsing(enumKeyString);
 		return Enum.TryParse(normalizedTarget, ignoreCase: true, out TEnum parsedResult)
 			? parsedResult
 			: default;

@@ -16,7 +16,7 @@ public class BulkData
 	[JsonPropertyName("type")]
 	public required string ScryfallBulkDataType { get; set; }
 	[JsonIgnore]
-	public BulkDataType BulkDataType => ScryfallBulkDataType.ParseAsScryfallEnum<BulkDataType>();
+	public BulkDataType BulkDataType => ScryfallParser.ToEnumKey<BulkDataType>(ScryfallBulkDataType);
 
 	[JsonPropertyName("name")]
 	public required string Name { get; set; }

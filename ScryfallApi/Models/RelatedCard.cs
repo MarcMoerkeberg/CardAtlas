@@ -10,11 +10,11 @@ public class RelatedCard
 
 	[JsonPropertyName("object")]
 	public required string ObjectType { get; set; }
-	public ObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ObjectType>();
+	public ObjectType ScryfallObjectType => ScryfallParser.ToEnumKey<ObjectType>(ObjectType);
 
 	[JsonPropertyName("component")]
 	public required string ComponentType { get; set; }
-	public ComponentType ScryfallComponentType => ComponentType.ParseAsScryfallEnum<ComponentType>();
+	public ComponentType ScryfallComponentType => ScryfallParser.ToEnumKey<ComponentType>(ComponentType);
 
 	[JsonPropertyName("name")]
 	public required string Name { get; set; }

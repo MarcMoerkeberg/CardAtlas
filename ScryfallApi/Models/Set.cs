@@ -68,6 +68,6 @@ public class Set
 	[JsonPropertyName("search_uri")]
 	public required Uri SearchUri { get; set; }
 
-	public SetType ScryfallSetType => SetType.ParseAsScryfallEnum<SetType>();
-	public ObjectType ScryfallObjectType => ObjectType.ParseAsScryfallEnum<ObjectType>();
+	public SetType ScryfallSetType => ScryfallParser.ToEnumKey<SetType>(SetType);
+	public ObjectType ScryfallObjectType => ScryfallParser.ToEnumKey<ObjectType>(ObjectType);
 }

@@ -8,7 +8,7 @@ public class ScryfallList<TData>
 	[JsonPropertyName("object")]
 	public required string ScryfallObjectType { get; set; }
 	[JsonIgnore]
-	public ObjectType ObjectType => ScryfallObjectType.ParseAsScryfallEnum<ObjectType>();
+	public ObjectType ObjectType => ScryfallParser.ToEnumKey<ObjectType>(ScryfallObjectType);
 
 	[JsonPropertyName("data")]
 	public required IEnumerable<TData> Data { get; set; }
