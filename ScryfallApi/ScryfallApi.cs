@@ -1,6 +1,7 @@
 ﻿using ScryfallApi.Scryfall;
 using ScryfallApi.Scryfall.Types;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace ScryfallApi
 {
@@ -15,11 +16,27 @@ namespace ScryfallApi
 			_client.DefaultRequestHeaders.Add("User-Agent", appName);
 		}
 
-		public async Task<ScryfallCard[]> GetAllCardsAsync()
+		public async Task<IEnumerable<TModel>> GetData<TModel>(BulkDataType dataType) where TModel : class
 		{
-			BulkData allCardsBulkDataObject = await GetBulkData(BulkDataType.AllCards);
-			await GetScryfallData<ScryfallCard>(allCardsBulkDataObject);
+			BulkData allCardsBulkDataObject = await GetBulkData(dataType);
+			List<TModel> deserializedModels = new List<TModel>();
+
+			await foreach (TModel model in GetScryfallData<TModel>(allCardsBulkDataObject))
+			{
+				deserializedModels.Add(model);
+			}
+
 			throw new NotImplementedException();
+		}
+
+		public async IAsyncEnumerable<TModel> GetDataAsync<TModel>(BulkDataType dataType) where TModel : class
+		{
+			BulkData allCardsBulkDataObject = await GetBulkData(dataType);
+
+			await foreach (TModel model in GetScryfallData<TModel>(allCardsBulkDataObject))
+			{
+				yield return model;
+			}
 		}
 
 		private async Task<BulkData> GetBulkData(BulkDataType bulkDataType)
@@ -44,25 +61,16 @@ namespace ScryfallApi
 				: responseData.Data;
 		}
 
-		private async Task<IEnumerable<TModel>> GetScryfallData<TModel>(BulkData bulkDataObject) where TModel : class
+		private async IAsyncEnumerable<TModel> GetScryfallData<TModel>(BulkData bulkDataObject) where TModel : class
 		{
-			try
-			{
-				var apiResponse = await _client.GetAsync(bulkDataObject.DownloadUri);
-				if (!apiResponse.IsSuccessStatusCode)
-				{
-					throw new HttpRequestException(Errors.ApiResponseError);
-				}
+			Stream apiResponseStream = await _client.GetStreamAsync(bulkDataObject.DownloadUri);
 
-				var responseData = apiResponse.Content.ReadFromJsonAsync<IEnumerable<TModel>>();
-			}
-			catch (Exception)
+			await foreach (TModel? model in JsonSerializer.DeserializeAsyncEnumerable<TModel>(apiResponseStream))
 			{
-				throw;
-			}
+				if (model is null) continue;
 
-			throw new NotImplementedException();
+				yield return model;
+			}
 		}
-
 	}
 }
