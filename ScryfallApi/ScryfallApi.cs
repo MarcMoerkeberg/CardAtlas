@@ -17,7 +17,8 @@ namespace ScryfallApi
 
 		public async Task<ScryfallCard[]> GetAllCardsAsync()
 		{
-			await GetBulkData(BulkDataType.AllCards);
+			BulkData allCardsBulkDataObject = await GetBulkData(BulkDataType.AllCards);
+			await GetScryfallData<ScryfallCard>(allCardsBulkDataObject);
 			throw new NotImplementedException();
 		}
 
@@ -30,25 +31,38 @@ namespace ScryfallApi
 
 		private async Task<IEnumerable<BulkData>> GetBulkData()
 		{
+			var apiResponse = await _client.GetAsync("bulk-data");
+			if (!apiResponse.IsSuccessStatusCode)
+			{
+				throw new HttpRequestException(Errors.ApiResponseError);
+			}
+
+			ScryfallList<BulkData>? responseData = await apiResponse.Content.ReadFromJsonAsync<ScryfallList<BulkData>>();
+
+			return responseData is null
+				? throw new Exception(Errors.DeserializationError)
+				: responseData.Data;
+		}
+
+		private async Task<IEnumerable<TModel>> GetScryfallData<TModel>(BulkData bulkDataObject) where TModel : class
+		{
 			try
 			{
-				var apiResponse = await _client.GetAsync("bulk-data");
+				var apiResponse = await _client.GetAsync(bulkDataObject.DownloadUri);
 				if (!apiResponse.IsSuccessStatusCode)
 				{
-					throw new HttpRequestException("Failed to get bulk data from Scryfall api.");
+					throw new HttpRequestException(Errors.ApiResponseError);
 				}
 
-				ScryfallList<BulkData>? responseData = await apiResponse.Content.ReadFromJsonAsync<ScryfallList<BulkData>>();
-
-				return responseData is null
-					? throw new HttpRequestException("Failed deserializing bulk data content.")
-					: responseData.Data;
+				var responseData = apiResponse.Content.ReadFromJsonAsync<IEnumerable<TModel>>();
 			}
 			catch (Exception)
 			{
-				Console.WriteLine("Failed to get bulk data from Scryfall api.");
 				throw;
 			}
+
+			throw new NotImplementedException();
 		}
+
 	}
 }

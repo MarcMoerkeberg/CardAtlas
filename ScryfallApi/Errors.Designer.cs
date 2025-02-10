@@ -61,11 +61,20 @@ namespace ScryfallApi {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Bad request when.
+        ///   Looks up a localized string similar to Api response was unsuccessful..
         /// </summary>
-        internal static string BadRequest {
+        internal static string ApiResponseError {
             get {
-                return ResourceManager.GetString("BadRequest", resourceCulture);
+                return ResourceManager.GetString("ApiResponseError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred while deseriaziling api response..
+        /// </summary>
+        internal static string DeserializationError {
+            get {
+                return ResourceManager.GetString("DeserializationError", resourceCulture);
             }
         }
     }
