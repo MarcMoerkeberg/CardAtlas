@@ -26,7 +26,7 @@ namespace ScryfallApi
 				deserializedModels.Add(model);
 			}
 
-			throw new NotImplementedException();
+			return deserializedModels;
 		}
 
 		public async IAsyncEnumerable<TModel> GetDataAsync<TModel>(BulkDataType dataType) where TModel : class
