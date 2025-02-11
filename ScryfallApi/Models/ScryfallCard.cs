@@ -34,12 +34,39 @@ public class ScryfallCard
 	public int? CardMarketId { get; set; }
 
 	[JsonPropertyName("object")]
-	public required string ObjectType { get; set; }
-	public ObjectType ScryfallObjectType => ScryfallParser.ToEnumKey<ObjectType>(ObjectType);
+	public required string ScryfallObjectType { get; set; }
+	[JsonIgnore]
+	public ObjectType? _objectType { get; set; }
+	[JsonIgnore]
+	public ObjectType ObjectType
+	{
+		get
+		{
+			if (_objectType is null)
+			{
+				_objectType = ScryfallParser.ToEnumKey<ObjectType>(ScryfallObjectType);
+			}
+
+			return _objectType.Value;
+		}
+	}
 
 	[JsonPropertyName("layout")]
-	public required string Layout { get; set; }
-	public LayoutType LayoutType => ScryfallParser.ToEnumKey<LayoutType>(Layout);
+	public required string ScryfallLayout { get; set; }
+	[JsonIgnore]
+	private LayoutType? _layout { get; set; }
+	[JsonIgnore]
+	public LayoutType Layout
+	{
+		get
+		{
+			if (_layout is null)
+			{
+				_layout = ScryfallParser.ToEnumKey<LayoutType>(ScryfallLayout);
+			}
+			return _layout.Value;
+		}
+	}
 
 	[JsonPropertyName("oracle_id")]
 	public Guid? OracleId { get; set; }
@@ -87,7 +114,9 @@ public class ScryfallCard
 
 	[JsonPropertyName("legalities")]
 	public required Dictionary<string, string> ScryfallLegalities { get; set; }
+	[JsonIgnore]
 	private FormatLegalities? _formatLegalities { get; set; }
+	[JsonIgnore]
 	public FormatLegalities FormatLegalities
 	{
 		get
@@ -153,8 +182,21 @@ public class ScryfallCard
 	public bool CanBeFoundInBoosterPacks { get; set; }
 
 	[JsonPropertyName("border_color")]
-	public required string BorderColor { get; set; }
-	public BorderColor ScryfallBorderColor => ScryfallParser.ToEnumKey<BorderColor>(BorderColor);
+	public required string ScryfallBorderColor { get; set; }
+	[JsonIgnore]
+	public BorderColor? _borderColor { get; set; }
+	[JsonIgnore]
+	public BorderColor BorderColor
+	{
+		get
+		{
+			if (_borderColor is null)
+			{
+				_borderColor = ScryfallParser.ToEnumKey<BorderColor>(ScryfallBorderColor);
+			}
+			return _borderColor.Value;
+		}
+	}
 
 	[JsonPropertyName("card_back_id")]
 	public Guid CardBackId { get; set; }
@@ -170,7 +212,21 @@ public class ScryfallCard
 
 	[JsonPropertyName("finishes")]
 	public required string[] ScryfallComesInFinishes { get; set; }
-	public IEnumerable<Finish> ComesInFinishes => ScryfallParser.ToEnumKey<Finish>(ScryfallComesInFinishes);
+	[JsonIgnore]
+	private IEnumerable<Finish>? _comesInFinishes { get; set; }
+	[JsonIgnore]
+	public IEnumerable<Finish> ComesInFinishes
+	{
+		get
+		{
+			if (_comesInFinishes == null)
+			{
+				_comesInFinishes = ScryfallParser.ToEnumKey<Finish>(ScryfallComesInFinishes);
+			}
+
+			return _comesInFinishes;
+		}
+	}
 
 	[JsonPropertyName("flavor_name")]
 	public string? FlavorName { get; set; }
@@ -180,10 +236,9 @@ public class ScryfallCard
 
 	[JsonPropertyName("frame_effects")]
 	public string[]? ScryfallFrameEffects { get; set; }
+	[JsonIgnore]
 	private FrameEffects? _frameEffects { get; set; }
-	/// <summary>
-	/// Is <see cref="ScryfallFrameEffects"/> typed as a model.
-	/// </summary>
+	[JsonIgnore]
 	public FrameEffects? FrameEffects
 	{
 		get
@@ -209,10 +264,9 @@ public class ScryfallCard
 
 	[JsonPropertyName("games")]
 	public required string[] PrintAvailableInGameModes { get; set; }
+	[JsonIgnore]
 	private PrintAvailability? _printAvailability { get; set; }
-	/// <summary>
-	/// Is <see cref="PrintAvailableInGameModes"/> typed as a model.
-	/// </summary>
+	[JsonIgnore]
 	public PrintAvailability PrintAvailability
 	{
 		get
@@ -235,8 +289,22 @@ public class ScryfallCard
 	public Guid? IllustrationId { get; set; }
 
 	[JsonPropertyName("image_status")]
-	public required string ImageStatus { get; set; }
-	public ImageStatus ScryfallImageStatus => ScryfallParser.ToEnumKey<ImageStatus>(ImageStatus);
+	public required string ScryfallImageStatus { get; set; }
+	[JsonIgnore]
+	private ImageStatus? _imageStatus { get; set; }
+	[JsonIgnore]
+	public ImageStatus ImageStatus
+	{
+		get
+		{
+			if (_imageStatus is null)
+			{
+				_imageStatus = ScryfallParser.ToEnumKey<ImageStatus>(ScryfallImageStatus);
+			}
+
+			return _imageStatus.Value;
+		}
+	}
 
 	[JsonPropertyName("image_uris")]
 	public ImageUris? ImageUris { get; set; }
@@ -268,7 +336,21 @@ public class ScryfallCard
 
 	[JsonPropertyName("rarity")]
 	public required string ScryfallRarity { get; set; }
-	public Rarity Rarity => ScryfallParser.ToEnumKey<Rarity>(ScryfallRarity);
+	[JsonIgnore]
+	private Rarity? _rarity { get; set; }
+	[JsonIgnore]
+	public Rarity Rarity
+	{
+		get
+		{
+			if (_rarity is null)
+			{
+				_rarity = ScryfallParser.ToEnumKey<Rarity>(ScryfallRarity);
+			}
+
+			return _rarity.Value;
+		}
+	}
 
 	[JsonPropertyName("related_uris")]
 	public required RelatedUris RelatedUris { get; set; }
@@ -316,13 +398,21 @@ public class ScryfallCard
 
 	[JsonPropertyName("security_stamp")]
 	public string? SecurityStamp { get; set; }
+	[JsonIgnore]
+	private SecurityStampType? _securityStampType { get; set; }
+	[JsonIgnore]
 	public SecurityStampType SecurityStampType
 	{
 		get
 		{
-			return string.IsNullOrEmpty(SecurityStamp)
-				? SecurityStampType.None
-				: ScryfallParser.ToEnumKey<SecurityStampType>(SecurityStamp);
+			if (_securityStampType is null)
+			{
+				_securityStampType = string.IsNullOrEmpty(SecurityStamp)
+					? SecurityStampType.None
+					: ScryfallParser.ToEnumKey<SecurityStampType>(SecurityStamp);
+			}
+
+			return _securityStampType.Value;
 		}
 	}
 

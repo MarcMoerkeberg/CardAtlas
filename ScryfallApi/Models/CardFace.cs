@@ -45,8 +45,22 @@ public class CardFace
 	public required string Name { get; set; }
 
 	[JsonPropertyName("object")]
-	public required string ObjectType { get; set; }
-	public ObjectType ScryfallObjectType => ScryfallParser.ToEnumKey<ObjectType>(ObjectType);
+	public required string ScryfallObjectType { get; set; }
+	[JsonIgnore]
+	public ObjectType? _objectType { get; set; }
+	[JsonIgnore]
+	public ObjectType ObjectType
+	{
+		get
+		{
+			if (_objectType is null)
+			{
+				_objectType = ScryfallParser.ToEnumKey<ObjectType>(ScryfallObjectType);
+			}
+
+			return _objectType.Value;
+		}
+	}
 
 	[JsonPropertyName("oracle_id")]
 	public Guid? OracleId { get; set; }

@@ -6,7 +6,22 @@ namespace ScryfallApi.Scryfall;
 public class Set
 {
 	[JsonPropertyName("object")]
-	public required string ObjectType { get; set; }
+	public required string ScryfallObjectType { get; set; }
+	[JsonIgnore]
+	public ObjectType? _objectType { get; set; }
+	[JsonIgnore]
+	public ObjectType ObjectType
+	{
+		get
+		{
+			if (_objectType is null)
+			{
+				_objectType = ScryfallParser.ToEnumKey<ObjectType>(ScryfallObjectType);
+			}
+
+			return _objectType.Value;
+		}
+	}
 
 	[JsonPropertyName("id")]
 	public required string Id { get; set; }
@@ -27,10 +42,25 @@ public class Set
 	public required string Name { get; set; }
 
 	[JsonPropertyName("set_type")]
-	public required string SetType { get; set; }
+	public required string ScryfallSetType { get; set; }
+	[JsonIgnore]
+	public SetType? _setType { get; set; }
+	[JsonIgnore]
+	public SetType SetType
+	{
+		get
+		{
+			if (_setType is null)
+			{
+				_setType = ScryfallParser.ToEnumKey<SetType>(ScryfallSetType);
+			}
+
+			return _setType.Value;
+		}
+	}
 
 	[JsonPropertyName("released_at")]
-	public DateTime? ReleasedDate { get; set; }
+	public DateOnly? ReleasedDate { get; set; }
 
 	[JsonPropertyName("block_code")]
 	public string? BlockCode { get; set; }
@@ -67,7 +97,4 @@ public class Set
 
 	[JsonPropertyName("search_uri")]
 	public required Uri SearchUri { get; set; }
-
-	public SetType ScryfallSetType => ScryfallParser.ToEnumKey<SetType>(SetType);
-	public ObjectType ScryfallObjectType => ScryfallParser.ToEnumKey<ObjectType>(ObjectType);
 }

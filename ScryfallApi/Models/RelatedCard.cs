@@ -9,12 +9,40 @@ public class RelatedCard
 	public Guid Id { get; set; }
 
 	[JsonPropertyName("object")]
-	public required string ObjectType { get; set; }
-	public ObjectType ScryfallObjectType => ScryfallParser.ToEnumKey<ObjectType>(ObjectType);
+	public required string ScryfallObjectType { get; set; }
+	[JsonIgnore]
+	public ObjectType? _objectType { get; set; }
+	[JsonIgnore]
+	public ObjectType ObjectType
+	{
+		get
+		{
+			if (_objectType is null)
+			{
+				_objectType = ScryfallParser.ToEnumKey<ObjectType>(ScryfallObjectType);
+			}
+			
+			return _objectType.Value;
+		}
+	}
 
 	[JsonPropertyName("component")]
-	public required string ComponentType { get; set; }
-	public ComponentType ScryfallComponentType => ScryfallParser.ToEnumKey<ComponentType>(ComponentType);
+	public required string ScryfallComponentType { get; set; }
+	[JsonIgnore]
+	public ComponentType? _componentType { get; set; }
+	[JsonIgnore]
+	public ComponentType ComponentType
+	{
+		get
+		{
+			if (_componentType == null)
+			{
+				_componentType = ScryfallParser.ToEnumKey<ComponentType>(ScryfallComponentType);
+			}
+
+			return _componentType.Value;
+		}
+	}
 
 	[JsonPropertyName("name")]
 	public required string Name { get; set; }
