@@ -1,10 +1,12 @@
-﻿using ScryfallApi.Scryfall.Types;
+﻿using ScryfallApi.Models;
+using ScryfallApi.Models.Types;
 
-namespace ScryfallApi
+namespace ScryfallApi;
+
+public interface IScryfallApi
 {
-	public interface IScryfallApi
-	{
-		public Task<IEnumerable<TModel>> GetData<TModel>(BulkDataType dataType) where TModel : class;
-		IAsyncEnumerable<TModel> GetDataAsync<TModel>(BulkDataType dataType) where TModel : class;
-	}
+	public Task<IEnumerable<Card>> GetBulkData(BulkDataType dataType);
+	public IAsyncEnumerable<Card> GetBulkDataAsync(BulkDataType dataType);
+	public Task<IEnumerable<Ruling>> GetBulkData();
+	public IAsyncEnumerable<Ruling> GetBulkDataAsync();
 }

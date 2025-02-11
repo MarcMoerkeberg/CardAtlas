@@ -77,5 +77,23 @@ namespace ScryfallApi {
                 return ResourceManager.GetString("DeserializationError", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid BulkDataType: {0}..
+        /// </summary>
+        internal static string InvalidBulkDataType {
+            get {
+                return ResourceManager.GetString("InvalidBulkDataType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid BulkDataType for getting bulk card data: {0}..
+        /// </summary>
+        internal static string InvalidBulkDataTypeForCards {
+            get {
+                return ResourceManager.GetString("InvalidBulkDataTypeForCards", resourceCulture);
+            }
+        }
     }
 }

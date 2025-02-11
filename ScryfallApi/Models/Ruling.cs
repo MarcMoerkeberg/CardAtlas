@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace ScryfallApi.Models;
 
-public class Rulings
+public class Ruling
 {
 	[JsonPropertyName("object")]
 	public required string ScryfallObjectType { get; set; }
@@ -22,5 +22,5 @@ public class Rulings
 	public DateOnly PublishedDate { get; set; }
 
 	[JsonPropertyName("comment")]
-	public required string Ruling { get; set; }
+	public required string RulingText { get; set; }
 }

@@ -1,4 +1,4 @@
-﻿using ScryfallApi.Scryfall.Types;
+﻿using ScryfallApi.Models.Types;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json.Serialization;

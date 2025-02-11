@@ -1,9 +1,9 @@
 ﻿using ScryfallApi.Scryfall.Types;
 using System.Text.Json.Serialization;
 
-namespace ScryfallApi.Models;
+namespace ScryfallApi.Models.ResponseWrappers;
 
-public class List<TData>
+public class ListResponse<TData>
 {
 	[JsonPropertyName("object")]
 	public required string ScryfallObjectType { get; set; }

@@ -123,4 +123,10 @@
   <data name="DeserializationError" xml:space="preserve">
     <value>An error occurred while deseriaziling api response.</value>
   </data>
+  <data name="InvalidBulkDataType" xml:space="preserve">
+    <value>Invalid BulkDataType: {0}.</value>
+  </data>
+  <data name="InvalidBulkDataTypeForCards" xml:space="preserve">
+    <value>Invalid BulkDataType for getting bulk card data: {0}.</value>
+  </data>
 </root>
