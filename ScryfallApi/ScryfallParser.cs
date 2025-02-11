@@ -55,7 +55,7 @@ public static class ScryfallParser
 		{
 			(bool parseKeySuccess, TEnum parsedKey) = ParseEnum<TEnum>(key);
 			(bool parseValueSuccess, TValue? parsedValue) = ParseAs<TValue>(value);
-			//TODO: add logging for failing parsing.
+			//TODO: Handle non-successfull parsing.
 
 			if (parseKeySuccess && parseValueSuccess && !result.ContainsKey(parsedKey))
 			{
