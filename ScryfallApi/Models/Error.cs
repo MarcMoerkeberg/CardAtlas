@@ -1,9 +1,9 @@
 ﻿using System.Net;
 using System.Text.Json.Serialization;
 
-namespace ScryfallApi.Scryfall;
+namespace ScryfallApi.Models;
 
-public class ScryfallError
+public class Error
 {
 	[JsonPropertyName("status")]
 	public int HttpStatus { get; set; }
@@ -20,5 +20,6 @@ public class ScryfallError
 	[JsonPropertyName("warnings")]
 	public string[]? Warnings { get; set; }
 
+	[JsonIgnore]
 	public HttpStatusCode HttpStatusCode => (HttpStatusCode)HttpStatus;
 }

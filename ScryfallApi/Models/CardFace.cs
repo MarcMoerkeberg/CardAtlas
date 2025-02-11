@@ -1,7 +1,8 @@
-﻿using ScryfallApi.Scryfall.Types;
+﻿using ScryfallApi.Scryfall;
+using ScryfallApi.Scryfall.Types;
 using System.Text.Json.Serialization;
 
-namespace ScryfallApi.Scryfall;
+namespace ScryfallApi.Models;
 
 public class CardFace
 {
@@ -47,20 +48,9 @@ public class CardFace
 	[JsonPropertyName("object")]
 	public required string ScryfallObjectType { get; set; }
 	[JsonIgnore]
-	public ObjectType? _objectType { get; set; }
+	private ObjectType? _objectType { get; set; }
 	[JsonIgnore]
-	public ObjectType ObjectType
-	{
-		get
-		{
-			if (_objectType is null)
-			{
-				_objectType = ScryfallParser.ToEnumKey<ObjectType>(ScryfallObjectType);
-			}
-
-			return _objectType.Value;
-		}
-	}
+	public ObjectType ObjectType => _objectType ??= ScryfallParser.ToEnumKey<ObjectType>(ScryfallObjectType);
 
 	[JsonPropertyName("oracle_id")]
 	public Guid? OracleId { get; set; }

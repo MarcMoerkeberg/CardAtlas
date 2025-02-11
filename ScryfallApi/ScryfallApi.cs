@@ -1,4 +1,4 @@
-﻿using ScryfallApi.Scryfall;
+﻿using ScryfallApi.Models;
 using ScryfallApi.Scryfall.Types;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -19,7 +19,7 @@ namespace ScryfallApi
 		public async Task<IEnumerable<TModel>> GetData<TModel>(BulkDataType dataType) where TModel : class
 		{
 			BulkData allCardsBulkDataObject = await GetBulkData(dataType);
-			List<TModel> deserializedModels = new List<TModel>();
+			System.Collections.Generic.List<TModel> deserializedModels = new System.Collections.Generic.List<TModel>();
 
 			await foreach (TModel model in GetScryfallData<TModel>(allCardsBulkDataObject))
 			{
@@ -54,7 +54,7 @@ namespace ScryfallApi
 				throw new HttpRequestException(Errors.ApiResponseError);
 			}
 
-			ScryfallList<BulkData>? responseData = await apiResponse.Content.ReadFromJsonAsync<ScryfallList<BulkData>>();
+			Models.List<BulkData>? responseData = await apiResponse.Content.ReadFromJsonAsync<Models.List<BulkData>>();
 
 			return responseData is null
 				? throw new Exception(Errors.DeserializationError)

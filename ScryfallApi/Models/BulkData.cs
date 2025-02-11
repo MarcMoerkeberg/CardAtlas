@@ -3,7 +3,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace ScryfallApi.Scryfall;
+namespace ScryfallApi.Models;
 
 public class BulkData
 {
@@ -18,18 +18,7 @@ public class BulkData
 	[JsonIgnore]
 	private BulkDataType? _bulkDataType { get; set; }
 	[JsonIgnore]
-	public BulkDataType BulkDataType
-	{
-		get
-		{
-			if (_bulkDataType == null)
-			{
-				_bulkDataType = ScryfallParser.ToEnumKey<BulkDataType>(ScryfallBulkDataType);
-			}
-
-			return _bulkDataType.Value;
-		}
-	}
+	public BulkDataType BulkDataType => _bulkDataType ??= ScryfallParser.ToEnumKey<BulkDataType>(ScryfallBulkDataType);
 
 	[JsonPropertyName("name")]
 	public required string Name { get; set; }
@@ -49,23 +38,14 @@ public class BulkData
 	[JsonPropertyName("content_type")]
 	public required string ScryfallContentType { get; set; }
 	[JsonIgnore]
-	public ContentType? _contentType { get; set; }
+	private ContentType? _contentType { get; set; }
 	[JsonIgnore]
-	public ContentType ContentType
-	{
-		get
-		{
-			if (_contentType == null)
-			{
-				_contentType = new ContentType(ScryfallContentType);
-			}
-
-			return _contentType;
-		}
-	}
+	public ContentType ContentType => _contentType ??= new ContentType(ScryfallContentType);
 
 	[JsonPropertyName("content_encoding")]
 	public required string ScryfallContentEncoding { get; set; }
 	[JsonIgnore]
-	public Encoding ContentEncoding => Encoding.GetEncoding(ScryfallContentEncoding);
+	private Encoding? _contentEncoding { get; set; }
+	[JsonIgnore]
+	public Encoding ContentEncoding => _contentEncoding ??= Encoding.GetEncoding(ScryfallContentEncoding);
 }

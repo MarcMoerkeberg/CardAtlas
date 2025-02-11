@@ -1,27 +1,16 @@
 ﻿using ScryfallApi.Scryfall.Types;
 using System.Text.Json.Serialization;
 
-namespace ScryfallApi.Scryfall;
+namespace ScryfallApi.Models;
 
 public class Set
 {
 	[JsonPropertyName("object")]
 	public required string ScryfallObjectType { get; set; }
 	[JsonIgnore]
-	public ObjectType? _objectType { get; set; }
+	private ObjectType? _objectType { get; set; }
 	[JsonIgnore]
-	public ObjectType ObjectType
-	{
-		get
-		{
-			if (_objectType is null)
-			{
-				_objectType = ScryfallParser.ToEnumKey<ObjectType>(ScryfallObjectType);
-			}
-
-			return _objectType.Value;
-		}
-	}
+	public ObjectType ObjectType => _objectType ??= ScryfallParser.ToEnumKey<ObjectType>(ScryfallObjectType);
 
 	[JsonPropertyName("id")]
 	public required string Id { get; set; }
@@ -44,20 +33,9 @@ public class Set
 	[JsonPropertyName("set_type")]
 	public required string ScryfallSetType { get; set; }
 	[JsonIgnore]
-	public SetType? _setType { get; set; }
+	private SetType? _setType { get; set; }
 	[JsonIgnore]
-	public SetType SetType
-	{
-		get
-		{
-			if (_setType is null)
-			{
-				_setType = ScryfallParser.ToEnumKey<SetType>(ScryfallSetType);
-			}
-
-			return _setType.Value;
-		}
-	}
+	public SetType SetType => _setType ??= ScryfallParser.ToEnumKey<SetType>(ScryfallSetType);
 
 	[JsonPropertyName("released_at")]
 	public DateOnly? ReleasedDate { get; set; }
