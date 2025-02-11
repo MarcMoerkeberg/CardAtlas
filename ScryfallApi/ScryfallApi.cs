@@ -8,13 +8,19 @@ namespace ScryfallApi
 {
 	public class ScryfallApi : IScryfallApi
 	{
+		public const int DefaultRateLimit = 100;
 		private readonly HttpClient _client;
+		private static int _rateLimitInMiliseconds;
 
-		public ScryfallApi(string appName)
+		/// <param name="appName">The name of the application. Required as a User-Agent header when requesting the Scryfall API.</param>
+		/// <param name="rateLimit">Rate limit in ms. Cannot be less than 100.</param>
+		public ScryfallApi(string appName, int rateLimit = DefaultRateLimit)
 		{
 			_client = new HttpClient();
 			_client.BaseAddress = new Uri("https://api.scryfall.com/");
 			_client.DefaultRequestHeaders.Add("User-Agent", appName);
+
+			_rateLimitInMiliseconds = rateLimit > DefaultRateLimit ? rateLimit : DefaultRateLimit;
 		}
 
 		public async Task<IEnumerable<Card>> GetBulkData(BulkDataType bulkDataType)
@@ -81,6 +87,10 @@ namespace ScryfallApi
 			}
 		}
 
+		/// <summary>
+		/// Returns a single specific type of bulk data object.
+		/// </summary>
+		/// <exception cref="ArgumentException"></exception>
 		private async Task<BulkData> GetBulkDataByType(BulkDataType bulkDataType)
 		{
 			if (bulkDataType is BulkDataType.NotImplemented)
@@ -93,6 +103,12 @@ namespace ScryfallApi
 			return allBulkData.Single(bulkData => bulkData.BulkDataType == bulkDataType);
 		}
 
+		/// <summary>
+		/// Gets the bulk data objects from the api for fetching the bulk data.
+		/// </summary>
+		/// <returns>A list of <see cref="BulkData"/>.</returns>
+		/// <exception cref="HttpRequestException"></exception>
+		/// <exception cref="Exception"></exception>
 		private async Task<IEnumerable<BulkData>> GetBulkDataObjects()
 		{
 			var apiResponse = await _client.GetAsync("bulk-data");
@@ -108,15 +124,11 @@ namespace ScryfallApi
 				: responseData.Data;
 		}
 
+		/// <summary>
+		/// Gets bulk data from the scryfall api as a stream and returns the objects once they are deserialized as <typeparamref name="TModel"/>.
+		/// </summary>
+		/// <typeparam name="TModel">The data is deserialized as this type.</typeparam>
 		private async IAsyncEnumerable<TModel> GetBulkDataAsync<TModel>(BulkData bulkDataObject) where TModel : class
-		{
-			await foreach (TModel model in GetDataFromBulkObject<TModel>(bulkDataObject))
-			{
-				yield return model;
-			}
-		}
-
-		private async IAsyncEnumerable<TModel> GetDataFromBulkObject<TModel>(BulkData bulkDataObject) where TModel : class
 		{
 			Stream apiResponseStream = await _client.GetStreamAsync(bulkDataObject.DownloadUri);
 

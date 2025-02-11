@@ -1,8 +1,7 @@
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using ScryfallApi;
-using ScryfallApi.Scryfall;
-using ScryfallApi.Scryfall.Types;
+using ScryfallApi.Models.Types;
 
 namespace CardAtlas.Server.Controllers
 {
@@ -21,7 +20,7 @@ namespace CardAtlas.Server.Controllers
 		[HttpGet]
 		public async Task<IEnumerable<string>> Get()
 		{
-			await _scryfallApi.GetData<ScryfallCard>(BulkDataType.AllCards);
+			await _scryfallApi.GetBulkData(BulkDataType.AllCards);
 			throw new NotImplementedException();
 		}
 

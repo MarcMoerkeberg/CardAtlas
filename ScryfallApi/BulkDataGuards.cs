@@ -6,8 +6,8 @@ namespace ScryfallApi;
 public static class BulkDataGuards
 {
 	/// <summary>
-	/// Returns true if <paramref name="dataType"/> corresponds to a bulk data object of type <see cref="Card"/>.<br/>
-	/// See for <see href="https://scryfall.com/docs/api/bulk-data">Scryfall API documentation</see> more info.
+	/// Returns true if <paramref name="dataType"/> corresponds to a bulk data object that returns <see cref="Card"/> objects<br/>
+	/// See <see href="https://scryfall.com/docs/api/bulk-data">Scryfall API documentation</see> for more information.
 	/// </summary>
 	public static bool IsCardDataType(this BulkDataType dataType)
 	{
