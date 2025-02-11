@@ -27,15 +27,18 @@ public static class ServiceCollectionExtensions
 	/// <exception cref="NullReferenceException"></exception>
 	private static AppSettings GetAppSettings(IServiceCollection services)
 	{
-		if (_appSettings != null) return _appSettings;
+		if (_appSettings is null)
+		{
+			AppSettings? appSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AppSettings>>().Value;
 
-		AppSettings? appSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AppSettings>>().Value;
+			if (appSettings is null) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
+			if (string.IsNullOrEmpty(appSettings.AppName)) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
+			if (!appSettings.HasValidConnectionStrings()) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
 
-		if (appSettings is null) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
-		if (string.IsNullOrEmpty(appSettings.AppName)) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
-		if (!appSettings.HasValidConnectionStrings()) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
+			_appSettings = appSettings;
+		}
 
-		return appSettings;
+		return _appSettings;
 	}
 
 	/// <summary>

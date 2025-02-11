@@ -15,13 +15,16 @@ namespace CardAtlas.Server.Extensions
 		/// <exception cref="NullReferenceException"></exception>
 		private static AppSettings GetAppSettings(IConfiguration configuration)
 		{
-			if (_appSettings != null) return _appSettings;
+			if (_appSettings is null)
+			{
+				AppSettings? appSettings = configuration.Get<AppSettings>();
 
-			AppSettings? appSettings = configuration.Get<AppSettings>();
+				if (appSettings is null) throw new NullReferenceException(Errors.AppSettingsIsNotConfigured);
 
-			if (appSettings is null) throw new NullReferenceException(Errors.AppSettingsIsNotConfigured);
+				_appSettings = appSettings;
+			}
 
-			return appSettings;
+			return _appSettings;
 		}
 
 		/// <summary>
