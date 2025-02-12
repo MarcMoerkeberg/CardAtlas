@@ -9,8 +9,11 @@ namespace ScryfallApi
 	public class ScryfallApi : IScryfallApi
 	{
 		public const int DefaultRateLimit = 100;
+		public readonly int RateLimitInMilliseconds;
+		
 		private readonly HttpClient _client;
-		private static int _rateLimitInMiliseconds;
+		private static readonly SemaphoreSlim _semaphore = new(1, 1);
+		private static DateTime _lastRequestTime = DateTime.MinValue;
 
 		/// <param name="appName">The name of the application. Required as a User-Agent header when requesting the Scryfall API.</param>
 		/// <param name="rateLimit">Rate limit in ms. Cannot be less than 100.</param>
@@ -20,7 +23,7 @@ namespace ScryfallApi
 			_client.BaseAddress = new Uri("https://api.scryfall.com/");
 			_client.DefaultRequestHeaders.Add("User-Agent", appName);
 
-			_rateLimitInMiliseconds = rateLimit > DefaultRateLimit ? rateLimit : DefaultRateLimit;
+			RateLimitInMilliseconds = Math.Max(DefaultRateLimit, rateLimit);
 		}
 
 		public async Task<IEnumerable<Card>> GetBulkData(BulkDataType bulkDataType)
@@ -111,7 +114,7 @@ namespace ScryfallApi
 		/// <exception cref="Exception"></exception>
 		private async Task<IEnumerable<BulkData>> GetBulkDataObjects()
 		{
-			var apiResponse = await _client.GetAsync("bulk-data");
+			var apiResponse = await RateLimitAsync(() => _client.GetAsync("bulk-data"));
 			if (!apiResponse.IsSuccessStatusCode)
 			{
 				throw new HttpRequestException(Errors.ApiResponseError);
@@ -130,7 +133,7 @@ namespace ScryfallApi
 		/// <typeparam name="TModel">The data is deserialized as this type.</typeparam>
 		private async IAsyncEnumerable<TModel> GetBulkDataAsync<TModel>(BulkData bulkDataObject) where TModel : class
 		{
-			Stream apiResponseStream = await _client.GetStreamAsync(bulkDataObject.DownloadUri);
+			Stream apiResponseStream = await RateLimitAsync(() => _client.GetStreamAsync(bulkDataObject.DownloadUri));
 
 			await foreach (TModel? model in JsonSerializer.DeserializeAsyncEnumerable<TModel>(apiResponseStream))
 			{
@@ -138,6 +141,46 @@ namespace ScryfallApi
 
 				yield return model;
 			}
+		}
+
+		/// <summary>
+		/// Rate limits <paramref name="asyncFunction"/> to ensure good citizenship. This is primarily used for calling the Scryfall API.<br/>
+		/// For more details see the <see href="https://scryfall.com/docs/api#rate-limits">Scryfall API documentation</see>.
+		/// </summary>
+		/// <typeparam name="T">The expected returntype of <paramref name="asyncFunction"/>.</typeparam>
+		/// <param name="asyncFunction">The function to execute once the ratelimit wait period has elapsed.</param>
+		/// <returns>The result from <paramref name="asyncFunction"/>.</returns>
+		private async Task<T> RateLimitAsync<T>(Func<Task<T>> asyncFunction)
+		{
+			await _semaphore.WaitAsync();
+			try
+			{
+				int millisecondsSinceLastRequest = TimeElapsedSinceLastRequest();
+
+				if (RateLimitInMilliseconds > millisecondsSinceLastRequest)
+				{
+					await Task.Delay(RateLimitInMilliseconds - millisecondsSinceLastRequest);
+				}
+
+				T asyncTaskResult = await asyncFunction();
+				_lastRequestTime = DateTime.UtcNow;
+
+				return asyncTaskResult;
+			}
+			finally
+			{
+				_semaphore.Release();
+			}
+		}
+
+		/// <summary>
+		/// Calculates the time since the last request in miliseconds.
+		/// </summary>
+		/// <returns>An int representing the time in milliseconds elapsed since last request.</returns>
+		private static int TimeElapsedSinceLastRequest()
+		{
+			double timeSinceLastRequest = (DateTime.UtcNow - _lastRequestTime).TotalMilliseconds;
+			return (int)timeSinceLastRequest;
 		}
 	}
 }
