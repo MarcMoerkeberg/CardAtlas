@@ -145,7 +145,7 @@ namespace ScryfallApi
 
 		/// <summary>
 		/// Rate limits <paramref name="asyncFunction"/> to ensure good citizenship. This is primarily used for calling the Scryfall API.<br/>
-		/// For more details see the <see href="https://scryfall.com/docs/api#rate-limits">Scryfall API documentation</see>.
+		/// For more details see the <see href="https://scryfall.com/docs/api">Scryfall API documentation</see>.
 		/// </summary>
 		/// <typeparam name="T">The expected returntype of <paramref name="asyncFunction"/>.</typeparam>
 		/// <param name="asyncFunction">The function to execute once the ratelimit wait period has elapsed.</param>
