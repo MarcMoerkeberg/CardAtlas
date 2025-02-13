@@ -1,8 +1,16 @@
-﻿namespace CardAtlas.Server.Models.Data;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace CardAtlas.Server.Models.Data;
 
 public class Card
 {
-	public int Id { get; set; }
+	[Key]
+	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+	public long Id { get; set; }
+	public Guid? ScryfallId { get; set; }
+
+	[MaxLength(250)]
+	[MinLength(1)]
 	public required string Name { get; set; }
-	public string? Description { get; set; }
 }
