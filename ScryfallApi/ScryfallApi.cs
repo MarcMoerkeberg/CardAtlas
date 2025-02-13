@@ -13,7 +13,7 @@ namespace ScryfallApi
 		
 		private readonly HttpClient _client;
 		private static readonly SemaphoreSlim _semaphore = new(1, 1);
-		private static DateTime _lastRequestTime = DateTime.MinValue;
+		private static DateTime _lastRequestTime = DateTime.UtcNow;
 
 		/// <param name="appName">The name of the application. Required as a User-Agent header when requesting the Scryfall API.</param>
 		/// <param name="rateLimit">Rate limit in ms. Cannot be less than 100.</param>
