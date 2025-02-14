@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScryfallApi", "ScryfallApi\ScryfallApi.csproj", "{A3FFEFB5-98C1-47C5-B3FE-3D10687294A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardAtlas.UnitTests", "CardAtlas.UnitTests\CardAtlas.UnitTests.csproj", "{AA69ECD2-4A44-4C1A-838B-041C5ACB7B7F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,10 @@ Global
 		{A3FFEFB5-98C1-47C5-B3FE-3D10687294A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A3FFEFB5-98C1-47C5-B3FE-3D10687294A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A3FFEFB5-98C1-47C5-B3FE-3D10687294A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA69ECD2-4A44-4C1A-838B-041C5ACB7B7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA69ECD2-4A44-4C1A-838B-041C5ACB7B7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA69ECD2-4A44-4C1A-838B-041C5ACB7B7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA69ECD2-4A44-4C1A-838B-041C5ACB7B7F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
