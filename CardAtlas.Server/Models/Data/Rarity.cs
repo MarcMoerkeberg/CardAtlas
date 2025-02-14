@@ -1,6 +1,13 @@
-﻿namespace CardAtlas.Server.Models.Data;
+﻿using CardAtlas.Server.Models.Data.Base;
 
-public enum Rarity
+namespace CardAtlas.Server.Models.Data;
+
+public class Rarity : TypeEntity<RarityType>
+{
+	public required ICollection<Card> Cards { get; set; }
+}
+
+public enum RarityType
 {
 	Common = 1,
 	Uncommon = 2,
