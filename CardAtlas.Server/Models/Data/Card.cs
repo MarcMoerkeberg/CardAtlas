@@ -54,5 +54,11 @@ public class Card
 	public required ImageUri ImageUri { get; set; }
 	public int ImageUriId { get; set; }
 
+	[ForeignKey("RarityId")]
 	public required Rarity Rarity { get; set; }
+	public int RarityId { get; set; }
+
+	[ForeignKey("CardPriceIds")]
+	public ICollection<CardPrice>? CardPrices { get; set; }
+	public IEnumerable<int>? CardPriceIds { get; set; }
 }
