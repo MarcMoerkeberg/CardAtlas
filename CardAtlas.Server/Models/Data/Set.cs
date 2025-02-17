@@ -42,9 +42,13 @@ public class Set
 	public required SetType SetType { get; set; }
 	public int SetTypeId { get; set; }
 	
+	[InverseProperty("Set")]
+	public required ICollection<Card> Cards { get; set; }
+	
 	public int NumberOfCards { get; set; }
 	public bool IsDigitalOnly { get; set; }
 	public bool IsFoilOnly { get; set; }
 	public bool IsNonFoilOnly { get; set; }
 	public DateOnly? ReleaseDate { get; set; }
+
 }
