@@ -1,9 +1,11 @@
 ﻿using CardAtlas.Server.Models.Data.Base;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data;
 
 public class Rarity : TypeEntity<RarityType>
 {
+	[InverseProperty("Rarity")]
 	public required ICollection<Card> Cards { get; set; }
 }
 
