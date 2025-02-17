@@ -8,8 +8,6 @@ public class Vendor : TypeEntity<VendorType>
 	[ForeignKey("CurrencyId")]
 	public required Currency Currency { get; set; }
 	public required int CurrencyId { get; set; }
-
-	public CurrencyType CurrencyType => Currency.Type;
 }
 
 public enum VendorType
