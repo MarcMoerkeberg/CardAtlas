@@ -15,9 +15,9 @@ public class Vendor : TypeEntity<VendorType>
 
 public enum VendorType
 {
-	TcgPlayer,
-	CardMarket,
-	CardHoarder,
+	TcgPlayer = 1,
+	CardMarket = 2,
+	CardHoarder = 3,
 	NotImplemented = 0
 }
 
