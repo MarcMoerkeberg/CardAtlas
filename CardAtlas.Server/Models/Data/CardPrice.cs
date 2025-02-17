@@ -21,5 +21,8 @@ public class CardPrice
 	public int VendorId { get; set; }
 
 	public required Uri PurchaseUri { get; set; }
+
+	[ForeignKey("CardId")]
 	public required Card Card { get; set; }
+	public required long CardId { get; set; }
 }
