@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CardAtlas.Server.Models.Data.Image;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -50,14 +51,14 @@ public class Card
 	public required Artist Artist { get; set; }
 	public int ArtistId { get; set; }
 
-	[ForeignKey("ImageUriId")]
-	public required ImageUri ImageUri { get; set; }
-	public int ImageUriId { get; set; }
+	[InverseProperty("Card")]
+	public ICollection<CardImage>? ImageUris { get; set; }
 
 	[ForeignKey("RarityId")]
 	public required Rarity Rarity { get; set; }
 	public int RarityId { get; set; }
 
-	[InverseProperty("Card")]
-	public ICollection<CardPrice>? CardPrices { get; set; }
+	[ForeignKey("CardPriceId")]
+	public CardPrice? CardPrice { get; set; }
+	public int? CardPriceId { get; set; }
 }

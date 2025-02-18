@@ -8,4 +8,13 @@ public class Artist
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 	public int Id { get; set; }
+
+	public Guid ScryfallId { get; set; }
+
+	[MinLength(1)]
+	[MaxLength(100)]
+	public required string Name { get; set; }
+
+	[InverseProperty("Artist")]
+	public required ICollection<Card> Cards { get; set; }
 }

@@ -3,13 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data;
 
-public class SetType : TypeEntity<SetKind>
+public class SetType : TypeEntity<SetTypeKind>
 {
 	[InverseProperty("SetType")]
 	public required ICollection<Set> Sets { get; set; }
 }
 
-public enum SetKind
+public enum SetTypeKind
 {
 	Core = 1,
 	Expansion = 2,
