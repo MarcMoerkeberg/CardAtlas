@@ -45,10 +45,9 @@ public class Set
 	[InverseProperty("Set")]
 	public required ICollection<Card> Cards { get; set; }
 	
-	public int NumberOfCards { get; set; }
+	public int NumberOfCardsInSet { get; set; }
 	public bool IsDigitalOnly { get; set; }
 	public bool IsFoilOnly { get; set; }
 	public bool IsNonFoilOnly { get; set; }
 	public DateOnly? ReleaseDate { get; set; }
-
 }

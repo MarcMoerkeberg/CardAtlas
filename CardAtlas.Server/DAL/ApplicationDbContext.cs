@@ -15,4 +15,7 @@ public class ApplicationDbContext : DbContext
 
 	public DbSet<Card> Cards { get; set; }
 	public DbSet<Rarity> Rarities { get; set; }
+	public DbSet<Set> Sets { get; set; }
+	public DbSet<Vendor> Vendors { get; set; }
+	public DbSet<Currency> Currencies { get; set; }
 }
