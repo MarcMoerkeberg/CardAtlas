@@ -79,4 +79,34 @@ public class Card
 	[ForeignKey("CardLegalityId")]
 	public required CardLegality Legality { get; set; }
 	public int CardLegalityId { get; set; }
+
+	[MinLength(1)]
+	[MaxLength(3)]
+	public string? Loyalty { get; set; }
+
+	public bool IsReserved { get; set; }
+	public bool CanBeFoundInBoosters { get; set; }
+	public bool IsDigitalOnly { get; set; }
+	public bool IsFullArt { get; set; }
+	public bool IsOversized { get; set; }
+
+	[MinLength(1)]
+	[MaxLength(6)]
+	public required string CollectorNumber { get; set; }
+
+	[ForeignKey("FrameLayoutId")]
+	public FrameLayout FrameLayout { get; set; } = null!;
+	public required int FrameLayoutId { get; set; }
+
+	public ICollection<PrintFinish> PrintFinishes { get; set; } = new HashSet<PrintFinish>();
+	[NotMapped]
+	private IEnumerable<PrintFinishType>? _printedInFinishes { get; set; }
+	[NotMapped]
+	public IEnumerable<PrintFinishType> PrintedInFinishes => _printedInFinishes??= PrintFinishes.Select(finish => finish.Type);
+
+	public ICollection<GameType> GameTypes { get; set; } = new HashSet<GameType>();
+	[NotMapped]
+	private IEnumerable<GameKind>? _existsInGameTypes { get; set; }
+	[NotMapped]
+	public IEnumerable<GameKind> ExistsInGameTypes  => _existsInGameTypes ??= GameTypes.Select(gameType => gameType.Type);
 }

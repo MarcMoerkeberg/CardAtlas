@@ -30,4 +30,7 @@ public class ApplicationDbContext : DbContext
 	public DbSet<Keyword> Keywords { get; set; }
 	public DbSet<Legality> Legalities { get; set; }
 	public DbSet<CardLegality> CardLegalities { get; set; }
+	public DbSet<FrameLayout> FrameLayouts { get; set; }
+	public DbSet<PrintFinish> PrintFinishes { get; set; }
+	public DbSet<GameType> GameTypes { get; set; }
 }
