@@ -58,7 +58,10 @@ public class Card
 	public required Rarity Rarity { get; set; }
 	public int RarityId { get; set; }
 
-	[ForeignKey("CardPriceId")]
-	public CardPrice? CardPrice { get; set; }
-	public int? CardPriceId { get; set; }
+	[InverseProperty("Card")]
+	public ICollection<CardPrice>? CardPrices { get; set; }
+
+	[ForeignKey("LanguageId")]
+	public required Language Language { get; set; }
+	public int LanguageId { get; set; }
 }
