@@ -6,7 +6,7 @@ namespace CardAtlas.Server.Models.Data;
 public class SetType : TypeEntity<SetTypeKind>
 {
 	[InverseProperty("SetType")]
-	public required ICollection<Set> Sets { get; set; }
+	public ICollection<Set> Sets { get; set; } = new HashSet<Set>();
 }
 
 public enum SetTypeKind

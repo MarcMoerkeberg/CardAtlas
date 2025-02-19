@@ -6,7 +6,7 @@ namespace CardAtlas.Server.Models.Data;
 public class Vendor : TypeEntity<VendorType>
 {
 	[ForeignKey("CurrencyId")]
-	public required Currency Currency { get; set; }
+	public Currency Currency { get; set; } = null!;
 	public required int CurrencyId { get; set; }
 }
 

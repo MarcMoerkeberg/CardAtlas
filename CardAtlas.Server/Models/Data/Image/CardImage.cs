@@ -10,28 +10,28 @@ public class CardImage
 	public long Id { get; set; }
 
 	[ForeignKey("ImageTypeId")]
-	public required ImageType ImageType { get; set; }
-	public int ImageTypeId { get; set; }
+	public ImageType ImageType { get; set; } = null!;
+	public required int ImageTypeId { get; set; }
 	[NotMapped]
 	public ImageTypeKind Type => ImageType.Type;
 
 	[ForeignKey("ImageFormatId")]
-	public required ImageFormat ImageFormat { get; set; }
-	public int ImageFormatId { get; set; }
+	public ImageFormat ImageFormat { get; set; } = null!;
+	public required int ImageFormatId { get; set; }
 	[NotMapped]
 	public ImageFormatType Format => ImageFormat.Type;
 
 	[ForeignKey("ImageStatusId")]
-	public required ImageStatus ImageStatus { get; set; }
-	public int ImageStatusId { get; set; }
+	public ImageStatus ImageStatus { get; set; } = null!;
+	public required int ImageStatusId { get; set; }
 	[NotMapped]
 	public ImageStatusType Status => ImageStatus.Type;
 
 	[ForeignKey("CardId")]
-	public required Card Card { get; set; }
-	public long CardId { get; set; }
+	public Card Card { get; set; } = null!;
+	public required long CardId { get; set; }
 
-	public int Width { get; set; }
-	public int Height { get; set; }
+	public required int Width { get; set; }
+	public required int Height { get; set; }
 	public required Uri Uri { get; set; }
 }

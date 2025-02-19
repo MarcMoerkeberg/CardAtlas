@@ -44,26 +44,26 @@ public class Card
 	public string? Toughness { get; set; }
 
 	[ForeignKey("SetId")]
-	public required Set Set { get; set; }
-	public int SetId { get; set; }
+	public Set Set { get; set; } = null!;
+	public required int SetId { get; set; }
 
 	[ForeignKey("ArtistId")]
-	public required Artist Artist { get; set; }
-	public int ArtistId { get; set; }
+	public Artist Artist { get; set; } = null!;
+	public required int ArtistId { get; set; }
 
 	[InverseProperty("Card")]
 	public ICollection<CardImage>? ImageUris { get; set; }
 
 	[ForeignKey("RarityId")]
-	public required Rarity Rarity { get; set; }
-	public int RarityId { get; set; }
+	public Rarity Rarity { get; set; } = null!;
+	public required int RarityId { get; set; }
 
 	[InverseProperty("Card")]
 	public ICollection<CardPrice>? CardPrices { get; set; }
 
 	[ForeignKey("LanguageId")]
-	public required Language Language { get; set; }
-	public int LanguageId { get; set; }
+	public Language Language { get; set; } = null!;
+	public required int LanguageId { get; set; }
 
 	[MinLength(2)]
 	[MaxLength(9)]
@@ -74,11 +74,12 @@ public class Card
 	[MinLength(1)]
 	[MaxLength(100)]
 	public string? Keywords { get; set; }
+	[NotMapped]
 	public IEnumerable<string>? KeywordList => Keywords?.Split(',');
 
 	[ForeignKey("CardLegalityId")]
-	public required CardLegality Legality { get; set; }
-	public int CardLegalityId { get; set; }
+	public CardLegality Legality { get; set; } = null!;
+	public required int CardLegalityId { get; set; }
 
 	[MinLength(1)]
 	[MaxLength(3)]

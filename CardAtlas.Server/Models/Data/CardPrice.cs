@@ -17,12 +17,12 @@ public class CardPrice
 	public decimal? FoilPrice { get; set; }
 
 	[ForeignKey("VendorId")]
-	public required Vendor Vendor { get; set; }
-	public int VendorId { get; set; }
+	public Vendor Vendor { get; set; } = null!;
+	public required int VendorId { get; set; }
 
 	public required Uri PurchaseUri { get; set; }
 
 	[ForeignKey("CardId")]
-	public required Card Card { get; set; }
+	public Card Card { get; set; } = null!;
 	public required long CardId { get; set; }
 }

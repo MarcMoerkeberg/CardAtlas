@@ -6,7 +6,7 @@ namespace CardAtlas.Server.Models.Data.Image;
 public class ImageStatus : TypeEntity<ImageStatusType>
 {
 	[InverseProperty("ImageStatus")]
-	public required ICollection<CardImage> CardImages { get; set; }
+	public ICollection<CardImage> CardImages { get; set; } = new HashSet<CardImage>();
 }
 
 public enum ImageStatusType

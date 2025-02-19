@@ -6,7 +6,7 @@ namespace CardAtlas.Server.Models.Data.Image;
 public class ImageFormat : TypeEntity<ImageFormatType>
 {
 	[InverseProperty("ImageFormat")]
-	public required ICollection<CardImage> ImageFormats { get; set; }
+	public ICollection<CardImage> ImageFormats { get; set; } = new HashSet<CardImage>();
 }
 
 public enum ImageFormatType

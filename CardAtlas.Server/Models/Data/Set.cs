@@ -8,7 +8,7 @@ public class Set
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 	public int Id { get; set; }
-	public Guid ScryfallId { get; set; }
+	public Guid? ScryfallId { get; set; }
 
 	[MinLength(1)]
 	[MaxLength(100)]
@@ -39,8 +39,8 @@ public class Set
 	public string? BlockCode { get; set; }
 
 	[ForeignKey("SetTypeId")]
-	public required SetType SetType { get; set; }
-	public int SetTypeId { get; set; }
+	public SetType SetType { get; set; } = null!;
+	public required int SetTypeId { get; set; }
 	
 	[InverseProperty("Set")]
 	public required ICollection<Card> Cards { get; set; }

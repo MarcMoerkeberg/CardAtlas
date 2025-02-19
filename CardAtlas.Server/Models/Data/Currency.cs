@@ -6,7 +6,7 @@ namespace CardAtlas.Server.Models.Data;
 public class Currency : TypeEntity<CurrencyType>
 {
 	[InverseProperty("Currency")]
-	public required ICollection<Vendor> Vendors { get; set; }
+	public ICollection<Vendor> Vendors { get; set; } = new HashSet<Vendor>();
 }
 
 public enum CurrencyType

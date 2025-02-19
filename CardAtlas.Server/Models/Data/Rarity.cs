@@ -6,7 +6,7 @@ namespace CardAtlas.Server.Models.Data;
 public class Rarity : TypeEntity<RarityType>
 {
 	[InverseProperty("Rarity")]
-	public required ICollection<Card> Cards { get; set; }
+	public ICollection<Card> Cards { get; set; } = new HashSet<Card>();
 }
 
 public enum RarityType
