@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.Image;
 using Microsoft.EntityFrameworkCore;
 
 namespace CardAtlas.Server.DAL;
@@ -16,6 +17,17 @@ public class ApplicationDbContext : DbContext
 	public DbSet<Card> Cards { get; set; }
 	public DbSet<Rarity> Rarities { get; set; }
 	public DbSet<Set> Sets { get; set; }
+	public DbSet<SetType> SetTypes { get; set; }
 	public DbSet<Vendor> Vendors { get; set; }
 	public DbSet<Currency> Currencies { get; set; }
+	public DbSet<CardPrice> CardPrices { get; set; }
+	public DbSet<Artist> Artists { get; set; }
+	public DbSet<CardImage> CardImages { get; set; }
+	public DbSet<ImageStatus> ImageStatuses { get; set; }
+	public DbSet<ImageFormat> ImageFormats { get; set; }
+	public DbSet<ImageType> ImageTypes { get; set; }
+	public DbSet<Language> Languages { get; set; }
+	public DbSet<Keyword> Keywords { get; set; }
+	public DbSet<Legality> Legalities { get; set; }
+	public DbSet<CardLegality> CardLegalities { get; set; }
 }

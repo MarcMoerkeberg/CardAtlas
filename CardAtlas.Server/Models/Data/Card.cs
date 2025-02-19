@@ -64,4 +64,19 @@ public class Card
 	[ForeignKey("LanguageId")]
 	public required Language Language { get; set; }
 	public int LanguageId { get; set; }
+
+	[MinLength(2)]
+	[MaxLength(9)]
+	public required string ColorIdentity { get; set; }
+	[NotMapped]
+	public IEnumerable<string> ColorIdentities => ColorIdentity.Split(',');
+
+	[MinLength(1)]
+	[MaxLength(100)]
+	public string? Keywords { get; set; }
+	public IEnumerable<string>? KeywordList => Keywords?.Split(',');
+
+	[ForeignKey("CardLegalityId")]
+	public required CardLegality Legality { get; set; }
+	public int CardLegalityId { get; set; }
 }
