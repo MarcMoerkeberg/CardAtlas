@@ -12,3 +12,22 @@ Due to how I would like to couple each card with a legality for each format. The
 
 - Cards do not contain rulings. <br/>
 The scryfall api exposes rulings from the gatherer and their own (since gatherer does not have rulings for unofficial formats such as duel commander). For now I don't think this will be missed or needed, but that could change down the line. Anyway, for now it's not included.
+
+## Commands
+Run the `docker-compose.yml` script detached (no logs).
+- `docker-compose up -d`
+
+List running docker containsers.
+- `docker ps`
+
+Stop the docker container.
+- `docker-compose down`
+
+Install Entity Framework.
+- `dotnet tool install --global dotnet-ef`
+
+Add new Migration:
+- `dotnet ef add {migrationName}`
+
+Update database with Migrations:
+- `dotnet ef update`
