@@ -11,6 +11,7 @@ public class SetType : TypeEntity<SetTypeKind>
 
 public enum SetTypeKind
 {
+	NotImplemented = -1,
 	Core = 1,
 	Expansion = 2,
 	Masters = 3,
@@ -34,5 +35,4 @@ public enum SetTypeKind
 	Token = 21,
 	Memorabilia = 22,
 	MiniGame = 23,
-	NotImplemented = 0
 }

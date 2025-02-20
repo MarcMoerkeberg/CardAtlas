@@ -11,11 +11,11 @@ public class ImageType : TypeEntity<ImageTypeKind>
 
 public enum ImageTypeKind
 {
+	NotImplemented = -1,
 	Png = 1,
 	BorderCrop = 2,
 	ArtCrop = 3,
 	Large = 4,
 	Normal = 5,
 	Small = 6,
-	NotImplemented = 0
 }

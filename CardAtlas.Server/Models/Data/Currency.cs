@@ -11,8 +11,8 @@ public class Currency : TypeEntity<CurrencyType>
 
 public enum CurrencyType
 {
+	NotImplemented = -1,
 	Usd = 1,
 	Eur = 2,
 	Tix = 3,
-	NotImplemented = 0
 }

@@ -9,8 +9,8 @@ public class PrintFinish : TypeEntity<PrintFinishType>
 
 public enum PrintFinishType
 {
+	NotImplemented = -1,
 	Foil = 1,
 	NonFoil = 2,
 	Etched = 3,
-	NotImplemented = 0
 }

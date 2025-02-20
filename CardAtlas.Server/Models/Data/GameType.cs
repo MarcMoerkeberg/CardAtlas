@@ -9,8 +9,8 @@ public class GameType : TypeEntity<GameKind>
 
 public enum GameKind
 {
+	NotImplemented = -1,
 	Paper = 1,
 	Arena = 2,
 	Mtgo = 3,
-	NotImplemented = 0
 }

@@ -21,6 +21,7 @@ public class Language : TypeEntity<LanguageType>
 
 public enum LanguageType
 {
+	NotImplemented = -1,
 	English = 1,
 	Spanish = 2,
 	French = 3,
@@ -38,5 +39,4 @@ public enum LanguageType
 	Arabic = 15,
 	Sanskrit = 16,
 	Phyrexian = 17,
-	NotImplemented = 0
 }

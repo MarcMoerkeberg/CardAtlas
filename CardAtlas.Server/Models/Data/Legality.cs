@@ -8,10 +8,10 @@ namespace CardAtlas.Server.Models.Data
 
 	public enum LegalityType
 	{
+		NotImplemented = -1,
 		Legal = 1,
 		NotLegal = 2,
 		Restricted = 3,
 		Banned = 4,
-		NotImplemented = 0
 	}
 }

@@ -11,10 +11,10 @@ public class FrameLayout : TypeEntity<FrameType>
 
 public enum FrameType
 {
+	NotImplemented = -1,
 	Year1993 = 1,
 	Year1997 = 2,
 	Year2003 = 3,
 	Year2015 = 4,
 	Future = 5,
-	NotImplemented = 0
 }
