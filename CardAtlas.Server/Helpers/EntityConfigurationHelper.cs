@@ -30,7 +30,8 @@ public static class EntityConfigurationHelper
 					seedDataEntry.Name = enumInstance.ToString();
 
 					return seedDataEntry;
-				});
+				})
+				.ToList();
 
 				return seedData;
 		}
