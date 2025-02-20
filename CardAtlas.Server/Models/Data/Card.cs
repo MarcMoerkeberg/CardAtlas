@@ -79,7 +79,7 @@ public class Card
 
 	[ForeignKey("CardLegalityId")]
 	public CardLegality Legality { get; set; } = null!;
-	public required int CardLegalityId { get; set; }
+	public required long CardLegalityId { get; set; }
 
 	[MinLength(1)]
 	[MaxLength(3)]
