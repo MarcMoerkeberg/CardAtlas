@@ -85,12 +85,6 @@ public class Card
 	[MaxLength(3)]
 	public string? Loyalty { get; set; }
 
-	public bool IsReserved { get; set; }
-	public bool CanBeFoundInBoosters { get; set; }
-	public bool IsDigitalOnly { get; set; }
-	public bool IsFullArt { get; set; }
-	public bool IsOversized { get; set; }
-
 	[MinLength(1)]
 	[MaxLength(6)]
 	public required string CollectorNumber { get; set; }
@@ -110,4 +104,22 @@ public class Card
 	private IEnumerable<GameKind>? _existsInGameTypes { get; set; }
 	[NotMapped]
 	public IEnumerable<GameKind> ExistsInGameTypes  => _existsInGameTypes ??= GameTypes.Select(gameType => gameType.Type);
+
+	public string? PromoTypes { get; set; }
+	[NotMapped]
+	public IEnumerable<string>? PromoTypeList => PromoTypes?.Split(',');
+
+	[ForeignKey("ParentCardId")]
+	public Card? ParentCard { get; set; }
+	public long? ParentCardId { get; set; }
+
+	public DateOnly ReleaseDate { get; set; }
+	public bool IsReserved { get; set; }
+	public bool CanBeFoundInBoosters { get; set; }
+	public bool IsDigitalOnly { get; set; }
+	public bool IsFullArt { get; set; }
+	public bool IsOversized { get; set; }
+	public bool IsPromo { get; set; }
+	public bool IsReprint { get; set; }
+	public bool IsTextless { get; set; }
 }
