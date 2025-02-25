@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using CardAtlas.Server.Models.Data;
 using Microsoft.AspNetCore.Mvc;
 using ScryfallApi;
 using ScryfallApi.Models.Types;
@@ -18,7 +19,7 @@ namespace CardAtlas.Server.Controllers
 		}
 
 		[HttpGet]
-		public async Task<IEnumerable<string>> Get()
+		public async Task<IEnumerable<Card>> Get()
 		{
 			await _scryfallApi.GetBulkData(BulkDataType.AllCards);
 			throw new NotImplementedException();
