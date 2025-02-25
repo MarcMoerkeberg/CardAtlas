@@ -31,11 +31,17 @@ public interface IScryfallApi
 	/// <b>WARNING:</b> This data is materialized into memory and may be a very large dataset. Use this method cautiously. <br/><br/>
 	/// </summary>
 	/// <returns>An <see cref="IEnumerable{Ruling}"/> populated with <see cref="Ruling"/> objects.</returns>
-	public Task<IEnumerable<Ruling>> GetBulkData();
+	public Task<IEnumerable<Ruling>> GetBulkCardRulings();
 
 	/// <summary>
 	/// Gets bulk card rulings from the Scryfall API and returns the data asynchronously as it is deserialized.
 	/// </summary>
 	/// <returns><see cref="Ruling"/> asynchronously as they are deserialized.</returns>
-	public IAsyncEnumerable<Ruling> GetBulkDataAsync();
+	public IAsyncEnumerable<Ruling> GetBulkCardRulingsAsync();
+
+	public Task<IEnumerable<Set>> GetSets();
+	public Task<Set> GetSet(Guid setId);
+	public IAsyncEnumerable<Set> GetSetsAsync();
+	public Task<IEnumerable<CardSymbol>> GetCardSymbols();
+	public IAsyncEnumerable<CardSymbol> GetCardSymbolsAsync();
 }

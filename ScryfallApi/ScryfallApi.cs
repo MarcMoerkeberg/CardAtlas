@@ -10,7 +10,7 @@ namespace ScryfallApi
 	{
 		public const int DefaultRateLimit = 100;
 		public readonly int RateLimitInMilliseconds;
-		
+
 		private readonly HttpClient _client;
 		private static readonly SemaphoreSlim _semaphore = new(1, 1);
 		private static DateTime _lastRequestTime = DateTime.UtcNow;
@@ -26,106 +26,6 @@ namespace ScryfallApi
 			RateLimitInMilliseconds = Math.Max(DefaultRateLimit, rateLimit);
 		}
 
-		public async Task<IEnumerable<Card>> GetBulkData(BulkDataType bulkDataType)
-		{
-			if (bulkDataType is BulkDataType.NotImplemented)
-			{
-				throw new ArgumentException(string.Format(Errors.InvalidBulkDataType, bulkDataType), nameof(bulkDataType));
-			}
-			if (!bulkDataType.IsCardDataType())
-			{
-				throw new ArgumentException(string.Format(Errors.InvalidBulkDataTypeForCards, bulkDataType), nameof(bulkDataType));
-			}
-
-			BulkData cardBulkDataObject = await GetBulkDataByType(bulkDataType);
-			List<Card> deserializedModels = new List<Card>();
-
-			await foreach (Card model in GetBulkDataAsync<Card>(cardBulkDataObject))
-			{
-				deserializedModels.Add(model);
-			}
-
-			return deserializedModels;
-		}
-
-		public async IAsyncEnumerable<Card> GetBulkDataAsync(BulkDataType bulkDataType)
-		{
-			if (bulkDataType is BulkDataType.NotImplemented)
-			{
-				throw new ArgumentException(string.Format(Errors.InvalidBulkDataType, bulkDataType), nameof(bulkDataType));
-			}
-			if (!bulkDataType.IsCardDataType())
-			{
-				throw new ArgumentException(string.Format(Errors.InvalidBulkDataTypeForCards, bulkDataType), nameof(bulkDataType));
-			}
-
-			BulkData cardBulkDataObject = await GetBulkDataByType(bulkDataType);
-
-			await foreach (Card model in GetBulkDataAsync<Card>(cardBulkDataObject))
-			{
-				yield return model;
-			}
-		}
-
-		public async Task<IEnumerable<Ruling>> GetBulkData()
-		{
-			BulkData rulingsBulkObject = await GetBulkDataByType(BulkDataType.Rulings);
-			List<Ruling> deserializedModels = new List<Ruling>();
-
-			await foreach (Ruling model in GetBulkDataAsync<Ruling>(rulingsBulkObject))
-			{
-				deserializedModels.Add(model);
-			}
-
-			return deserializedModels;
-		}
-
-		public async IAsyncEnumerable<Ruling> GetBulkDataAsync()
-		{
-			BulkData rulingsBulkObject = await GetBulkDataByType(BulkDataType.Rulings);
-
-			await foreach (Ruling ruling in GetBulkDataAsync<Ruling>(rulingsBulkObject))
-			{
-				yield return ruling;
-			}
-		}
-
-		/// <summary>
-		/// Returns a single specific type of bulk data object.
-		/// </summary>
-		/// <exception cref="ArgumentException"></exception>
-		private async Task<BulkData> GetBulkDataByType(BulkDataType bulkDataType)
-		{
-			if (bulkDataType is BulkDataType.NotImplemented)
-			{
-				throw new ArgumentException($"Invalid BulkDataType: {bulkDataType}.", nameof(bulkDataType));
-			}
-
-			IEnumerable<BulkData> allBulkData = await GetBulkDataObjects();
-
-			return allBulkData.Single(bulkData => bulkData.BulkDataType == bulkDataType);
-		}
-
-		/// <summary>
-		/// Gets the bulk data objects from the api for fetching the bulk data.
-		/// </summary>
-		/// <returns>A list of <see cref="BulkData"/>.</returns>
-		/// <exception cref="HttpRequestException"></exception>
-		/// <exception cref="Exception"></exception>
-		private async Task<IEnumerable<BulkData>> GetBulkDataObjects()
-		{
-			var apiResponse = await RateLimitAsync(() => _client.GetAsync("bulk-data"));
-			if (!apiResponse.IsSuccessStatusCode)
-			{
-				throw new HttpRequestException(Errors.ApiResponseError);
-			}
-
-			ListResponse<BulkData>? responseData = await apiResponse.Content.ReadFromJsonAsync<ListResponse<BulkData>>();
-
-			return responseData is null
-				? throw new Exception(Errors.DeserializationError)
-				: responseData.Data;
-		}
 
 		/// <summary>
 		/// Gets bulk data from the scryfall api as a stream and returns the objects once they are deserialized as <typeparamref name="TModel"/>.
@@ -181,6 +81,132 @@ namespace ScryfallApi
 		{
 			double timeSinceLastRequest = (DateTime.UtcNow - _lastRequestTime).TotalMilliseconds;
 			return (int)timeSinceLastRequest;
+		}
+
+		public async Task<IEnumerable<Card>> GetBulkData(BulkDataType bulkDataType)
+		{
+			if (bulkDataType is BulkDataType.NotImplemented)
+			{
+				throw new ArgumentException(string.Format(Errors.InvalidBulkDataType, bulkDataType), nameof(bulkDataType));
+			}
+			if (!bulkDataType.IsCardDataType())
+			{
+				throw new ArgumentException(string.Format(Errors.InvalidBulkDataTypeForCards, bulkDataType), nameof(bulkDataType));
+			}
+
+			BulkData cardBulkDataObject = await GetBulkDataByType(bulkDataType);
+			List<Card> deserializedModels = new List<Card>();
+
+			await foreach (Card model in GetBulkDataAsync<Card>(cardBulkDataObject))
+			{
+				deserializedModels.Add(model);
+			}
+
+			return deserializedModels;
+		}
+
+		/// <summary>
+		/// Returns a single specific type of bulk data object.
+		/// </summary>
+		/// <exception cref="ArgumentException"></exception>
+		private async Task<BulkData> GetBulkDataByType(BulkDataType bulkDataType)
+		{
+			if (bulkDataType is BulkDataType.NotImplemented)
+			{
+				throw new ArgumentException($"Invalid BulkDataType: {bulkDataType}.", nameof(bulkDataType));
+			}
+
+			IEnumerable<BulkData> allBulkData = await GetBulkDataObjects();
+
+			return allBulkData.Single(bulkData => bulkData.BulkDataType == bulkDataType);
+		}
+
+		/// <summary>
+		/// Gets the bulk data objects from the api for fetching the bulk data.
+		/// </summary>
+		/// <returns>A list of <see cref="BulkData"/>.</returns>
+		/// <exception cref="HttpRequestException"></exception>
+		/// <exception cref="Exception"></exception>
+		private async Task<IEnumerable<BulkData>> GetBulkDataObjects()
+		{
+			var apiResponse = await RateLimitAsync(() => _client.GetAsync("bulk-data"));
+			if (!apiResponse.IsSuccessStatusCode)
+			{
+				throw new HttpRequestException(Errors.ApiResponseError);
+			}
+
+			ListResponse<BulkData>? responseData = await apiResponse.Content.ReadFromJsonAsync<ListResponse<BulkData>>();
+
+			return responseData is null
+				? throw new Exception(Errors.DeserializationError)
+				: responseData.Data;
+		}
+
+		public async IAsyncEnumerable<Card> GetBulkDataAsync(BulkDataType bulkDataType)
+		{
+			if (bulkDataType is BulkDataType.NotImplemented)
+			{
+				throw new ArgumentException(string.Format(Errors.InvalidBulkDataType, bulkDataType), nameof(bulkDataType));
+			}
+			if (!bulkDataType.IsCardDataType())
+			{
+				throw new ArgumentException(string.Format(Errors.InvalidBulkDataTypeForCards, bulkDataType), nameof(bulkDataType));
+			}
+
+			BulkData cardBulkDataObject = await GetBulkDataByType(bulkDataType);
+
+			await foreach (Card model in GetBulkDataAsync<Card>(cardBulkDataObject))
+			{
+				yield return model;
+			}
+		}
+
+		public async Task<IEnumerable<Ruling>> GetBulkCardRulings()
+		{
+			BulkData rulingsBulkObject = await GetBulkDataByType(BulkDataType.Rulings);
+			List<Ruling> deserializedModels = new List<Ruling>();
+
+			await foreach (Ruling model in GetBulkDataAsync<Ruling>(rulingsBulkObject))
+			{
+				deserializedModels.Add(model);
+			}
+
+			return deserializedModels;
+		}
+
+		public async IAsyncEnumerable<Ruling> GetBulkCardRulingsAsync()
+		{
+			BulkData rulingsBulkObject = await GetBulkDataByType(BulkDataType.Rulings);
+
+			await foreach (Ruling ruling in GetBulkDataAsync<Ruling>(rulingsBulkObject))
+			{
+				yield return ruling;
+			}
+		}
+
+		public Task<IEnumerable<Set>> GetSets()
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<Set> GetSet(Guid setId)
+		{
+			throw new NotImplementedException();
+		}
+
+		public IAsyncEnumerable<Set> GetSetsAsync()
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<IEnumerable<CardSymbol>> GetCardSymbols()
+		{
+			throw new NotImplementedException();
+		}
+
+		public IAsyncEnumerable<CardSymbol> GetCardSymbolsAsync()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }
