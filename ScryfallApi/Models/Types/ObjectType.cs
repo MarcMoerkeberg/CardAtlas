@@ -7,5 +7,6 @@ public enum ObjectType
 	Card,
 	RelatedCard,
 	CardFace,
+	CardSymbol,
 	NotImplemented = 0
 }
