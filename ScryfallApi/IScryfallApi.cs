@@ -14,6 +14,8 @@ public interface IScryfallApi
 	/// <param name="dataType">The type of bulk card data fetched.</param>
 	/// <returns>An <see cref="IEnumerable{Card}"/> populated with <see cref="Card"/> objects.</returns>
 	/// <exception cref="ArgumentException"></exception>
+	/// <exception cref="HttpRequestException"></exception>
+	/// <exception cref="Exception"></exception>
 	public Task<IEnumerable<Card>> GetBulkData(BulkDataType dataType);
 
 	/// <summary>
@@ -24,6 +26,8 @@ public interface IScryfallApi
 	/// <param name="dataType">The type of bulk card data fetched.</param>
 	/// <returns><see cref="Card"/> asynchronously as they are deserialized.</returns>
 	/// <exception cref="ArgumentException"></exception>
+	/// <exception cref="HttpRequestException"></exception>
+	/// <exception cref="Exception"></exception>
 	public IAsyncEnumerable<Card> GetBulkDataAsync(BulkDataType dataType);
 
 	/// <summary>
@@ -31,12 +35,16 @@ public interface IScryfallApi
 	/// <b>WARNING:</b> This data is materialized into memory and may be a very large dataset. Use this method cautiously. <br/><br/>
 	/// </summary>
 	/// <returns>An <see cref="IEnumerable{Ruling}"/> populated with <see cref="Ruling"/> objects.</returns>
+	/// <exception cref="HttpRequestException"></exception>
+	/// <exception cref="Exception"></exception>
 	public Task<IEnumerable<Ruling>> GetBulkCardRulings();
 
 	/// <summary>
 	/// Gets bulk card rulings from the Scryfall API and returns the data asynchronously as it is deserialized.
 	/// </summary>
 	/// <returns><see cref="Ruling"/> asynchronously as they are deserialized.</returns>
+	/// <exception cref="HttpRequestException"></exception>
+	/// <exception cref="Exception"></exception>
 	public IAsyncEnumerable<Ruling> GetBulkCardRulingsAsync();
 
 	/// <summary>
