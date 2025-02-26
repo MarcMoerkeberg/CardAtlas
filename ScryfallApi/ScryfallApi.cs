@@ -83,28 +83,6 @@ namespace ScryfallApi
 			return (int)timeSinceLastRequest;
 		}
 
-		public async Task<IEnumerable<Card>> GetBulkData(BulkDataType bulkDataType)
-		{
-			if (bulkDataType is BulkDataType.NotImplemented)
-			{
-				throw new ArgumentException(string.Format(Errors.InvalidBulkDataType, bulkDataType), nameof(bulkDataType));
-			}
-			if (!bulkDataType.IsCardDataType())
-			{
-				throw new ArgumentException(string.Format(Errors.InvalidBulkDataTypeForCards, bulkDataType), nameof(bulkDataType));
-			}
-
-			BulkData cardBulkDataObject = await GetBulkDataByType(bulkDataType);
-			List<Card> deserializedModels = new List<Card>();
-
-			await foreach (Card model in GetBulkDataAsync<Card>(cardBulkDataObject))
-			{
-				deserializedModels.Add(model);
-			}
-
-			return deserializedModels;
-		}
-
 		/// <summary>
 		/// Returns a single specific type of bulk data object.
 		/// </summary>
@@ -140,6 +118,28 @@ namespace ScryfallApi
 			return responseData is null
 				? throw new Exception(Errors.DeserializationError)
 				: responseData.Data;
+		}
+
+		public async Task<IEnumerable<Card>> GetBulkData(BulkDataType bulkDataType)
+		{
+			if (bulkDataType is BulkDataType.NotImplemented)
+			{
+				throw new ArgumentException(string.Format(Errors.InvalidBulkDataType, bulkDataType), nameof(bulkDataType));
+			}
+			if (!bulkDataType.IsCardDataType())
+			{
+				throw new ArgumentException(string.Format(Errors.InvalidBulkDataTypeForCards, bulkDataType), nameof(bulkDataType));
+			}
+
+			BulkData cardBulkDataObject = await GetBulkDataByType(bulkDataType);
+			List<Card> deserializedModels = new List<Card>();
+
+			await foreach (Card model in GetBulkDataAsync<Card>(cardBulkDataObject))
+			{
+				deserializedModels.Add(model);
+			}
+
+			return deserializedModels;
 		}
 
 		public async IAsyncEnumerable<Card> GetBulkDataAsync(BulkDataType bulkDataType)
