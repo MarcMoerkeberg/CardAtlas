@@ -44,6 +44,8 @@ public interface IScryfallApi
 	/// See <see href="https://scryfall.com/docs/api/sets/all">Scryfall API documentation</see> for more information.<br/>
 	/// </summary>
 	/// <returns>An <see cref="IEnumerable{Set}"/> populated with <see cref="Set"/> objects.</returns>
+	/// <exception cref="HttpRequestException"></exception>
+	/// <exception cref="Exception"></exception>
 	public Task<IEnumerable<Set>> GetSets();
 
 	/// <summary>
@@ -51,5 +53,7 @@ public interface IScryfallApi
 	/// See <see href="https://scryfall.com/docs/api/card-symbol/all">Scryfall API documentation</see> for more information.<br/>
 	/// </summary>
 	/// <returns>An <see cref="IEnumerable{CardSymbol}"/> populated with <see cref="CardSymbol"/> objects.</returns>
+	/// <exception cref="HttpRequestException"></exception>
+	/// <exception cref="Exception"></exception>
 	public Task<IEnumerable<CardSymbol>> GetCardSymbols();
 }

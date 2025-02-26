@@ -120,6 +120,32 @@ namespace ScryfallApi
 				: responseData.Data;
 		}
 
+		/// <summary>
+		/// Gets data from the specified <paramref name="uri"/>.<br/>
+		/// Expects data to be a <see cref="ListResponse{TData}"/> with TData being <typeparamref name="T"/>.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="uri"></param>
+		/// <returns>An <see cref="IEnumerable{T}"/> of type <typeparamref name="T"/> deserialized from the api response.</returns>
+		/// <exception cref="HttpRequestException"></exception>
+		/// <exception cref="Exception"></exception>
+		private async Task<IEnumerable<T>> GetAsync<T>(string uri)
+		{
+			HttpResponseMessage apiResponse = await RateLimitAsync(() => _client.GetAsync(uri));
+			if (!apiResponse.IsSuccessStatusCode)
+			{
+				throw new HttpRequestException(Errors.ApiResponseError);
+			}
+
+			ListResponse<T>? responseData = await apiResponse.Content.ReadFromJsonAsync<ListResponse<T>>();
+			if (responseData is null)
+			{
+				throw new Exception(Errors.DeserializationError);
+			}
+
+			return responseData.Data.Where(data => data is not null);
+		}
+
 		public async Task<IEnumerable<Card>> GetBulkData(BulkDataType bulkDataType)
 		{
 			if (bulkDataType is BulkDataType.NotImplemented)
@@ -184,38 +210,7 @@ namespace ScryfallApi
 			}
 		}
 
-		public async Task<IEnumerable<Set>> GetSets()
-		{
-			var apiResponse = await RateLimitAsync(() => _client.GetAsync("sets"));
-			if (!apiResponse.IsSuccessStatusCode)
-			{
-				throw new HttpRequestException(Errors.ApiResponseError);
-			}
-
-			var responseData = await apiResponse.Content.ReadFromJsonAsync<ListResponse<Set>>();
-			if (responseData is null)
-			{
-				throw new Exception(Errors.DeserializationError);
-			}
-
-			return responseData.Data.Where(set => set is not null);
-		}
-
-		public async Task<IEnumerable<CardSymbol>> GetCardSymbols()
-		{
-			var apiResponse = await RateLimitAsync(() => _client.GetAsync("symbology"));
-			if (!apiResponse.IsSuccessStatusCode)
-			{
-				throw new HttpRequestException(Errors.ApiResponseError);
-			}
-
-			var responseData = await apiResponse.Content.ReadFromJsonAsync<ListResponse<CardSymbol>>();
-			if (responseData is null)
-			{
-				throw new Exception(Errors.DeserializationError);
-			}
-
-			return responseData.Data.Where(set => set is not null);
-		}
+		public async Task<IEnumerable<Set>> GetSets() => await GetAsync<Set>("sets");
+		public async Task<IEnumerable<CardSymbol>> GetCardSymbols() => await GetAsync<CardSymbol>("symbology");
 	}
 }
