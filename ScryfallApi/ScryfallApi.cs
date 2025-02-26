@@ -186,30 +186,19 @@ namespace ScryfallApi
 
 		public async Task<IEnumerable<Set>> GetSets()
 		{
-			var sets = new List<Set>();
-
-			await foreach (Set set in GetSetsAsync())
-			{
-				sets.Add(set);
-			}
-
-			return sets;
-		}
-
-		public async IAsyncEnumerable<Set> GetSetsAsync()
-		{
-			Stream apiResponseStream = await RateLimitAsync(() => _client.GetStreamAsync("sets"));
-			if (apiResponseStream is null)
+			var apiResponse = await RateLimitAsync(() => _client.GetAsync("sets"));
+			if (!apiResponse.IsSuccessStatusCode)
 			{
 				throw new HttpRequestException(Errors.ApiResponseError);
 			}
 
-			await foreach (Set? set in JsonSerializer.DeserializeAsyncEnumerable<Set>(apiResponseStream))
+			var responseData = await apiResponse.Content.ReadFromJsonAsync<ListResponse<Set>>();
+			if (responseData is null)
 			{
-				if (set is null) continue;
-
-				yield return set;
+				throw new Exception(Errors.DeserializationError);
 			}
+
+			return responseData.Data.Where(set => set is not null);
 		}
 
 		public Task<IEnumerable<CardSymbol>> GetCardSymbols()
@@ -219,6 +208,7 @@ namespace ScryfallApi
 
 		public IAsyncEnumerable<CardSymbol> GetCardSymbolsAsync()
 		{
+			//Stream apiResponseStream = await RateLimitAsync(() => _client.GetStreamAsync("sets"));
 			throw new NotImplementedException();
 		}
 	}
