@@ -16,7 +16,7 @@ public interface IScryfallApi
 	/// <exception cref="ArgumentException"></exception>
 	/// <exception cref="HttpRequestException"></exception>
 	/// <exception cref="Exception"></exception>
-	public Task<IEnumerable<Card>> GetBulkData(BulkDataType dataType);
+	public Task<IEnumerable<Card>> GetBulkCardData(BulkDataType dataType);
 
 	/// <summary>
 	/// Gets bulk card data from the Scryfall API and returns the data asynchronously as it is deserialized. <br/><br/>
@@ -28,7 +28,7 @@ public interface IScryfallApi
 	/// <exception cref="ArgumentException"></exception>
 	/// <exception cref="HttpRequestException"></exception>
 	/// <exception cref="Exception"></exception>
-	public IAsyncEnumerable<Card> GetBulkDataAsync(BulkDataType dataType);
+	public IAsyncEnumerable<Card> GetBulkCardDataAsync(BulkDataType dataType);
 
 	/// <summary>
 	/// Gets bulk card rulings from the Scryfall API. <br/>

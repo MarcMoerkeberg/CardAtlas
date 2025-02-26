@@ -146,7 +146,7 @@ namespace ScryfallApi
 			return responseData.Data.Where(data => data is not null);
 		}
 
-		public async Task<IEnumerable<Card>> GetBulkData(BulkDataType bulkDataType)
+		public async Task<IEnumerable<Card>> GetBulkCardData(BulkDataType bulkDataType)
 		{
 			if (bulkDataType is BulkDataType.NotImplemented)
 			{
@@ -168,7 +168,7 @@ namespace ScryfallApi
 			return deserializedModels;
 		}
 
-		public async IAsyncEnumerable<Card> GetBulkDataAsync(BulkDataType bulkDataType)
+		public async IAsyncEnumerable<Card> GetBulkCardDataAsync(BulkDataType bulkDataType)
 		{
 			if (bulkDataType is BulkDataType.NotImplemented)
 			{
