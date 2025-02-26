@@ -189,11 +189,6 @@ namespace ScryfallApi
 			throw new NotImplementedException();
 		}
 
-		public Task<Set> GetSet(Guid setId)
-		{
-			throw new NotImplementedException();
-		}
-
 		public IAsyncEnumerable<Set> GetSetsAsync()
 		{
 			throw new NotImplementedException();

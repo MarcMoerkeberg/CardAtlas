@@ -40,7 +40,6 @@ public interface IScryfallApi
 	public IAsyncEnumerable<Ruling> GetBulkCardRulingsAsync();
 
 	public Task<IEnumerable<Set>> GetSets();
-	public Task<Set> GetSet(Guid setId);
 	public IAsyncEnumerable<Set> GetSetsAsync();
 	public Task<IEnumerable<CardSymbol>> GetCardSymbols();
 	public IAsyncEnumerable<CardSymbol> GetCardSymbolsAsync();
