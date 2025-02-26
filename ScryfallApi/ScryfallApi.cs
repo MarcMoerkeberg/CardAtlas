@@ -201,15 +201,21 @@ namespace ScryfallApi
 			return responseData.Data.Where(set => set is not null);
 		}
 
-		public Task<IEnumerable<CardSymbol>> GetCardSymbols()
+		public async Task<IEnumerable<CardSymbol>> GetCardSymbols()
 		{
-			throw new NotImplementedException();
-		}
+			var apiResponse = await RateLimitAsync(() => _client.GetAsync("symbology"));
+			if (!apiResponse.IsSuccessStatusCode)
+			{
+				throw new HttpRequestException(Errors.ApiResponseError);
+			}
 
-		public IAsyncEnumerable<CardSymbol> GetCardSymbolsAsync()
-		{
-			//Stream apiResponseStream = await RateLimitAsync(() => _client.GetStreamAsync("sets"));
-			throw new NotImplementedException();
+			var responseData = await apiResponse.Content.ReadFromJsonAsync<ListResponse<CardSymbol>>();
+			if (responseData is null)
+			{
+				throw new Exception(Errors.DeserializationError);
+			}
+
+			return responseData.Data.Where(set => set is not null);
 		}
 	}
 }

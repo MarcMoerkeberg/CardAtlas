@@ -46,6 +46,10 @@ public interface IScryfallApi
 	/// <returns>An <see cref="IEnumerable{Set}"/> populated with <see cref="Set"/> objects.</returns>
 	public Task<IEnumerable<Set>> GetSets();
 
+	/// <summary>
+	/// Gets all CardSymbol objects from the Scryfall API. <br/>
+	/// See <see href="https://scryfall.com/docs/api/card-symbol/all">Scryfall API documentation</see> for more information.<br/>
+	/// </summary>
+	/// <returns>An <see cref="IEnumerable{CardSymbol}"/> populated with <see cref="CardSymbol"/> objects.</returns>
 	public Task<IEnumerable<CardSymbol>> GetCardSymbols();
-	public IAsyncEnumerable<CardSymbol> GetCardSymbolsAsync();
 }
