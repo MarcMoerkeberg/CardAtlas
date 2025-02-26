@@ -39,7 +39,19 @@ public interface IScryfallApi
 	/// <returns><see cref="Ruling"/> asynchronously as they are deserialized.</returns>
 	public IAsyncEnumerable<Ruling> GetBulkCardRulingsAsync();
 
+	/// <summary>
+	/// Gets all set objects from the Scryfall API. <br/>
+	/// See <see href="https://scryfall.com/docs/api/sets/all">Scryfall API documentation</see> for more information.<br/>
+	/// <b>WARNING:</b> This data is materialized into memory and may be a very large dataset. Use this method cautiously. <br/><br/>
+	/// </summary>
+	/// <returns>An <see cref="IEnumerable{Set}"/> populated with <see cref="Set"/> objects materialized in memory.</returns>
 	public Task<IEnumerable<Set>> GetSets();
+
+	/// <summary>
+	/// Gets all set objects from the Scryfall API and returns the data asynchronously as it is deserialized. <br/>
+	/// See <see href="https://scryfall.com/docs/api/sets/all">Scryfall API documentation</see> for more information.<br/>
+	/// </summary>
+	/// <returns><see cref="Set"/> objects asynchronously as they are deserialized.</returns>
 	public IAsyncEnumerable<Set> GetSetsAsync();
 	public Task<IEnumerable<CardSymbol>> GetCardSymbols();
 	public IAsyncEnumerable<CardSymbol> GetCardSymbolsAsync();
