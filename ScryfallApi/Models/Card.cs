@@ -1,4 +1,5 @@
-﻿using ScryfallApi.Scryfall;
+﻿using ScryfallApi.Models.Types;
+using ScryfallApi.Scryfall;
 using ScryfallApi.Scryfall.Types;
 using System.Text.Json.Serialization;
 
@@ -70,6 +71,9 @@ public class Card
 
 	[JsonPropertyName("card_faces")]
 	public CardFace[]? CardFaces { get; set; }
+
+	[JsonPropertyName("cmc")]
+	public decimal ConvertedManaCost { get; set; }
 
 	[JsonPropertyName("color_identity")]
 	public required string[] ColorIdentity { get; set; }
@@ -193,6 +197,10 @@ public class Card
 
 	[JsonPropertyName("frame")]
 	public required string FrameType { get; set; }
+	[JsonIgnore]
+	private FrameLayoutType? _frameLayout { get; set; }
+	[JsonIgnore]
+	public FrameLayoutType FrameLayout => _frameLayout ??= ScryfallParser.ToEnumKey<FrameLayoutType>(FrameType);
 
 	[JsonPropertyName("full_art")]
 	public bool IsFullArt { get; set; }
@@ -256,7 +264,7 @@ public class Card
 	public required RelatedUris RelatedUris { get; set; }
 
 	[JsonPropertyName("released_at")]
-	public DateOnly ReleasedDate { get; set; }
+	public DateOnly ReleasedAt { get; set; }
 
 	[JsonPropertyName("reprint")]
 	public bool IsReprint { get; set; }

@@ -43,6 +43,25 @@ public class Card
 	[MaxLength(3)]
 	public string? Toughness { get; set; }
 
+	[MinLength(1)]
+	[MaxLength(3)]
+	public string? Loyalty { get; set; }
+
+	[MinLength(1)]
+	[MaxLength(6)]
+	public required string CollectorNumber { get; set; }
+
+	public required DateOnly ReleaseDate { get; set; }
+	public required bool IsOnReservedList { get; set; }
+	public required bool CanBeFoundInBoosters { get; set; }
+	public required bool IsDigitalOnly { get; set; }
+	public required bool IsFullArt { get; set; }
+	public required bool IsOversized { get; set; }
+	public required bool IsPromo { get; set; }
+	public required bool IsReprint { get; set; }
+	public required bool IsTextless { get; set; }
+	public required bool IsWotcOfficial { get; set; }
+
 	[ForeignKey("SetId")]
 	public Set Set { get; set; } = null!;
 	public required int SetId { get; set; }
@@ -52,14 +71,14 @@ public class Card
 	public required int ArtistId { get; set; }
 
 	[InverseProperty("Card")]
-	public ICollection<CardImage>? ImageUris { get; set; }
+	public ICollection<CardImage>? Images { get; set; }
 
 	[ForeignKey("RarityId")]
 	public Rarity Rarity { get; set; } = null!;
 	public required int RarityId { get; set; }
 
 	[InverseProperty("Card")]
-	public ICollection<CardPrice>? CardPrices { get; set; }
+	public ICollection<CardPrice>? Prices { get; set; }
 
 	[ForeignKey("LanguageId")]
 	public Language Language { get; set; } = null!;
@@ -77,17 +96,13 @@ public class Card
 	[NotMapped]
 	public IEnumerable<string>? KeywordList => Keywords?.Split(',');
 
+	public string? PromoTypes { get; set; }
+	[NotMapped]
+	public IEnumerable<string>? PromoTypeList => PromoTypes?.Split(',');
+
 	[ForeignKey("CardLegalityId")]
 	public CardLegality Legality { get; set; } = null!;
 	public required long CardLegalityId { get; set; }
-
-	[MinLength(1)]
-	[MaxLength(3)]
-	public string? Loyalty { get; set; }
-
-	[MinLength(1)]
-	[MaxLength(6)]
-	public required string CollectorNumber { get; set; }
 
 	[ForeignKey("FrameLayoutId")]
 	public FrameLayout FrameLayout { get; set; } = null!;
@@ -105,21 +120,7 @@ public class Card
 	[NotMapped]
 	public IEnumerable<GameKind> ExistsInGameTypes  => _existsInGameTypes ??= GameTypes.Select(gameType => gameType.Type);
 
-	public string? PromoTypes { get; set; }
-	[NotMapped]
-	public IEnumerable<string>? PromoTypeList => PromoTypes?.Split(',');
-
 	[ForeignKey("ParentCardId")]
 	public Card? ParentCard { get; set; }
 	public long? ParentCardId { get; set; }
-
-	public DateOnly ReleaseDate { get; set; }
-	public bool IsReserved { get; set; }
-	public bool CanBeFoundInBoosters { get; set; }
-	public bool IsDigitalOnly { get; set; }
-	public bool IsFullArt { get; set; }
-	public bool IsOversized { get; set; }
-	public bool IsPromo { get; set; }
-	public bool IsReprint { get; set; }
-	public bool IsTextless { get; set; }
 }
