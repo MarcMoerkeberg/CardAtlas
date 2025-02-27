@@ -52,6 +52,7 @@ public static class CardMapper
 
 		return mappedCard;
 	}
+
 	private static RarityType GetRarity(ApiCard apiCard)
 	{
 		return apiCard.Rarity switch
