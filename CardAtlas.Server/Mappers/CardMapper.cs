@@ -7,7 +7,7 @@ namespace CardAtlas.Server.Mappers;
 
 public static class CardMapper
 {
-	public static Card MapFromApi(ApiCard apiCard)
+	public static Card MapFromScryfallApi(ApiCard apiCard)
 	{
 		var mappedCard = new Card 
 		{
@@ -31,6 +31,7 @@ public static class CardMapper
 			IsPromo = apiCard.IsPromoPrint,
 			IsReprint = apiCard.IsReprint,
 			IsTextless = apiCard.IsTextlessPrint,
+			IsWotcOfficial = true,
 
 			SetId = GetOrCreateSet(apiCard).Id,
 			ArtistId = GetOrCreateArtist(apiCard).Id,
@@ -50,6 +51,32 @@ public static class CardMapper
 		UpsertGameTypes(apiCard);
 
 		return mappedCard;
+	}
+	private static RarityType GetRarity(ApiCard apiCard)
+	{
+		return apiCard.Rarity switch
+		{
+			ScryfallRarity.Common => RarityType.Common,
+			ScryfallRarity.Uncommon => RarityType.Uncommon,
+			ScryfallRarity.Rare => RarityType.Rare,
+			ScryfallRarity.Special => RarityType.Special,
+			ScryfallRarity.Mythic => RarityType.Mythic,
+			ScryfallRarity.Bonus => RarityType.Bonus,
+			_ => RarityType.NotImplemented,
+		};
+	}
+
+	private static FrameType GetFrameLayoutType(ApiCard apiCard)
+	{
+		return apiCard.FrameLayout switch
+		{
+			FrameLayoutType.Year1993 => FrameType.Year1993,
+			FrameLayoutType.Year1997 => FrameType.Year1997,
+			FrameLayoutType.Year2003 => FrameType.Year2003,
+			FrameLayoutType.Year2015 => FrameType.Year2015,
+			FrameLayoutType.Future => FrameType.Future,
+			_ => FrameType.NotImplemented,
+		};
 	}
 
 	private static void UpsertGameTypes(ApiCard apiCard)
@@ -77,19 +104,6 @@ public static class CardMapper
 		throw new NotImplementedException();
 	}
 
-	private static FrameType GetFrameLayoutType(ApiCard apiCard)
-	{
-		return apiCard.FrameLayout switch
-		{
-			FrameLayoutType.Year1993 => FrameType.Year1993,
-			FrameLayoutType.Year1997 => FrameType.Year1997,
-			FrameLayoutType.Year2003 => FrameType.Year2003,
-			FrameLayoutType.Year2015 => FrameType.Year2015,
-			FrameLayoutType.Future => FrameType.Future,
-			_ => FrameType.NotImplemented,
-		};
-	}
-
 	private static CardLegality UpsertLegality(ApiCard apiCard)
 	{
 		throw new NotImplementedException();
@@ -98,20 +112,6 @@ public static class CardMapper
 	private static Language GetOrCreateLanguage(ApiCard apiCard)
 	{
 		throw new NotImplementedException();
-	}
-
-	private static RarityType GetRarity(ApiCard apiCard)
-	{
-		return apiCard.Rarity switch
-		{
-			ScryfallRarity.Common => RarityType.Common,
-			ScryfallRarity.Uncommon => RarityType.Uncommon,
-			ScryfallRarity.Rare => RarityType.Rare,
-			ScryfallRarity.Special => RarityType.Special,
-			ScryfallRarity.Mythic => RarityType.Mythic,
-			ScryfallRarity.Bonus => RarityType.Bonus,
-			_ => RarityType.NotImplemented,
-		};
 	}
 
 	private static Set GetOrCreateSet(ApiCard apiCard)

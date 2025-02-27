@@ -25,7 +25,7 @@ namespace CardAtlas.Server.Controllers
 		{
 			await foreach(ApiCard card in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 			{
-				var mappedResult = CardMapper.MapFromApi(card);
+				var mappedResult = CardMapper.MapFromScryfallApi(card);
 			}
 
 			throw new NotImplementedException();
