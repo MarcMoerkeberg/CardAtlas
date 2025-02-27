@@ -5,9 +5,9 @@ using ScryfallRarity = ScryfallApi.Models.Types.Rarity;
 
 namespace CardAtlas.Server.Mappers;
 
-public static class CardMapper
+public static class ScryfallMapper
 {
-	public static Card MapFromScryfallApi(ApiCard apiCard)
+	public static Card FromApi(ApiCard apiCard)
 	{
 		var mappedCard = new Card 
 		{
@@ -45,11 +45,6 @@ public static class CardMapper
 			ParentCardId = UpsertParentCard(apiCard)?.Id,
 		};
 
-		UpsertImages(apiCard);
-		UpsertPrices(apiCard);
-		UpsertPrintFinishes(apiCard);
-		UpsertGameTypes(apiCard);
-
 		return mappedCard;
 	}
 
@@ -78,26 +73,6 @@ public static class CardMapper
 			FrameLayoutType.Future => FrameType.Future,
 			_ => FrameType.NotImplemented,
 		};
-	}
-
-	private static void UpsertGameTypes(ApiCard apiCard)
-	{
-		throw new NotImplementedException();
-	}
-
-	private static void UpsertPrintFinishes(ApiCard apiCard)
-	{
-		throw new NotImplementedException();
-	}
-
-	private static void UpsertPrices(ApiCard apiCard)
-	{
-		throw new NotImplementedException();
-	}
-
-	private static void UpsertImages(ApiCard apiCard)
-	{
-		throw new NotImplementedException();
 	}
 
 	private static Card? UpsertParentCard(ApiCard apiCard)

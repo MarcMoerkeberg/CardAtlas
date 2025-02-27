@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.Mappers;
+using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Services.Interfaces;
 using ScryfallApi;
 using ScryfallApi.Models.Types;
@@ -19,7 +20,33 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		await foreach (ApiCard card in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
-			var mappedResult = CardMapper.MapFromScryfallApi(card);
+			Card mappedCard = ScryfallMapper.FromApi(card);
+
+			UpsertImages(card);
+			UpsertPrices(card);
+			UpsertPrintFinishes(card);
+			UpsertGameTypes(card);
 		}
+	}
+
+
+	private static void UpsertGameTypes(ApiCard apiCard)
+	{
+		throw new NotImplementedException();
+	}
+
+	private static void UpsertPrintFinishes(ApiCard apiCard)
+	{
+		throw new NotImplementedException();
+	}
+
+	private static void UpsertPrices(ApiCard apiCard)
+	{
+		throw new NotImplementedException();
+	}
+
+	private static void UpsertImages(ApiCard apiCard)
+	{
+		throw new NotImplementedException();
 	}
 }
