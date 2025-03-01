@@ -1,15 +1,25 @@
-﻿using CardAtlas.Server.Models.Data;
+﻿using CardAtlas.Server.Extensions;
+using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Services.Interfaces;
 using ApiCard = ScryfallApi.Models.Card;
 using FrameLayoutType = ScryfallApi.Models.Types.FrameLayoutType;
 using ScryfallRarity = ScryfallApi.Models.Types.Rarity;
 
-namespace CardAtlas.Server.Mappers;
+namespace CardAtlas.Server.Services;
 
-public static class ScryfallMapper
+public class ScryfallDataTransformer : IScryfallDataTransformer
 {
-	public static Card FromApi(ApiCard apiCard)
+	private readonly IArtistService _artistService;
+	public ScryfallDataTransformer(IArtistService artistService)
 	{
-		var mappedCard = new Card 
+		_artistService = artistService;
+	}
+
+	public Card UpsertCard(ApiCard apiCard)
+	{
+		string cardName = apiCard.Name.Split("//").First();
+
+		var mappedCard = new Card
 		{
 			ScryfallId = apiCard.Id,
 			Name = apiCard.Name,
@@ -34,7 +44,7 @@ public static class ScryfallMapper
 			IsWotcOfficial = true,
 
 			SetId = GetOrCreateSet(apiCard).Id,
-			ArtistId = GetOrCreateArtist(apiCard).Id,
+			ArtistId = GetOrCreateArtist(apiCard, cardName).Id,
 			RarityId = (int)GetRarity(apiCard),
 			LanguageId = GetOrCreateLanguage(apiCard).Id,
 			ColorIdentity = string.Join(',', apiCard.ColorIdentity),
@@ -95,8 +105,59 @@ public static class ScryfallMapper
 		throw new NotImplementedException();
 	}
 
-	private static Artist GetOrCreateArtist(ApiCard apiCard)
+
+
+
+
+	//Assumed: If the api card has multiple ArtistIds it also has multiple card faces.
+	//If it has multiple card faces, we should create/lookup each cardface and use the cardname to identify which id we should return.
+
+	private async Task<Artist> GetOrCreateArtist(ApiCard apiCard, string cardName)
 	{
-		throw new NotImplementedException();
+		(Guid? artistId, string artistName) = GetArtistScryfallId(apiCard, cardName);
+
+		var newArtist = new Artist
+		{
+			ScryfallId = artistId,
+			Name = artistName,
+		};
+
+		return artistId.HasValue
+			? await _artistService.GetFromScryfallId(artistId.Value) ?? await _artistService.Create(newArtist)
+			: await _artistService.Get(Artist.UnknownArtistId);
+
+	}
+
+	private static (Guid? artistId, string artistName)GetArtistScryfallId(ApiCard apiCard, string cardName)
+	{
+		Guid? artistId;
+		string? artistName = string.Empty;
+
+		if(apiCard.ArtistIds.IsNullOrEmpty())
+		{
+			artistId = null;
+		}
+		else if (apiCard.ArtistIds.Length == 1)
+		{
+			artistId = apiCard.ArtistIds[0];
+			artistName = apiCard.ArtistName;
+		}
+		else if (apiCard.CardFaces.IsNullOrEmpty())
+		{
+			artistId = null;
+		}
+		else if (apiCard.CardFaces.Length == 1)
+		{
+			artistId = apiCard.CardFaces[0].ArtistId;
+			artistName = apiCard.CardFaces[0].Artist;
+		}
+		else
+		{
+			ScryfallApi.Models.CardFace matchingCardFace = apiCard.CardFaces.First(face => face.Name == cardName);
+			artistId = matchingCardFace.ArtistId;
+			artistName = matchingCardFace.Artist;
+		}
+
+		return (artistId, artistName);
 	}
 }

@@ -1,6 +1,4 @@
-﻿using CardAtlas.Server.Mappers;
-using CardAtlas.Server.Models.Data;
-using CardAtlas.Server.Services.Interfaces;
+﻿using CardAtlas.Server.Services.Interfaces;
 using ScryfallApi;
 using ScryfallApi.Models.Types;
 using ApiCard = ScryfallApi.Models.Card;
@@ -10,17 +8,19 @@ namespace CardAtlas.Server.Services;
 public class ScryfallIngestionService : IScryfallIngestionService
 {
 	private readonly IScryfallApi _scryfallApi;
+	private readonly IScryfallDataTransformer _scryfallDataTransformer;
 
-	public ScryfallIngestionService(IScryfallApi scryfallApi)
+	public ScryfallIngestionService(IScryfallApi scryfallApi, IScryfallDataTransformer scryfallDataTransformer)
 	{
 		_scryfallApi = scryfallApi;
+		_scryfallDataTransformer = scryfallDataTransformer;
 	}
 
 	public async Task UpsertCardCollection()
 	{
 		await foreach (ApiCard card in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
-			Card mappedCard = ScryfallMapper.FromApi(card);
+			_scryfallDataTransformer.UpsertCard(card);
 
 			UpsertImages(card);
 			UpsertPrices(card);
