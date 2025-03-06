@@ -57,6 +57,16 @@ public interface IScryfallApi
 	public Task<IEnumerable<Set>> GetSets();
 
 	/// <summary>
+	/// Gets a single set object from the Scryfall API. <br/>
+	/// See <see href="https://scryfall.com/docs/api/sets/id">Scryfall API documentation</see> for more information.<br/>
+	/// </summary>
+	/// <param name="id">Scryfalls id for the set.</param>
+	/// <returns>The <see cref="Set"/> with <paramref name="id"/> as it's id.</returns>
+	/// <exception cref="HttpRequestException"></exception>
+	/// <exception cref="Exception"></exception>
+	public Task<Set> GetSet(Guid id);
+
+	/// <summary>
 	/// Gets all CardSymbol objects from the Scryfall API. <br/>
 	/// See <see href="https://scryfall.com/docs/api/card-symbol/all">Scryfall API documentation</see> for more information.<br/>
 	/// </summary>

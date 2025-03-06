@@ -110,7 +110,7 @@ namespace ScryfallApi
 			var apiResponse = await RateLimitAsync(() => _client.GetAsync("bulk-data"));
 			if (!apiResponse.IsSuccessStatusCode)
 			{
-				throw new HttpRequestException(Errors.ApiResponseError);
+				throw await ApiErrorResponse(apiResponse);
 			}
 
 			ListResponse<BulkData>? responseData = await apiResponse.Content.ReadFromJsonAsync<ListResponse<BulkData>>();
@@ -124,17 +124,15 @@ namespace ScryfallApi
 		/// Gets data from the specified <paramref name="uri"/>.<br/>
 		/// Expects data to be a <see cref="ListResponse{TData}"/> with TData being <typeparamref name="T"/>.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="uri"></param>
 		/// <returns>An <see cref="IEnumerable{T}"/> of type <typeparamref name="T"/> deserialized from the api response.</returns>
 		/// <exception cref="HttpRequestException"></exception>
 		/// <exception cref="Exception"></exception>
-		private async Task<IEnumerable<T>> GetAsync<T>(string uri)
+		private async Task<IEnumerable<T>> GetIEnumerableAsync<T>(string uri)
 		{
 			HttpResponseMessage apiResponse = await RateLimitAsync(() => _client.GetAsync(uri));
 			if (!apiResponse.IsSuccessStatusCode)
 			{
-				throw new HttpRequestException(Errors.ApiResponseError);
+				throw await ApiErrorResponse(apiResponse);
 			}
 
 			ListResponse<T>? responseData = await apiResponse.Content.ReadFromJsonAsync<ListResponse<T>>();
@@ -144,6 +142,47 @@ namespace ScryfallApi
 			}
 
 			return responseData.Data.Where(data => data is not null);
+		}
+
+		/// <summary>
+		/// Gets data from the specified <paramref name="uri"/>.<br/>
+		/// If the api response is not successful, an <see cref="HttpRequestException"/> is thrown.<br/>
+		/// If the api response data is null it tries to deserialize an <see cref="Error"/> object and throws an <see cref="Exception"/> with the error details.<br/>
+		/// </summary>
+		/// <returns>Api reponse data deserialized as <typeparamref name="T"/>.</returns>
+		/// <exception cref="HttpRequestException"></exception>
+		/// <exception cref="Exception"></exception>
+		private async Task<T> GetAsync<T>(string uri)
+		{
+			HttpResponseMessage apiResponse = await RateLimitAsync(() => _client.GetAsync(uri));
+			if (!apiResponse.IsSuccessStatusCode)
+			{
+				throw await ApiErrorResponse(apiResponse);
+			}
+
+			T? responseData = await apiResponse.Content.ReadFromJsonAsync<T>();
+			if (responseData is null)
+			{
+				throw new Exception(Errors.DeserializationError);
+			}
+
+			return responseData;
+		}
+
+		/// <summary>
+		/// Generates a new <see cref="HttpRequestException"/> with the error details from the api response.
+		/// </summary>
+		/// <returns>A new <see cref="HttpRequestException"/>.</returns>
+		private async Task<HttpRequestException> ApiErrorResponse(HttpResponseMessage apiResponse)
+		{
+			var error = await apiResponse.Content.ReadFromJsonAsync<Error>();
+
+			HttpRequestException? innerException = error is not null && error.Warnings is { Length: > 0 }
+				? new HttpRequestException(string.Join(Environment.NewLine, error.Warnings))
+				: null;
+			string errorMessage = error?.ErrorDetails ?? Errors.ApiResponseError;
+
+			return new HttpRequestException(errorMessage, innerException, apiResponse.StatusCode);
 		}
 
 		public async Task<IEnumerable<Card>> GetBulkCardData(BulkDataType bulkDataType)
@@ -210,7 +249,8 @@ namespace ScryfallApi
 			}
 		}
 
-		public async Task<IEnumerable<Set>> GetSets() => await GetAsync<Set>("sets");
-		public async Task<IEnumerable<CardSymbol>> GetCardSymbols() => await GetAsync<CardSymbol>("symbology");
+		public async Task<IEnumerable<Set>> GetSets() => await GetIEnumerableAsync<Set>("sets");
+		public Task<Set> GetSet(Guid id) => GetAsync<Set>($"sets/{id}");
+		public async Task<IEnumerable<CardSymbol>> GetCardSymbols() => await GetIEnumerableAsync<CardSymbol>("symbology");
 	}
 }
