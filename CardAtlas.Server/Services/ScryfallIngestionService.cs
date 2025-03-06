@@ -18,9 +18,11 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task UpsertCardCollection()
 	{
+		await UpsertSets();
+
 		await foreach (ApiCard card in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
-			_scryfallDataTransformer.UpsertCard(card);
+			await _scryfallDataTransformer.UpsertCard(card);
 
 			UpsertImages(card);
 			UpsertPrices(card);
@@ -29,6 +31,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 	}
 
+	private async Task UpsertSets()
+	{
+		throw new NotImplementedException();
+	}
 
 	private static void UpsertGameTypes(ApiCard apiCard)
 	{

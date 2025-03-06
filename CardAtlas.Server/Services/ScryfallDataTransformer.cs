@@ -1,23 +1,37 @@
 ﻿using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Services.Interfaces;
+using ScryfallApi;
 using ApiCard = ScryfallApi.Models.Card;
+using ApiSet = ScryfallApi.Models.Set;
 using CardFace = ScryfallApi.Models.CardFace;
 using FrameLayoutType = ScryfallApi.Models.Types.FrameLayoutType;
 using ScryfallRarity = ScryfallApi.Models.Types.Rarity;
+using ScryfallSetType = ScryfallApi.Models.Types.SetType;
 
 namespace CardAtlas.Server.Services;
 
 public class ScryfallDataTransformer : IScryfallDataTransformer
 {
 	private readonly IArtistService _artistService;
-	public ScryfallDataTransformer(IArtistService artistService)
+	private readonly ISetService _setService;
+	private readonly IScryfallApi _scryfallApi;
+
+	public ScryfallDataTransformer(
+		IArtistService artistService, 
+		ISetService setService,
+		IScryfallApi scryfallApi)
 	{
 		_artistService = artistService;
+		_setService = setService;
+		_scryfallApi = scryfallApi;
 	}
 
-	public Card UpsertCard(ApiCard apiCard)
+	public async Task<Card> UpsertCard(ApiCard apiCard)
 	{
 		string cardName = apiCard.Name.Split("//").First();
+
+		Set set = await GetOrCreateSet(apiCard);
+		Artist artist = await GetOrCreateArtist(apiCard, cardName);
 
 		var mappedCard = new Card
 		{
@@ -49,9 +63,9 @@ public class ScryfallDataTransformer : IScryfallDataTransformer
 
 			RarityId = (int)GetRarity(apiCard),
 			FrameLayoutId = (int)GetFrameLayoutType(apiCard),
-			
-			SetId = GetOrCreateSet(apiCard).Id,
-			ArtistId = GetOrCreateArtist(apiCard, cardName).Id,
+
+			SetId = set.Id,
+			ArtistId = artist.Id,
 			LanguageId = GetOrCreateLanguage(apiCard).Id,
 			CardLegalityId = UpsertLegality(apiCard).Id,
 			ParentCardId = UpsertParentCard(apiCard)?.Id,
@@ -87,26 +101,63 @@ public class ScryfallDataTransformer : IScryfallDataTransformer
 		};
 	}
 
-	private static Card? UpsertParentCard(ApiCard apiCard)
+	private async Task<Set> GetOrCreateSet(ApiCard apiCard)
 	{
-		throw new NotImplementedException();
+		Set? persistedSet = await _setService.GetFromScryfallId(apiCard.SetId);
+		if (persistedSet is not null) return persistedSet;
+
+		ApiSet apiSet = await _scryfallApi.GetSet(apiCard.SetId);
+		var newSet = new Set
+		{
+			ScryfallId = apiCard.SetId,
+			Name = apiSet.Name,
+			Code = apiSet.SetCode,
+			MtgoCode = apiSet.MtgoSetCode,
+			ArenaCode = apiSet.ArenaSetCode,
+			ParentSetCode = apiSet.ParentSetCode,
+			Block = apiSet.Block,
+			BlockCode = apiSet.BlockCode,
+			SetTypeId = (int)GetSetType(apiSet),
+			NumberOfCardsInSet = apiSet.CardCountInSet,
+			IsDigitalOnly = apiSet.IsDigitalOnly,
+			IsFoilOnly = apiSet.IsFoilOnly,
+			IsNonFoilOnly = apiSet.IsNonFoilOnly,
+			ReleaseDate = apiSet.ReleasedDate,
+		};
+
+		return await _setService.Create(newSet);
 	}
 
-	private static CardLegality UpsertLegality(ApiCard apiCard)
+	private static SetTypeKind GetSetType(ApiSet apiSet)
 	{
-		throw new NotImplementedException();
+		return apiSet.SetType switch
+		{
+			 ScryfallSetType.Core => SetTypeKind.Core,
+			 ScryfallSetType.Expansion => SetTypeKind.Expansion,
+			 ScryfallSetType.Masters => SetTypeKind.Masters,
+			 ScryfallSetType.Alchemy => SetTypeKind.Alchemy,
+			 ScryfallSetType.Masterpiece => SetTypeKind.Masterpiece,
+			 ScryfallSetType.Arsenal => SetTypeKind.Arsenal,
+			 ScryfallSetType.FromTheVault => SetTypeKind.FromTheVault,
+			 ScryfallSetType.Spellbook => SetTypeKind.Spellbook,
+			 ScryfallSetType.PremiumDeck => SetTypeKind.PremiumDeck,
+			 ScryfallSetType.DuelDeck => SetTypeKind.DuelDeck,
+			 ScryfallSetType.DraftInnovation => SetTypeKind.DraftInnovation,
+			 ScryfallSetType.TreasureChest => SetTypeKind.TreasureChest,
+			 ScryfallSetType.Commander => SetTypeKind.Commander,
+			 ScryfallSetType.Planechase => SetTypeKind.Planechase,
+			 ScryfallSetType.Archenemy => SetTypeKind.Archenemy,
+			 ScryfallSetType.Vanguard => SetTypeKind.Vanguard,
+			 ScryfallSetType.Funny => SetTypeKind.Funny,
+			 ScryfallSetType.Starter => SetTypeKind.Starter,
+			 ScryfallSetType.Box => SetTypeKind.Box,
+			 ScryfallSetType.Promo => SetTypeKind.Promo,
+			 ScryfallSetType.Token => SetTypeKind.Token,
+			 ScryfallSetType.Memorabilia => SetTypeKind.Memorabilia,
+			 ScryfallSetType.MiniGame  => SetTypeKind.MiniGame,
+			_ => SetTypeKind.NotImplemented,
+		};
 	}
-
-	private static Language GetOrCreateLanguage(ApiCard apiCard)
-	{
-		throw new NotImplementedException();
-	}
-
-	private static Set GetOrCreateSet(ApiCard apiCard)
-	{
-		throw new NotImplementedException();
-	}
-
 
 	/// <summary>
 	/// Gets the <see cref="Artist"/> from <paramref name="apiCard"/>.<br/>
@@ -136,7 +187,7 @@ public class ScryfallDataTransformer : IScryfallDataTransformer
 		Guid? artistId;
 		string? artistName;
 
-		if (apiCard.ArtistIds is { Length: 1})
+		if (apiCard.ArtistIds is { Length: 1 })
 		{
 			artistId = apiCard.ArtistIds[0];
 			artistName = apiCard.ArtistName;
@@ -149,7 +200,7 @@ public class ScryfallDataTransformer : IScryfallDataTransformer
 		else
 		{
 			CardFace? matchingCardFace = apiCard.CardFaces?.FirstOrDefault(face => face.Name == cardName);
-			
+
 			artistId = matchingCardFace?.ArtistId;
 			artistName = matchingCardFace?.Artist;
 		}
@@ -159,5 +210,20 @@ public class ScryfallDataTransformer : IScryfallDataTransformer
 			ScryfallId = artistId,
 			Name = artistName ?? string.Empty,
 		};
+	}
+
+	private static Language GetOrCreateLanguage(ApiCard apiCard)
+	{
+		throw new NotImplementedException();
+	}
+
+	private static CardLegality UpsertLegality(ApiCard apiCard)
+	{
+		throw new NotImplementedException();
+	}
+
+	private static Card? UpsertParentCard(ApiCard apiCard)
+	{
+		throw new NotImplementedException();
 	}
 }

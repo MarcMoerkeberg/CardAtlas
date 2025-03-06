@@ -5,6 +5,6 @@ namespace CardAtlas.Server.Services.Interfaces
 {
 	public interface IScryfallDataTransformer
 	{
-		Card UpsertCard(ApiCard apiCard);
+		Task<Card> UpsertCard(ApiCard apiCard);
 	}
 }
