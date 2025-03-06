@@ -1,10 +1,13 @@
 ﻿using CardAtlas.Server.Models.Data.Base;
+using CardAtlas.Server.Models.Data.CardRelations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data;
 
 public class PrintFinish : TypeEntity<PrintFinishType>
 {
-	public ICollection<Card> Cards { get; set; } = new HashSet<Card>();
+	[InverseProperty("PrintFinish")]
+	public ICollection<CardPrintFinish> CardPrintFinishes { get; set; } = new HashSet<CardPrintFinish>();
 }
 
 public enum PrintFinishType

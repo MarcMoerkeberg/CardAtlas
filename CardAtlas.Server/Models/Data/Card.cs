@@ -1,4 +1,5 @@
-﻿using CardAtlas.Server.Models.Data.Image;
+﻿using CardAtlas.Server.Models.Data.CardRelations;
+using CardAtlas.Server.Models.Data.Cards;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -90,35 +91,32 @@ public class Card
 	[NotMapped]
 	public IEnumerable<string> ColorIdentities => ColorIdentity.Split(',');
 
-	[MinLength(1)]
-	[MaxLength(100)]
-	public string? Keywords { get; set; }
-	[NotMapped]
-	public IEnumerable<string>? KeywordList => Keywords?.Split(',');
+	[InverseProperty("Card")]
+	public ICollection<CardKeyword>? Keywords { get; set; }
 
-	public string? PromoTypes { get; set; }
-	[NotMapped]
-	public IEnumerable<string>? PromoTypeList => PromoTypes?.Split(',');
-
-	[ForeignKey("CardLegalityId")]
-	public CardLegality Legality { get; set; } = null!;
-	public required long CardLegalityId { get; set; }
+	[InverseProperty("Card")]
+	public ICollection<CardPromoType>? PromoTypes { get; set; }
 
 	[ForeignKey("FrameLayoutId")]
 	public FrameLayout FrameLayout { get; set; } = null!;
 	public required int FrameLayoutId { get; set; }
 
-	public ICollection<PrintFinish> PrintFinishes { get; set; } = new HashSet<PrintFinish>();
-	[NotMapped]
-	private IEnumerable<PrintFinishType>? _printedInFinishes { get; set; }
-	[NotMapped]
-	public IEnumerable<PrintFinishType> PrintedInFinishes => _printedInFinishes??= PrintFinishes.Select(finish => finish.Type);
+	[InverseProperty("Card")]
+	public ICollection<CardLegality> Legality { get; set; } = new HashSet<CardLegality>();
 
-	public ICollection<GameType> GameTypes { get; set; } = new HashSet<GameType>();
+	[InverseProperty("Card")]
+	public ICollection<CardPrintFinish> CardPrintFinishes { get; set; } = new HashSet<CardPrintFinish>();
+	[NotMapped]
+	private IEnumerable<PrintFinishType>? _printFinishes { get; set; }
+	[NotMapped]
+	public IEnumerable<PrintFinishType> PrintFinishes => _printFinishes ??= CardPrintFinishes.Select(finish => finish.PrintFinish.Type);
+
+	[InverseProperty("Card")]
+	public ICollection<CardGameType> CardGameTypes { get; set; } = new HashSet<CardGameType>();
 	[NotMapped]
 	private IEnumerable<GameKind>? _existsInGameTypes { get; set; }
 	[NotMapped]
-	public IEnumerable<GameKind> ExistsInGameTypes  => _existsInGameTypes ??= GameTypes.Select(gameType => gameType.Type);
+	public IEnumerable<GameKind> ExistsInGameTypes => _existsInGameTypes ??= CardGameTypes.Select(gameType => gameType.GameType.Type);
 
 	[ForeignKey("ParentCardId")]
 	public Card? ParentCard { get; set; }

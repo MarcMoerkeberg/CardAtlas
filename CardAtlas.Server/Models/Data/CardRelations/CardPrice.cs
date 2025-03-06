@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CardAtlas.Server.Models.Data;
+namespace CardAtlas.Server.Models.Data.Cards;
 
 public class CardPrice
 {

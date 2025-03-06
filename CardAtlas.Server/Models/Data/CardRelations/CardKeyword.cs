@@ -1,0 +1,19 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace CardAtlas.Server.Models.Data.Cards;
+
+public class CardKeyword
+{
+	[Key]
+	public int Id { get; set; }
+
+	[ForeignKey("CardId")]
+	public long CardId { get; set; }
+	public Card Card { get; set; } = null!;
+
+	[ForeignKey("KeywordId")]
+	public int KeywordId { get; set; }
+	public Keyword Keyword { get; set; } = null!;
+}
+

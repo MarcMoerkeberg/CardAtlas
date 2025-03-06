@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data;
 
-public class Keyword
+public class PromoType
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -14,6 +14,6 @@ public class Keyword
 	[MaxLength(50)]
 	public required string Name { get; set; }
 
-	[InverseProperty("Keyword")]
-	public ICollection<CardKeyword> CardKeywords { get; set; } = new HashSet<CardKeyword>();
+	[InverseProperty("PromoType")]
+	public ICollection<CardPromoType> PromoTypes { get; set; } = new HashSet<CardPromoType>();
 }

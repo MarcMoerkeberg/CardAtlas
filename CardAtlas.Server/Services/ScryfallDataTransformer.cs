@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.Cards;
 using CardAtlas.Server.Services.Interfaces;
 using ScryfallApi;
 using ApiCard = ScryfallApi.Models.Card;

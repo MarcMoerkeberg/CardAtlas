@@ -1,10 +1,11 @@
 ﻿using CardAtlas.Server.Models.Data.Base;
+using CardAtlas.Server.Models.Data.CardRelations;
 
 namespace CardAtlas.Server.Models.Data;
 
 public class GameType : TypeEntity<GameKind>
 {
-	public ICollection<Card> Cards { get; set; } = new HashSet<Card>();
+	public ICollection<CardGameType> CardGameTypes { get; set; } = new HashSet<CardGameType>();
 }
 
 public enum GameKind
