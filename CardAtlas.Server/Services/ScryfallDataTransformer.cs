@@ -63,10 +63,10 @@ public class ScryfallDataTransformer : IScryfallDataTransformer
 
 			RarityId = (int)GetRarity(apiCard),
 			FrameLayoutId = (int)GetFrameLayoutType(apiCard),
+			LanguageId = (int)GetOrCreateLanguage(apiCard),
 
 			SetId = set.Id,
 			ArtistId = artist.Id,
-			LanguageId = GetOrCreateLanguage(apiCard).Id,
 			CardLegalityId = UpsertLegality(apiCard).Id,
 			ParentCardId = UpsertParentCard(apiCard)?.Id,
 		};
@@ -217,9 +217,29 @@ public class ScryfallDataTransformer : IScryfallDataTransformer
 		};
 	}
 
-	private static Language GetOrCreateLanguage(ApiCard apiCard)
+	private static LanguageType GetOrCreateLanguage(ApiCard apiCard)
 	{
-		throw new NotImplementedException();
+		return apiCard.LanguageCode switch
+		{
+			"en" => LanguageType.English,
+			"es" => LanguageType.Spanish,
+			"fr" => LanguageType.French,
+			"de" => LanguageType.German,
+			"it" => LanguageType.Italian,
+			"pt" => LanguageType.Portuguese,
+			"ja" => LanguageType.Japanese,
+			"ko" => LanguageType.Korean,
+			"ru" => LanguageType.Russian,
+			"zhs" => LanguageType.SimplifiedChinese,
+			"zht" => LanguageType.TraditionalChinese,
+			"he" => LanguageType.Hebrew,
+			"la" => LanguageType.Latin,
+			"grc" => LanguageType.AncientGreek,
+			"ar" => LanguageType.Arabic,
+			"sa" => LanguageType.Sanskrit,
+			"ph" => LanguageType.Phyrexian,
+			_ => LanguageType.NotImplemented,
+		};
 	}
 
 	private static CardLegality UpsertLegality(ApiCard apiCard)

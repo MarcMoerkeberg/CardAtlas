@@ -13,7 +13,7 @@ public class Card
 	public Guid Id { get; set; }
 
 	[JsonPropertyName("lang")]
-	public required string Language { get; set; }
+	public required string LanguageCode { get; set; }
 
 	[JsonPropertyName("mtgo_id")]
 	public int? MtgoId { get; set; }
