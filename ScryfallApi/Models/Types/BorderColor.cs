@@ -1,4 +1,4 @@
-﻿namespace ScryfallApi.Scryfall.Types;
+﻿namespace ScryfallApi.Models.Types;
 
 public enum BorderColor
 {

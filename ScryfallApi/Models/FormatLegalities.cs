@@ -1,6 +1,6 @@
-﻿using ScryfallApi.Scryfall.Types;
+﻿using ScryfallApi.Models.Types;
 
-namespace ScryfallApi.Scryfall;
+namespace ScryfallApi.Models;
 
 public class FormatLegalities
 {

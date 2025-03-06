@@ -1,4 +1,4 @@
-﻿namespace ScryfallApi.Scryfall;
+﻿namespace ScryfallApi.Models;
 
 public class PrintAvailability
 {
