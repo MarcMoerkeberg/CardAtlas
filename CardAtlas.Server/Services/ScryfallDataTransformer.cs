@@ -30,7 +30,7 @@ public class ScryfallDataTransformer : IScryfallDataTransformer
 	{
 		string cardName = apiCard.Name.Split("//").First();
 
-		Set set = await GetOrCreateSet(apiCard);
+		Set set = await GetOrCreateSet(apiCard.SetId);
 		Artist artist = await GetOrCreateArtist(apiCard, cardName);
 
 		var mappedCard = new Card
@@ -101,15 +101,20 @@ public class ScryfallDataTransformer : IScryfallDataTransformer
 		};
 	}
 
-	private async Task<Set> GetOrCreateSet(ApiCard apiCard)
+	/// <summary>
+	/// Gets the <see cref="Set""/> or creates a new if no matching set is found.<br/>
+	/// Uses <see cref="IScryfallApi"/> to fetch set data if no match is found.
+	/// </summary>
+	/// <returns>A <see cref="Set"/> from th database.</returns>
+	private async Task<Set> GetOrCreateSet(Guid scryfallSetId)
 	{
-		Set? persistedSet = await _setService.GetFromScryfallId(apiCard.SetId);
+		Set? persistedSet = await _setService.GetFromScryfallId(scryfallSetId);
 		if (persistedSet is not null) return persistedSet;
 
-		ApiSet apiSet = await _scryfallApi.GetSet(apiCard.SetId);
+		ApiSet apiSet = await _scryfallApi.GetSet(scryfallSetId);
 		var newSet = new Set
 		{
-			ScryfallId = apiCard.SetId,
+			ScryfallId = scryfallSetId,
 			Name = apiSet.Name,
 			Code = apiSet.SetCode,
 			MtgoCode = apiSet.MtgoSetCode,
