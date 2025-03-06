@@ -1,7 +1,7 @@
-﻿using CardAtlas.Server.Extensions;
-using CardAtlas.Server.Models.Data;
+﻿using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Services.Interfaces;
 using ApiCard = ScryfallApi.Models.Card;
+using CardFace = ScryfallApi.Models.CardFace;
 using FrameLayoutType = ScryfallApi.Models.Types.FrameLayoutType;
 using ScryfallRarity = ScryfallApi.Models.Types.Rarity;
 
@@ -43,15 +43,17 @@ public class ScryfallDataTransformer : IScryfallDataTransformer
 			IsTextless = apiCard.IsTextlessPrint,
 			IsWotcOfficial = true,
 
-			SetId = GetOrCreateSet(apiCard).Id,
-			ArtistId = GetOrCreateArtist(apiCard, cardName).Id,
-			RarityId = (int)GetRarity(apiCard),
-			LanguageId = GetOrCreateLanguage(apiCard).Id,
 			ColorIdentity = string.Join(',', apiCard.ColorIdentity),
 			Keywords = string.Join(',', apiCard.Keywords),
 			PromoTypes = string.Join(',', apiCard.PromoTypes ?? []),
-			CardLegalityId = UpsertLegality(apiCard).Id,
+
+			RarityId = (int)GetRarity(apiCard),
 			FrameLayoutId = (int)GetFrameLayoutType(apiCard),
+			
+			SetId = GetOrCreateSet(apiCard).Id,
+			ArtistId = GetOrCreateArtist(apiCard, cardName).Id,
+			LanguageId = GetOrCreateLanguage(apiCard).Id,
+			CardLegalityId = UpsertLegality(apiCard).Id,
 			ParentCardId = UpsertParentCard(apiCard)?.Id,
 		};
 
@@ -106,58 +108,56 @@ public class ScryfallDataTransformer : IScryfallDataTransformer
 	}
 
 
-
-
-
-	//Assumed: If the api card has multiple ArtistIds it also has multiple card faces.
-	//If it has multiple card faces, we should create/lookup each cardface and use the cardname to identify which id we should return.
-
+	/// <summary>
+	/// Gets the <see cref="Artist"/> from <paramref name="apiCard"/>.<br/>
+	/// Creates a new <see cref="Artist"/> if no matching artist is found in the database.<br/>
+	/// Returns the default <see cref="Artist"/> if no artist data is available in <paramref name="apiCard"/>.
+	/// </summary>
+	/// <param name="cardName">Name of current <see cref="ApiCard"/> or <see cref="CardFace"/>.<br/>Is used to determine which face to get artist data from, in case the card has multiple.</param>
+	/// <returns>An <see cref="Artist"/> from the database.</returns>
 	private async Task<Artist> GetOrCreateArtist(ApiCard apiCard, string cardName)
 	{
-		(Guid? artistId, string artistName) = GetArtistScryfallId(apiCard, cardName);
+		Artist artistFromCard = GetArtistFromCardData(apiCard, cardName);
 
-		var newArtist = new Artist
-		{
-			ScryfallId = artistId,
-			Name = artistName,
-		};
-
-		return artistId.HasValue
-			? await _artistService.GetFromScryfallId(artistId.Value) ?? await _artistService.Create(newArtist)
-			: await _artistService.Get(Artist.UnknownArtistId);
+		return artistFromCard.ScryfallId.HasValue
+			? await _artistService.GetFromScryfallId(artistFromCard.ScryfallId.Value) ?? await _artistService.Create(artistFromCard)
+			: await _artistService.Get(Artist.DefaultArtistId);
 
 	}
 
-	private static (Guid? artistId, string artistName)GetArtistScryfallId(ApiCard apiCard, string cardName)
+	/// <summary>
+	/// Returns an <see cref="Artist"/> object from the given <see cref="ApiCard"/> object.<br/>
+	/// Properties on the object may be null or empty, depending on the data available in the <paramref name="apiCard"/> object.
+	/// </summary>
+	/// <param name="cardName">Name of current <see cref="ApiCard"/> or <see cref="CardFace"/>.<br/>Is used to determine which face to get artist data from, in case the card has multiple.</param>
+	/// <returns>A new <see cref="Artist"/> populated with data from <paramref name="apiCard"/>.</returns>
+	private static Artist GetArtistFromCardData(ApiCard apiCard, string cardName)
 	{
 		Guid? artistId;
-		string? artistName = string.Empty;
+		string? artistName;
 
-		if(apiCard.ArtistIds.IsNullOrEmpty())
-		{
-			artistId = null;
-		}
-		else if (apiCard.ArtistIds.Length == 1)
+		if (apiCard.ArtistIds is { Length: 1})
 		{
 			artistId = apiCard.ArtistIds[0];
 			artistName = apiCard.ArtistName;
 		}
-		else if (apiCard.CardFaces.IsNullOrEmpty())
-		{
-			artistId = null;
-		}
-		else if (apiCard.CardFaces.Length == 1)
+		else if (apiCard.CardFaces is { Length: 1 })
 		{
 			artistId = apiCard.CardFaces[0].ArtistId;
 			artistName = apiCard.CardFaces[0].Artist;
 		}
 		else
 		{
-			ScryfallApi.Models.CardFace matchingCardFace = apiCard.CardFaces.First(face => face.Name == cardName);
-			artistId = matchingCardFace.ArtistId;
-			artistName = matchingCardFace.Artist;
+			CardFace? matchingCardFace = apiCard.CardFaces?.FirstOrDefault(face => face.Name == cardName);
+			
+			artistId = matchingCardFace?.ArtistId;
+			artistName = matchingCardFace?.Artist;
 		}
 
-		return (artistId, artistName);
+		return new Artist
+		{
+			ScryfallId = artistId,
+			Name = artistName ?? string.Empty,
+		};
 	}
 }

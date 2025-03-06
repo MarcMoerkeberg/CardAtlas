@@ -19,5 +19,5 @@ public class Artist
 	public ICollection<Card> Cards { get; set; } = new HashSet<Card>();
 
 	[NotMapped]
-	public const int UnknownArtistId = -1;
+	public const int DefaultArtistId = -1;
 }
