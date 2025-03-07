@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.Models.Data.Base;
+using CardAtlas.Server.Models.Data.Cards;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data.Image;
