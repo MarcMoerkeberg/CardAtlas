@@ -119,6 +119,9 @@ public class Card
 	public IEnumerable<GameKind> ExistsInGameTypes => _existsInGameTypes ??= CardGameTypes.Select(gameType => gameType.GameType.Type);
 
 	[ForeignKey("ParentCardId")]
-	public Card? ParentCard { get; set; }
 	public long? ParentCardId { get; set; }
+	public Card? ParentCard { get; set; }
+
+	[InverseProperty("ParentCard")]
+	public ICollection<Card> ChildCards { get; set; } = new HashSet<Card>();
 }

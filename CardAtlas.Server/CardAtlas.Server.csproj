@@ -33,7 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Mappers\" />
     <Folder Include="Migrations\" />
     <Folder Include="Models\DTOs\" />
   </ItemGroup>

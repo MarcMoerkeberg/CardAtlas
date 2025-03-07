@@ -13,7 +13,7 @@ public class Set
 	public ObjectType ObjectType => _objectType ??= ScryfallParser.ToEnumKey<ObjectType>(ScryfallObjectType);
 
 	[JsonPropertyName("id")]
-	public required string Id { get; set; }
+	public required Guid Id { get; set; }
 
 	[JsonPropertyName("code")]
 	public required string SetCode { get; set; }

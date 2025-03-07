@@ -1,13 +1,10 @@
-﻿using CardAtlas.Server.Models.Data;
-using CardAtlas.Server.Models.Data.Cards;
+﻿using CardAtlas.Server.Mappers;
+using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Services.Interfaces;
 using ScryfallApi;
 using ApiCard = ScryfallApi.Models.Card;
 using ApiSet = ScryfallApi.Models.Set;
 using CardFace = ScryfallApi.Models.CardFace;
-using FrameLayoutType = ScryfallApi.Models.Types.FrameLayoutType;
-using ScryfallRarity = ScryfallApi.Models.Types.Rarity;
-using ScryfallSetType = ScryfallApi.Models.Types.SetType;
 
 namespace CardAtlas.Server.Services;
 
@@ -16,90 +13,71 @@ public class ScryfallDataTransformer : IScryfallDataTransformer
 	private readonly IArtistService _artistService;
 	private readonly ISetService _setService;
 	private readonly IScryfallApi _scryfallApi;
+	private readonly ICardService _cardService;
 
 	public ScryfallDataTransformer(
-		IArtistService artistService, 
+		IArtistService artistService,
 		ISetService setService,
-		IScryfallApi scryfallApi)
+		IScryfallApi scryfallApi,
+		ICardService cardService)
 	{
 		_artistService = artistService;
 		_setService = setService;
 		_scryfallApi = scryfallApi;
+		_cardService = cardService;
 	}
 
-	public async Task<Card> UpsertCard(ApiCard apiCard)
+	public async Task<IEnumerable<Card>> UpsertCard(ApiCard apiCard)
 	{
-		string cardName = apiCard.Name.Split("//").First();
+		return apiCard.CardFaces is { Length: > 1 }
+			? await UpsertMultipleCards(apiCard, apiCard.CardFaces)
+			: [await UpsertSingleCard(apiCard)];
+	}
 
+	private async Task<IEnumerable<Card>> UpsertMultipleCards(ApiCard apiCard, IEnumerable<CardFace> cardFaces)
+	{
 		Set set = await GetOrCreateSet(apiCard.SetId);
-		Artist artist = await GetOrCreateArtist(apiCard, cardName);
+		var cards = new HashSet<Card>();
+		bool isFirstCardFace = true;
+		long? parentId = null;
 
-		var mappedCard = new Card
+		foreach (CardFace cardFace in cardFaces)
 		{
-			ScryfallId = apiCard.Id,
-			Name = apiCard.Name,
-			OracleText = apiCard.OracleText,
-			TypeLine = apiCard.TypeLine,
-			FlavorText = apiCard.FlavorText,
-			ManaCost = apiCard.ManaCost,
-			ConvertedManaCost = apiCard.ConvertedManaCost,
-			Power = apiCard.Power,
-			Toughness = apiCard.Toughness,
-			Loyalty = apiCard.Loyalty,
-			CollectorNumber = apiCard.CollectorNumber,
-			ReleaseDate = apiCard.ReleasedAt,
-			IsOnReservedList = apiCard.IsOnReservedList,
-			CanBeFoundInBoosters = apiCard.CanBeFoundInBoosterPacks,
-			IsDigitalOnly = apiCard.IsOnlyDigitalPrint,
-			IsFullArt = apiCard.IsFullArt,
-			IsOversized = apiCard.CardIsOversized,
-			IsPromo = apiCard.IsPromoPrint,
-			IsReprint = apiCard.IsReprint,
-			IsTextless = apiCard.IsTextlessPrint,
-			IsWotcOfficial = true,
+			Artist artist = await GetOrCreateArtist(apiCard, cardFace);
+			Card? existingCard = await _cardService.GetFromScryfallId(apiCard.Id);
 
-			ColorIdentity = string.Join(',', apiCard.ColorIdentity),
-			Keywords = string.Join(',', apiCard.Keywords),
-			PromoTypes = string.Join(',', apiCard.PromoTypes ?? []),
+			Card mappedCard = CardMapper.MapCard(apiCard, set, artist, cardFace);
+			mappedCard.ParentCardId = parentId;
 
-			RarityId = (int)GetRarity(apiCard),
-			FrameLayoutId = (int)GetFrameLayoutType(apiCard),
-			LanguageId = (int)GetOrCreateLanguage(apiCard),
+			if (existingCard is null)
+			{
+				cards.Add(await _cardService.Create(mappedCard));
+			}
+			else
+			{
+				cards.Add(await _cardService.Update(mappedCard));
+			}
 
-			SetId = set.Id,
-			ArtistId = artist.Id,
-			CardLegalityId = UpsertLegality(apiCard).Id,
-			ParentCardId = UpsertParentCard(apiCard)?.Id,
-		};
+			if (isFirstCardFace)
+			{
+				parentId = cards.First().Id;
+				isFirstCardFace = false;
+			}
+		}
 
-		return mappedCard;
+		return cards;
 	}
-
-	private static RarityType GetRarity(ApiCard apiCard)
+	
+	private async Task<Card> UpsertSingleCard(ApiCard apiCard)
 	{
-		return apiCard.Rarity switch
-		{
-			ScryfallRarity.Common => RarityType.Common,
-			ScryfallRarity.Uncommon => RarityType.Uncommon,
-			ScryfallRarity.Rare => RarityType.Rare,
-			ScryfallRarity.Special => RarityType.Special,
-			ScryfallRarity.Mythic => RarityType.Mythic,
-			ScryfallRarity.Bonus => RarityType.Bonus,
-			_ => RarityType.NotImplemented,
-		};
-	}
+		Set set = await GetOrCreateSet(apiCard.SetId);
+		Artist artist = await GetOrCreateArtist(apiCard);
+		Card mappedCard = CardMapper.MapCard(apiCard, set, artist);
+		Card? existingCard = await _cardService.GetFromScryfallId(apiCard.Id);
 
-	private static FrameType GetFrameLayoutType(ApiCard apiCard)
-	{
-		return apiCard.FrameLayout switch
-		{
-			FrameLayoutType.Year1993 => FrameType.Year1993,
-			FrameLayoutType.Year1997 => FrameType.Year1997,
-			FrameLayoutType.Year2003 => FrameType.Year2003,
-			FrameLayoutType.Year2015 => FrameType.Year2015,
-			FrameLayoutType.Future => FrameType.Future,
-			_ => FrameType.NotImplemented,
-		};
+		return existingCard is null
+			? await _cardService.Create(mappedCard)
+			: await _cardService.Update(mappedCard);
 	}
 
 	/// <summary>
@@ -113,143 +91,27 @@ public class ScryfallDataTransformer : IScryfallDataTransformer
 		if (persistedSet is not null) return persistedSet;
 
 		ApiSet apiSet = await _scryfallApi.GetSet(scryfallSetId);
-		var newSet = new Set
-		{
-			ScryfallId = scryfallSetId,
-			Name = apiSet.Name,
-			Code = apiSet.SetCode,
-			MtgoCode = apiSet.MtgoSetCode,
-			ArenaCode = apiSet.ArenaSetCode,
-			ParentSetCode = apiSet.ParentSetCode,
-			Block = apiSet.Block,
-			BlockCode = apiSet.BlockCode,
-			SetTypeId = (int)GetSetType(apiSet),
-			NumberOfCardsInSet = apiSet.CardCountInSet,
-			IsDigitalOnly = apiSet.IsDigitalOnly,
-			IsFoilOnly = apiSet.IsFoilOnly,
-			IsNonFoilOnly = apiSet.IsNonFoilOnly,
-			ReleaseDate = apiSet.ReleasedDate,
-		};
+		Set newSet = SetMapper.MapSet(apiSet);
 
 		return await _setService.Create(newSet);
-	}
-
-	private static SetTypeKind GetSetType(ApiSet apiSet)
-	{
-		return apiSet.SetType switch
-		{
-			 ScryfallSetType.Core => SetTypeKind.Core,
-			 ScryfallSetType.Expansion => SetTypeKind.Expansion,
-			 ScryfallSetType.Masters => SetTypeKind.Masters,
-			 ScryfallSetType.Alchemy => SetTypeKind.Alchemy,
-			 ScryfallSetType.Masterpiece => SetTypeKind.Masterpiece,
-			 ScryfallSetType.Arsenal => SetTypeKind.Arsenal,
-			 ScryfallSetType.FromTheVault => SetTypeKind.FromTheVault,
-			 ScryfallSetType.Spellbook => SetTypeKind.Spellbook,
-			 ScryfallSetType.PremiumDeck => SetTypeKind.PremiumDeck,
-			 ScryfallSetType.DuelDeck => SetTypeKind.DuelDeck,
-			 ScryfallSetType.DraftInnovation => SetTypeKind.DraftInnovation,
-			 ScryfallSetType.TreasureChest => SetTypeKind.TreasureChest,
-			 ScryfallSetType.Commander => SetTypeKind.Commander,
-			 ScryfallSetType.Planechase => SetTypeKind.Planechase,
-			 ScryfallSetType.Archenemy => SetTypeKind.Archenemy,
-			 ScryfallSetType.Vanguard => SetTypeKind.Vanguard,
-			 ScryfallSetType.Funny => SetTypeKind.Funny,
-			 ScryfallSetType.Starter => SetTypeKind.Starter,
-			 ScryfallSetType.Box => SetTypeKind.Box,
-			 ScryfallSetType.Promo => SetTypeKind.Promo,
-			 ScryfallSetType.Token => SetTypeKind.Token,
-			 ScryfallSetType.Memorabilia => SetTypeKind.Memorabilia,
-			 ScryfallSetType.MiniGame  => SetTypeKind.MiniGame,
-			_ => SetTypeKind.NotImplemented,
-		};
 	}
 
 	/// <summary>
 	/// Gets the <see cref="Artist"/> from <paramref name="apiCard"/>.<br/>
 	/// Creates a new <see cref="Artist"/> if no matching artist is found in the database.<br/>
-	/// Returns the default <see cref="Artist"/> if no artist data is available in <paramref name="apiCard"/>.
+	/// Returns the default <see cref="Artist"/> if no artist data is available.
 	/// </summary>
-	/// <param name="cardName">Name of current <see cref="ApiCard"/> or <see cref="CardFace"/>.<br/>Is used to determine which face to get artist data from, in case the card has multiple.</param>
+	/// <param name="cardFace">Is used for getting artist information if provided.</param>
 	/// <returns>An <see cref="Artist"/> from the database.</returns>
-	private async Task<Artist> GetOrCreateArtist(ApiCard apiCard, string cardName)
+	private async Task<Artist> GetOrCreateArtist(ApiCard apiCard, CardFace? cardFace = null)
 	{
-		Artist artistFromCard = GetArtistFromCardData(apiCard, cardName);
+		Artist artistFromCard = cardFace is not null
+			? ArtistMapper.MapArtist(cardFace)
+			: ArtistMapper.MapArtist(apiCard);
 
 		return artistFromCard.ScryfallId.HasValue
 			? await _artistService.GetFromScryfallId(artistFromCard.ScryfallId.Value) ?? await _artistService.Create(artistFromCard)
 			: await _artistService.Get(Artist.DefaultArtistId);
 
-	}
-
-	/// <summary>
-	/// Returns an <see cref="Artist"/> object from the given <see cref="ApiCard"/> object.<br/>
-	/// Properties on the object may be null or empty, depending on the data available in the <paramref name="apiCard"/> object.
-	/// </summary>
-	/// <param name="cardName">Name of current <see cref="ApiCard"/> or <see cref="CardFace"/>.<br/>Is used to determine which face to get artist data from, in case the card has multiple.</param>
-	/// <returns>A new <see cref="Artist"/> populated with data from <paramref name="apiCard"/>.</returns>
-	private static Artist GetArtistFromCardData(ApiCard apiCard, string cardName)
-	{
-		Guid? artistId;
-		string? artistName;
-
-		if (apiCard.ArtistIds is { Length: 1 })
-		{
-			artistId = apiCard.ArtistIds[0];
-			artistName = apiCard.ArtistName;
-		}
-		else if (apiCard.CardFaces is { Length: 1 })
-		{
-			artistId = apiCard.CardFaces[0].ArtistId;
-			artistName = apiCard.CardFaces[0].Artist;
-		}
-		else
-		{
-			CardFace? matchingCardFace = apiCard.CardFaces?.FirstOrDefault(face => face.Name == cardName);
-
-			artistId = matchingCardFace?.ArtistId;
-			artistName = matchingCardFace?.Artist;
-		}
-
-		return new Artist
-		{
-			ScryfallId = artistId,
-			Name = artistName ?? string.Empty,
-		};
-	}
-
-	private static LanguageType GetOrCreateLanguage(ApiCard apiCard)
-	{
-		return apiCard.LanguageCode switch
-		{
-			"en" => LanguageType.English,
-			"es" => LanguageType.Spanish,
-			"fr" => LanguageType.French,
-			"de" => LanguageType.German,
-			"it" => LanguageType.Italian,
-			"pt" => LanguageType.Portuguese,
-			"ja" => LanguageType.Japanese,
-			"ko" => LanguageType.Korean,
-			"ru" => LanguageType.Russian,
-			"zhs" => LanguageType.SimplifiedChinese,
-			"zht" => LanguageType.TraditionalChinese,
-			"he" => LanguageType.Hebrew,
-			"la" => LanguageType.Latin,
-			"grc" => LanguageType.AncientGreek,
-			"ar" => LanguageType.Arabic,
-			"sa" => LanguageType.Sanskrit,
-			"ph" => LanguageType.Phyrexian,
-			_ => LanguageType.NotImplemented,
-		};
-	}
-
-	private static CardLegality UpsertLegality(ApiCard apiCard)
-	{
-		throw new NotImplementedException();
-	}
-
-	private static Card? UpsertParentCard(ApiCard apiCard)
-	{
-		throw new NotImplementedException();
 	}
 }
