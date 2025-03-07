@@ -3,7 +3,7 @@ using CardAtlas.Server.Models.Data;
 
 namespace CardAtlas.UnitTests
 {
-	public class Tests
+	public class EntityConfigurationTests
 	{
 		[Test]
 		public void GetEnumSeedData_CanCreateSeedData_ExpectsEntityTypePropertiesToBePopulated()
