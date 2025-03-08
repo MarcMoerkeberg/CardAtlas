@@ -6,7 +6,8 @@ namespace CardAtlas.UnitTests;
 
 class ComparerTests
 {
-	private readonly CardComparer _comparer = new CardComparer();
+	private readonly CardComparer _cardComparer = new CardComparer();
+	private readonly SetComparer _setComparer = new SetComparer();
 
 	[Test]
 	public void CardEqualityComparer_Equals_ExpectsMatchingObjectsTrue()
@@ -14,9 +15,9 @@ class ComparerTests
 		Card card1 = CardDataHelper.CreateCard();
 		Card card2 = CardDataHelper.CreateCard();
 
-		Assert.That(_comparer.Equals(card1, card2), Is.True);
+		Assert.That(_cardComparer.Equals(card1, card2), Is.True);
 	}
-	
+
 	[Test]
 	public void CardEqualityComparer_Equals_ExpectsMatchingObjectsFalse()
 	{
@@ -24,6 +25,25 @@ class ComparerTests
 		Card card2 = CardDataHelper.CreateCard();
 		card2.Name = "Different name";
 
-		Assert.That(_comparer.Equals(card1, card2), Is.False);
+		Assert.That(_cardComparer.Equals(card1, card2), Is.False);
+	}
+
+	[Test]
+	public void SetEqualityComparer_Equals_ExpectsMatchingObjectsTrue()
+	{
+		Set set1 = SetDataHelper.CreateSet();
+		Set set2 = SetDataHelper.CreateSet();
+
+		Assert.That(_setComparer.Equals(set1, set2), Is.True);
+	}
+
+	[Test]
+	public void SetEqualityComparer_Equals_ExpectsMatchingObjectsFalse()
+	{
+		Set set1 = SetDataHelper.CreateSet();
+		Set set2 = SetDataHelper.CreateSet();
+		set2.Name = "Different name";
+
+		Assert.That(_setComparer.Equals(set1, set2), Is.False);
 	}
 }
