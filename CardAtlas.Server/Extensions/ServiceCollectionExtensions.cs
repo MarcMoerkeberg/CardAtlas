@@ -118,6 +118,7 @@ public static class ServiceCollectionExtensions
 		AddScopedServiceDependencies(services);
 		AddMemoryCache(services);
 		AddScryfallApi(services);
+		AddComparerDependencies(services);
 	}
 
 	/// <summary>
@@ -172,5 +173,25 @@ public static class ServiceCollectionExtensions
 	{
 		services.AddExceptionHandler<GlobalExceptionHandler>();
 		ProblemDetailsExtensions.AddProblemDetails(services);
+	}
+
+	private static void AddComparerDependencies(IServiceCollection services)
+	{
+		const string comparerNamespace = "CardAtlas.Server.Comparers";
+		IEnumerable<Type> comparers = AssemblyHelper.GetClassesThatImplementInterfaces(comparerNamespace);
+
+		foreach (Type comparer in comparers)
+		{
+			IEnumerable<Type> interfaces = comparer.GetInterfaces()
+				.Where(@interface =>
+					@interface.IsGenericType &&
+					@interface.GetGenericTypeDefinition() == typeof(IEqualityComparer<>)
+				);
+
+			foreach (Type @interface in interfaces)
+			{
+				services.AddScoped(@interface, comparer);
+			}
+		}
 	}
 }

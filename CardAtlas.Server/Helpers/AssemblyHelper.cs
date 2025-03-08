@@ -27,12 +27,7 @@ public static class AssemblyHelper
 					type.IsClass &&
 					!type.IsAbstract &&
 					!string.IsNullOrEmpty(type.Namespace) &&
-					type.Namespace.StartsWith(namespaceFilter, StringComparison.Ordinal) &&
-					type.GetInterfaces()
-						.Any(@interface => 
-							!string.IsNullOrEmpty(@interface.Namespace) && 
-							@interface.Namespace.StartsWith(namespaceFilter, StringComparison.Ordinal)
-						)
+					type.Namespace.StartsWith(namespaceFilter, StringComparison.Ordinal)
 				);
 
 				return servicesWithTypes;
