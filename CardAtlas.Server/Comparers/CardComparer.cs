@@ -35,7 +35,8 @@ public class CardComparer : IEqualityComparer<Card>
 			&& x.FrameLayoutId == y.FrameLayoutId
 			&& x.LanguageId == y.LanguageId
 			&& x.SetId == y.SetId
-			&& x.ArtistId == y.ArtistId;
+			&& x.ArtistId == y.ArtistId
+			&& x.ParentCardId == y.ParentCardId;
 	}
 
 	public int GetHashCode(Card obj)
@@ -68,6 +69,7 @@ public class CardComparer : IEqualityComparer<Card>
 		hash.Add(obj.LanguageId);
 		hash.Add(obj.SetId);
 		hash.Add(obj.ArtistId);
+		hash.Add(obj.ParentCardId);
 
 		return hash.ToHashCode();
 	}
