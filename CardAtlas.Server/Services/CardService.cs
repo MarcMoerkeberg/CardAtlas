@@ -5,21 +5,36 @@ namespace CardAtlas.Server.Services;
 
 public class CardService : ICardService
 {
-	public Task<Card> Create(Card card)
+	private readonly IEqualityComparer<Card> _cardComparer;
+	public CardService(IEqualityComparer<Card> comparer)
 	{
-		throw new NotImplementedException();
+		_cardComparer = comparer;
 	}
-	
-	public Task<Card> Update(Card card)
-	{
-		throw new NotImplementedException();
-	}
-	
+
 	public Task<Card> Get(long cardId)
 	{
 		throw new NotImplementedException();
 	}
-	
+	public Task<Card> Create(Card card)
+	{
+		throw new NotImplementedException();
+	}
+
+	public Task<Card> Update(Card card)
+	{
+		throw new NotImplementedException();
+	}
+
+	public async Task<Card> Merge(Card oldCard, Card newCard)
+	{
+		if(_cardComparer.Equals(oldCard, newCard))
+		{
+			return await Update(newCard);
+		}
+		
+		return oldCard;
+	}
+
 	public Task<Card?> GetFromScryfallId(Guid scryfallId)
 	{
 		throw new NotImplementedException();

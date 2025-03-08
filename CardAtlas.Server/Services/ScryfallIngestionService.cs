@@ -46,6 +46,26 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 	}
 
+	public async Task UpsertSets()
+	{
+		IEnumerable<ApiSet> apiSets = await _scryfallApi.GetSets();
+
+		foreach (ApiSet apiSet in apiSets)
+		{
+			Set mappedSet = SetMapper.MapSet(apiSet);
+			Set? existingSet = await _setService.GetFromScryfallId(apiSet.Id);
+
+			if (existingSet is null)
+			{
+				await _setService.Create(mappedSet);
+			}
+			else
+			{
+				await _setService.Update(mappedSet);
+			}
+		}
+	}
+
 	public async Task<IEnumerable<Card>> UpsertCard(ApiCard apiCard)
 	{
 		return apiCard.CardFaces is { Length: > 1 }
@@ -79,7 +99,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			}
 			else
 			{
-				cards.Add(await _cardService.Update(mappedCard));
+				mappedCard.Id = existingCard.Id;
+				cards.Add(await _cardService.Merge(existingCard, mappedCard));
 			}
 
 			if (isFirstCardFace)
@@ -90,11 +111,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		return cards;
-	}
-
-	private async Task UpsertSets()
-	{
-		throw new NotImplementedException();
 	}
 
 	/// <summary>
@@ -111,14 +127,14 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		return existingCard is null
 			? await _cardService.Create(mappedCard)
-			: await _cardService.Update(mappedCard);
+			: await _cardService.Merge(existingCard, mappedCard);
 	}
 
 	/// <summary>
 	/// Gets the <see cref="Set""/> or creates a new if no matching set is found.<br/>
 	/// Uses <see cref="IScryfallApi"/> to fetch set data if no match is found.
 	/// </summary>
-	/// <returns>A <see cref="Set"/> from th database.</returns>
+	/// <returns>The existing or newly created <see cref="Set"/>.</returns>
 	private async Task<Set> GetOrCreateSet(Guid scryfallSetId)
 	{
 		Set? persistedSet = await _setService.GetFromScryfallId(scryfallSetId);
@@ -136,7 +152,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// Returns the default <see cref="Artist"/> if no artist data is available.
 	/// </summary>
 	/// <param name="cardFace">Is used for getting artist information if provided.</param>
-	/// <returns>An <see cref="Artist"/> from the database.</returns>
+	/// <returns>The existing, newly created or default <see cref="Artist"/>.</returns>
 	private async Task<Artist> GetOrCreateArtist(ApiCard apiCard, CardFace? cardFace = null)
 	{
 		Artist artistFromCard = cardFace is not null

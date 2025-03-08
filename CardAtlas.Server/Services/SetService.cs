@@ -24,4 +24,9 @@ public class SetService : ISetService
 	{
 		throw new NotImplementedException();
 	}
+
+	public Task<Set> Update(Set set)
+	{
+		throw new NotImplementedException();
+	}
 }
