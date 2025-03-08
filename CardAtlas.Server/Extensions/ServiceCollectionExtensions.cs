@@ -115,7 +115,7 @@ public static class ServiceCollectionExtensions
 	/// </summary>
 	public static void AddDependencyInjection(this IServiceCollection services)
 	{
-		AddScopedServiceDependencies(services);
+		AddServiceDependencies(services);
 		AddMemoryCache(services);
 		AddScryfallApi(services);
 		AddComparerDependencies(services);
@@ -124,7 +124,7 @@ public static class ServiceCollectionExtensions
 	/// <summary>
 	/// Adds scoped lifetime dependency injection for all services within CardAtlas.Server.Services namespace.
 	/// </summary>
-	private static void AddScopedServiceDependencies(IServiceCollection services)
+	private static void AddServiceDependencies(IServiceCollection services)
 	{
 		const string servicesNamespace = "CardAtlas.Server.Services";
 		IEnumerable<Type> servicesWithInterfaces = AssemblyHelper.GetClassesThatImplementInterfaces(servicesNamespace);
@@ -175,6 +175,9 @@ public static class ServiceCollectionExtensions
 		ProblemDetailsExtensions.AddProblemDetails(services);
 	}
 
+	/// <summary>
+	/// Adds scoped lifetime dependency injection for all comparers within CardAtlas.Server.Comparers namespace that implements IEqualityComparer.
+	/// </summary>
 	private static void AddComparerDependencies(IServiceCollection services)
 	{
 		const string comparerNamespace = "CardAtlas.Server.Comparers";

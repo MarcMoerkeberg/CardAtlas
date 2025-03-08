@@ -6,16 +6,15 @@ namespace CardAtlas.Server.Helpers;
 public static class AssemblyHelper
 {
 	/// <summary>
-	/// Returns all classes in the <paramref name="namespaceFilter"/> namespace, that implement one or more interfaces from the same namespace.
+	/// Returns all classes in the <paramref name="fullNameSpace"/> namespace, that implement one or more interfaces.
 	/// </summary>
-	/// <param name="namespaceFilter">The namespace to find classes and interfaces from.</param>
-	/// <exception cref="ArgumentNullException">Thrown when the <paramref name="namespaceFilter"/> is null or empty.</exception>
+	/// <exception cref="ArgumentNullException">Thrown when the <paramref name="fullNameSpace"/> is null or empty.</exception>
 	/// <exception cref="InvalidOperationException">Thrown when an error occurs while loading types from the assembly.</exception>
-	public static IEnumerable<Type> GetClassesThatImplementInterfaces(string namespaceFilter)
+	public static IEnumerable<Type> GetClassesThatImplementInterfaces(string fullNameSpace)
 	{
-		if(string.IsNullOrWhiteSpace(namespaceFilter))
+		if (string.IsNullOrWhiteSpace(fullNameSpace))
 		{
-			throw new ArgumentNullException(nameof(namespaceFilter));
+			throw new ArgumentNullException(nameof(fullNameSpace));
 		}
 
 		try
@@ -27,10 +26,11 @@ public static class AssemblyHelper
 					type.IsClass &&
 					!type.IsAbstract &&
 					!string.IsNullOrEmpty(type.Namespace) &&
-					type.Namespace.StartsWith(namespaceFilter, StringComparison.Ordinal)
+					type.Namespace.StartsWith(fullNameSpace, StringComparison.Ordinal) &&
+					type.GetInterfaces().Any()
 				);
 
-				return servicesWithTypes;
+			return servicesWithTypes;
 		}
 		catch (ReflectionTypeLoadException ex)
 		{
