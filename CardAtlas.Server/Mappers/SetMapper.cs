@@ -68,4 +68,30 @@ public static class SetMapper
 			_ => SetTypeKind.NotImplemented,
 		};
 	}
+
+	/// <summary>
+	/// Assigns all intrinsic properties from the <paramref name="source"/> onto the <paramref name="target"/>.<br/>
+	/// These properties represent the core data of the <see cref="Set"/> (such as identifiers, text, numeric values, etc.)
+	/// that are directly managed by the Set entity, excluding any navigational or derived properties.
+	/// </summary>
+	/// <param name="target">The entity being updated.</param>
+	/// <param name="source">The properties of this object will be assigned to <paramref name="target"/>.</param>
+	public static void MergeProperties(Set target, Set source)
+	{
+		target.Id = source.Id;
+		target.ScryfallId = source.ScryfallId;
+		target.Code = source.Code;
+		target.Name = source.Name;
+		target.MtgoCode = source.MtgoCode;
+		target.ArenaCode = source.ArenaCode;
+		target.ParentSetCode = source.ParentSetCode;
+		target.Block = source.Block;
+		target.BlockCode = source.BlockCode;
+		target.SetTypeId = source.SetTypeId;
+		target.NumberOfCardsInSet = source.NumberOfCardsInSet;
+		target.IsDigitalOnly = source.IsDigitalOnly;
+		target.IsFoilOnly = source.IsFoilOnly;
+		target.IsNonFoilOnly = source.IsNonFoilOnly;
+		target.ReleaseDate = source.ReleaseDate;
+	}
 }

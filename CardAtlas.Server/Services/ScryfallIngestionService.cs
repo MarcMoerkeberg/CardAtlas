@@ -62,7 +62,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			else
 			{
 				mappedSet.Id = existingSet.Id;
-				await _setService.Update(mappedSet);
+				await _setService.Merge(existingSet, mappedSet);
 			}
 		}
 	}
