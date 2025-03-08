@@ -10,6 +10,7 @@ public class CardComparer : IEqualityComparer<Card>
 		if (x is null || y is null) return false;
 
 		return x.ScryfallId == y.ScryfallId
+			&& x.Id == y.Id
 			&& string.Equals(x.Name, y.Name)
 			&& string.Equals(x.OracleText, y.OracleText)
 			&& string.Equals(x.TypeLine, y.TypeLine)
@@ -43,6 +44,7 @@ public class CardComparer : IEqualityComparer<Card>
 	{
 		var hash = new HashCode();
 		hash.Add(obj.ScryfallId);
+		hash.Add(obj.Id);
 		hash.Add(obj.Name);
 		hash.Add(obj.OracleText);
 		hash.Add(obj.TypeLine);
