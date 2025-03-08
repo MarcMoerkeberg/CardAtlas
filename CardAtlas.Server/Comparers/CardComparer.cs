@@ -2,7 +2,7 @@
 
 namespace CardAtlas.Server.Comparers;
 
-public class CardEqualityComparer : IEqualityComparer<Card>
+public class CardComparer : IEqualityComparer<Card>
 {
 	public bool Equals(Card? x, Card? y)
 	{

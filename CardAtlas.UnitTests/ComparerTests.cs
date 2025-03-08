@@ -6,7 +6,7 @@ namespace CardAtlas.UnitTests;
 
 class ComparerTests
 {
-	private readonly CardEqualityComparer _comparer = new CardEqualityComparer();
+	private readonly CardComparer _comparer = new CardComparer();
 
 	[Test]
 	public void CardEqualityComparer_Equals_ExpectsMatchingObjectsTrue()
