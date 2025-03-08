@@ -17,7 +17,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly ICardService _cardService;
 
 	public ScryfallIngestionService(
-		IScryfallApi scryfallApi, 
+		IScryfallApi scryfallApi,
 		IArtistService artistService,
 		ISetService setService,
 		ICardService cardService)
@@ -61,6 +61,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			}
 			else
 			{
+				mappedSet.Id = existingSet.Id;
 				await _setService.Update(mappedSet);
 			}
 		}
@@ -125,9 +126,15 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		Card mappedCard = CardMapper.MapCard(apiCard, set, artist);
 		Card? existingCard = await _cardService.GetFromScryfallId(apiCard.Id);
 
-		return existingCard is null
-			? await _cardService.Create(mappedCard)
-			: await _cardService.Merge(existingCard, mappedCard);
+		if (existingCard is null)
+		{
+			return await _cardService.Create(mappedCard);
+		}
+		else
+		{
+			mappedCard.Id = existingCard.Id;
+			return await _cardService.Merge(existingCard, mappedCard);
+		}
 	}
 
 	/// <summary>

@@ -1,4 +1,6 @@
-﻿using CardAtlas.Server.Models.Data;
+﻿using CardAtlas.Server.Mappers;
+using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Resources.Errors;
 using CardAtlas.Server.Services.Interfaces;
 
 namespace CardAtlas.Server.Services;
@@ -27,11 +29,17 @@ public class CardService : ICardService
 
 	public async Task<Card> Merge(Card oldCard, Card newCard)
 	{
-		if(_cardComparer.Equals(oldCard, newCard))
+		if (oldCard.Id != newCard.Id)
 		{
-			return await Update(newCard);
+			throw new Exception(Errors.MergingIdsAreNotEqual);
 		}
-		
+
+		if (!_cardComparer.Equals(oldCard, newCard))
+		{
+			CardMapper.MergeProperties(oldCard, newCard);
+			return await Update(oldCard);
+		}
+
 		return oldCard;
 	}
 

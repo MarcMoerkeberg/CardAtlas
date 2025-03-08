@@ -138,6 +138,9 @@
   <data name="InternalServerError" xml:space="preserve">
     <value>Internal Server Error</value>
   </data>
+  <data name="MergingIdsAreNotEqual" xml:space="preserve">
+    <value>Expected the ids of both objects to be equal to ensure the wrong entity isn't updated by mistake.</value>
+  </data>
   <data name="NotFound" xml:space="preserve">
     <value>Not Found</value>
   </data>

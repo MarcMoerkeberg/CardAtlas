@@ -127,4 +127,44 @@ public static class CardMapper
 			_ => LanguageType.NotImplemented,
 		};
 	}
+
+	/// <summary>
+	/// Assigns all intrinsic properties from the <paramref name="source"/> onto the <paramref name="target"/>.<br/>
+	/// These properties represent the core data of the <see cref="Card"/> (such as identifiers, text, numeric values, etc.)
+	/// that are directly managed by the Card entity, excluding any navigational or derived properties.
+	/// </summary>
+	/// <param name="target">The entity being updated.</param>
+	/// <param name="source">The properties of this object will be assigned to <paramref name="target"/>.</param>
+	public static void MergeProperties(Card target, Card source)
+	{
+		target.Id = source.Id;
+		target.ScryfallId = source.ScryfallId;
+		target.Name = source.Name;
+		target.OracleText = source.OracleText;
+		target.TypeLine = source.TypeLine;
+		target.FlavorText = source.FlavorText;
+		target.ManaCost = source.ManaCost;
+		target.ConvertedManaCost = source.ConvertedManaCost;
+		target.Power = source.Power;
+		target.Toughness = source.Toughness;
+		target.Loyalty = source.Loyalty;
+		target.CollectorNumber = source.CollectorNumber;
+		target.ReleaseDate = source.ReleaseDate;
+		target.IsOnReservedList = source.IsOnReservedList;
+		target.CanBeFoundInBoosters = source.CanBeFoundInBoosters;
+		target.IsDigitalOnly = source.IsDigitalOnly;
+		target.IsFullArt = source.IsFullArt;
+		target.IsOversized = source.IsOversized;
+		target.IsPromo = source.IsPromo;
+		target.IsReprint = source.IsReprint;
+		target.IsTextless = source.IsTextless;
+		target.IsWotcOfficial = source.IsWotcOfficial;
+		target.SetId = source.SetId;
+		target.ArtistId = source.ArtistId;
+		target.RarityId = source.RarityId;
+		target.LanguageId = source.LanguageId;
+		target.ColorIdentity = source.ColorIdentity;
+		target.FrameLayoutId = source.FrameLayoutId;
+		target.ParentCardId = source.ParentCardId;
+	}
 }

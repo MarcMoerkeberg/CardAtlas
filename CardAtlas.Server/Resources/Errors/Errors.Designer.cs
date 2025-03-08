@@ -124,6 +124,15 @@ namespace CardAtlas.Server.Resources.Errors {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected the ids of both objects to be equal to ensure the wrong entity isn&apos;t updated by mistake..
+        /// </summary>
+        internal static string MergingIdsAreNotEqual {
+            get {
+                return ResourceManager.GetString("MergingIdsAreNotEqual", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not Found.
         /// </summary>
         internal static string NotFound {
