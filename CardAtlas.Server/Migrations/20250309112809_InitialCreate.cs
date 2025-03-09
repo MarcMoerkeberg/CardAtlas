@@ -41,6 +41,20 @@ namespace CardAtlas.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Format",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Format", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "FrameLayouts",
                 columns: table => new
                 {
@@ -160,6 +174,19 @@ namespace CardAtlas.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PromoType",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PromoType", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Rarities",
                 columns: table => new
                 {
@@ -238,228 +265,6 @@ namespace CardAtlas.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CardGameType",
-                columns: table => new
-                {
-                    CardsId = table.Column<long>(type: "bigint", nullable: false),
-                    GameTypesId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CardGameType", x => new { x.CardsId, x.GameTypesId });
-                    table.ForeignKey(
-                        name: "FK_CardGameType_GameTypes_GameTypesId",
-                        column: x => x.GameTypesId,
-                        principalTable: "GameTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CardImages",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ImageTypeId = table.Column<int>(type: "int", nullable: false),
-                    ImageFormatId = table.Column<int>(type: "int", nullable: false),
-                    ImageStatusId = table.Column<int>(type: "int", nullable: false),
-                    CardId = table.Column<long>(type: "bigint", nullable: false),
-                    Width = table.Column<int>(type: "int", nullable: false),
-                    Height = table.Column<int>(type: "int", nullable: false),
-                    Uri = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CardImages", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_CardImages_ImageFormats_ImageFormatId",
-                        column: x => x.ImageFormatId,
-                        principalTable: "ImageFormats",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_CardImages_ImageStatuses_ImageStatusId",
-                        column: x => x.ImageStatusId,
-                        principalTable: "ImageStatuses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_CardImages_ImageTypes_ImageTypeId",
-                        column: x => x.ImageTypeId,
-                        principalTable: "ImageTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CardLegalities",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CardId = table.Column<long>(type: "bigint", nullable: false),
-                    StandardLegalityId = table.Column<int>(type: "int", nullable: false),
-                    FutureLegalityId = table.Column<int>(type: "int", nullable: false),
-                    HistoricLegalityId = table.Column<int>(type: "int", nullable: false),
-                    TimelessLegalityId = table.Column<int>(type: "int", nullable: false),
-                    GladiatorLegalityId = table.Column<int>(type: "int", nullable: false),
-                    PioneerLegalityId = table.Column<int>(type: "int", nullable: false),
-                    ExplorerLegalityId = table.Column<int>(type: "int", nullable: false),
-                    ModernLegalityId = table.Column<int>(type: "int", nullable: false),
-                    LegacyLegalityId = table.Column<int>(type: "int", nullable: false),
-                    PauperLegalityId = table.Column<int>(type: "int", nullable: false),
-                    VintageLegalityId = table.Column<int>(type: "int", nullable: false),
-                    PennyLegalityId = table.Column<int>(type: "int", nullable: false),
-                    CommanderLegalityId = table.Column<int>(type: "int", nullable: false),
-                    OatBreakerLegalityId = table.Column<int>(type: "int", nullable: false),
-                    StandardBrawlLegalityId = table.Column<int>(type: "int", nullable: false),
-                    BrawlLegalityId = table.Column<int>(type: "int", nullable: false),
-                    AlchemyLegalityId = table.Column<int>(type: "int", nullable: false),
-                    PauperCommanderLegalityId = table.Column<int>(type: "int", nullable: false),
-                    DuelCommanderLegalityId = table.Column<int>(type: "int", nullable: false),
-                    OldSchoolLegalityId = table.Column<int>(type: "int", nullable: false),
-                    PreModernlLegalityId = table.Column<int>(type: "int", nullable: false),
-                    PreDHLegalityId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CardLegalities", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_AlchemyLegalityId",
-                        column: x => x.AlchemyLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_BrawlLegalityId",
-                        column: x => x.BrawlLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_CommanderLegalityId",
-                        column: x => x.CommanderLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_DuelCommanderLegalityId",
-                        column: x => x.DuelCommanderLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_ExplorerLegalityId",
-                        column: x => x.ExplorerLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_FutureLegalityId",
-                        column: x => x.FutureLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_GladiatorLegalityId",
-                        column: x => x.GladiatorLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_HistoricLegalityId",
-                        column: x => x.HistoricLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_LegacyLegalityId",
-                        column: x => x.LegacyLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_ModernLegalityId",
-                        column: x => x.ModernLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_OatBreakerLegalityId",
-                        column: x => x.OatBreakerLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_OldSchoolLegalityId",
-                        column: x => x.OldSchoolLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_PauperCommanderLegalityId",
-                        column: x => x.PauperCommanderLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_PauperLegalityId",
-                        column: x => x.PauperLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_PennyLegalityId",
-                        column: x => x.PennyLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_PioneerLegalityId",
-                        column: x => x.PioneerLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_PreDHLegalityId",
-                        column: x => x.PreDHLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_PreModernlLegalityId",
-                        column: x => x.PreModernlLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_StandardBrawlLegalityId",
-                        column: x => x.StandardBrawlLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_StandardLegalityId",
-                        column: x => x.StandardLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_TimelessLegalityId",
-                        column: x => x.TimelessLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CardLegalities_Legalities_VintageLegalityId",
-                        column: x => x.VintageLegalityId,
-                        principalTable: "Legalities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Cards",
                 columns: table => new
                 {
@@ -474,27 +279,25 @@ namespace CardAtlas.Server.Migrations
                     ConvertedManaCost = table.Column<decimal>(type: "decimal(8,1)", precision: 8, scale: 1, nullable: true),
                     Power = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: true),
                     Toughness = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: true),
-                    SetId = table.Column<int>(type: "int", nullable: false),
-                    ArtistId = table.Column<int>(type: "int", nullable: false),
-                    RarityId = table.Column<int>(type: "int", nullable: false),
-                    LanguageId = table.Column<int>(type: "int", nullable: false),
-                    ColorIdentity = table.Column<string>(type: "nvarchar(9)", maxLength: 9, nullable: false),
-                    Keywords = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    CardLegalityId = table.Column<long>(type: "bigint", nullable: false),
                     Loyalty = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: true),
                     CollectorNumber = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: false),
-                    FrameLayoutId = table.Column<int>(type: "int", nullable: false),
-                    PromoTypes = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ParentCardId = table.Column<long>(type: "bigint", nullable: true),
                     ReleaseDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    IsReserved = table.Column<bool>(type: "bit", nullable: false),
+                    IsOnReservedList = table.Column<bool>(type: "bit", nullable: false),
                     CanBeFoundInBoosters = table.Column<bool>(type: "bit", nullable: false),
                     IsDigitalOnly = table.Column<bool>(type: "bit", nullable: false),
                     IsFullArt = table.Column<bool>(type: "bit", nullable: false),
                     IsOversized = table.Column<bool>(type: "bit", nullable: false),
                     IsPromo = table.Column<bool>(type: "bit", nullable: false),
                     IsReprint = table.Column<bool>(type: "bit", nullable: false),
-                    IsTextless = table.Column<bool>(type: "bit", nullable: false)
+                    IsTextless = table.Column<bool>(type: "bit", nullable: false),
+                    IsWotcOfficial = table.Column<bool>(type: "bit", nullable: false),
+                    SetId = table.Column<int>(type: "int", nullable: false),
+                    ArtistId = table.Column<int>(type: "int", nullable: false),
+                    RarityId = table.Column<int>(type: "int", nullable: false),
+                    LanguageId = table.Column<int>(type: "int", nullable: false),
+                    ColorIdentity = table.Column<string>(type: "nvarchar(9)", maxLength: 9, nullable: false),
+                    FrameLayoutId = table.Column<int>(type: "int", nullable: false),
+                    ParentCardId = table.Column<long>(type: "bigint", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -503,12 +306,6 @@ namespace CardAtlas.Server.Migrations
                         name: "FK_Cards_Artists_ArtistId",
                         column: x => x.ArtistId,
                         principalTable: "Artists",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Cards_CardLegalities_CardLegalityId",
-                        column: x => x.CardLegalityId,
-                        principalTable: "CardLegalities",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -538,6 +335,134 @@ namespace CardAtlas.Server.Migrations
                         name: "FK_Cards_Sets_SetId",
                         column: x => x.SetId,
                         principalTable: "Sets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CardGameType",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CardId = table.Column<long>(type: "bigint", nullable: false),
+                    GameTypeId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CardGameType", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CardGameType_Cards_CardId",
+                        column: x => x.CardId,
+                        principalTable: "Cards",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CardGameType_GameTypes_GameTypeId",
+                        column: x => x.GameTypeId,
+                        principalTable: "GameTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CardImages",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ImageTypeId = table.Column<int>(type: "int", nullable: false),
+                    ImageFormatId = table.Column<int>(type: "int", nullable: false),
+                    ImageStatusId = table.Column<int>(type: "int", nullable: false),
+                    CardId = table.Column<long>(type: "bigint", nullable: false),
+                    Width = table.Column<int>(type: "int", nullable: false),
+                    Height = table.Column<int>(type: "int", nullable: false),
+                    Uri = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CardImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CardImages_Cards_CardId",
+                        column: x => x.CardId,
+                        principalTable: "Cards",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CardImages_ImageFormats_ImageFormatId",
+                        column: x => x.ImageFormatId,
+                        principalTable: "ImageFormats",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CardImages_ImageStatuses_ImageStatusId",
+                        column: x => x.ImageStatusId,
+                        principalTable: "ImageStatuses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CardImages_ImageTypes_ImageTypeId",
+                        column: x => x.ImageTypeId,
+                        principalTable: "ImageTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CardKeyword",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CardId = table.Column<long>(type: "bigint", nullable: false),
+                    KeywordId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CardKeyword", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CardKeyword_Cards_CardId",
+                        column: x => x.CardId,
+                        principalTable: "Cards",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CardKeyword_Keywords_KeywordId",
+                        column: x => x.KeywordId,
+                        principalTable: "Keywords",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CardLegalities",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CardId = table.Column<long>(type: "bigint", nullable: false),
+                    FormatId = table.Column<int>(type: "int", nullable: false),
+                    LegalityId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CardLegalities", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CardLegalities_Cards_CardId",
+                        column: x => x.CardId,
+                        principalTable: "Cards",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CardLegalities_Format_FormatId",
+                        column: x => x.FormatId,
+                        principalTable: "Format",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CardLegalities_Legalities_LegalityId",
+                        column: x => x.LegalityId,
+                        principalTable: "Legalities",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -575,25 +500,58 @@ namespace CardAtlas.Server.Migrations
                 name: "CardPrintFinish",
                 columns: table => new
                 {
-                    CardsId = table.Column<long>(type: "bigint", nullable: false),
-                    PrintFinishesId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CardId = table.Column<long>(type: "bigint", nullable: false),
+                    PrintFinishId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CardPrintFinish", x => new { x.CardsId, x.PrintFinishesId });
+                    table.PrimaryKey("PK_CardPrintFinish", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_CardPrintFinish_Cards_CardsId",
-                        column: x => x.CardsId,
+                        name: "FK_CardPrintFinish_Cards_CardId",
+                        column: x => x.CardId,
                         principalTable: "Cards",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CardPrintFinish_PrintFinishes_PrintFinishesId",
-                        column: x => x.PrintFinishesId,
+                        name: "FK_CardPrintFinish_PrintFinishes_PrintFinishId",
+                        column: x => x.PrintFinishId,
                         principalTable: "PrintFinishes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "CardPromoType",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CardId = table.Column<long>(type: "bigint", nullable: false),
+                    PromoTypeId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CardPromoType", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CardPromoType_Cards_CardId",
+                        column: x => x.CardId,
+                        principalTable: "Cards",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CardPromoType_PromoType_PromoTypeId",
+                        column: x => x.PromoTypeId,
+                        principalTable: "PromoType",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Artists",
+                columns: new[] { "Id", "Name", "ScryfallId" },
+                values: new object[] { -1, "Unknown - Default artist", null });
 
             migrationBuilder.InsertData(
                 table: "Currencies",
@@ -759,9 +717,14 @@ namespace CardAtlas.Server.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_CardGameType_GameTypesId",
+                name: "IX_CardGameType_CardId",
                 table: "CardGameType",
-                column: "GameTypesId");
+                column: "CardId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CardGameType_GameTypeId",
+                table: "CardGameType",
+                column: "GameTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CardImages_CardId",
@@ -784,14 +747,14 @@ namespace CardAtlas.Server.Migrations
                 column: "ImageTypeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_AlchemyLegalityId",
-                table: "CardLegalities",
-                column: "AlchemyLegalityId");
+                name: "IX_CardKeyword_CardId",
+                table: "CardKeyword",
+                column: "CardId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_BrawlLegalityId",
-                table: "CardLegalities",
-                column: "BrawlLegalityId");
+                name: "IX_CardKeyword_KeywordId",
+                table: "CardKeyword",
+                column: "KeywordId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CardLegalities_CardId",
@@ -799,104 +762,14 @@ namespace CardAtlas.Server.Migrations
                 column: "CardId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_CommanderLegalityId",
+                name: "IX_CardLegalities_FormatId",
                 table: "CardLegalities",
-                column: "CommanderLegalityId");
+                column: "FormatId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_DuelCommanderLegalityId",
+                name: "IX_CardLegalities_LegalityId",
                 table: "CardLegalities",
-                column: "DuelCommanderLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_ExplorerLegalityId",
-                table: "CardLegalities",
-                column: "ExplorerLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_FutureLegalityId",
-                table: "CardLegalities",
-                column: "FutureLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_GladiatorLegalityId",
-                table: "CardLegalities",
-                column: "GladiatorLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_HistoricLegalityId",
-                table: "CardLegalities",
-                column: "HistoricLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_LegacyLegalityId",
-                table: "CardLegalities",
-                column: "LegacyLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_ModernLegalityId",
-                table: "CardLegalities",
-                column: "ModernLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_OatBreakerLegalityId",
-                table: "CardLegalities",
-                column: "OatBreakerLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_OldSchoolLegalityId",
-                table: "CardLegalities",
-                column: "OldSchoolLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_PauperCommanderLegalityId",
-                table: "CardLegalities",
-                column: "PauperCommanderLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_PauperLegalityId",
-                table: "CardLegalities",
-                column: "PauperLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_PennyLegalityId",
-                table: "CardLegalities",
-                column: "PennyLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_PioneerLegalityId",
-                table: "CardLegalities",
-                column: "PioneerLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_PreDHLegalityId",
-                table: "CardLegalities",
-                column: "PreDHLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_PreModernlLegalityId",
-                table: "CardLegalities",
-                column: "PreModernlLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_StandardBrawlLegalityId",
-                table: "CardLegalities",
-                column: "StandardBrawlLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_StandardLegalityId",
-                table: "CardLegalities",
-                column: "StandardLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_TimelessLegalityId",
-                table: "CardLegalities",
-                column: "TimelessLegalityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CardLegalities_VintageLegalityId",
-                table: "CardLegalities",
-                column: "VintageLegalityId");
+                column: "LegalityId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CardPrices_CardId",
@@ -909,19 +782,29 @@ namespace CardAtlas.Server.Migrations
                 column: "VendorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CardPrintFinish_PrintFinishesId",
+                name: "IX_CardPrintFinish_CardId",
                 table: "CardPrintFinish",
-                column: "PrintFinishesId");
+                column: "CardId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CardPrintFinish_PrintFinishId",
+                table: "CardPrintFinish",
+                column: "PrintFinishId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CardPromoType_CardId",
+                table: "CardPromoType",
+                column: "CardId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CardPromoType_PromoTypeId",
+                table: "CardPromoType",
+                column: "PromoTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Cards_ArtistId",
                 table: "Cards",
                 column: "ArtistId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Cards_CardLegalityId",
-                table: "Cards",
-                column: "CardLegalityId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Cards_FrameLayoutId",
@@ -957,44 +840,22 @@ namespace CardAtlas.Server.Migrations
                 name: "IX_Vendors_CurrencyId",
                 table: "Vendors",
                 column: "CurrencyId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_CardGameType_Cards_CardsId",
-                table: "CardGameType",
-                column: "CardsId",
-                principalTable: "Cards",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_CardImages_Cards_CardId",
-                table: "CardImages",
-                column: "CardId",
-                principalTable: "Cards",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_CardLegalities_Cards_CardId",
-                table: "CardLegalities",
-                column: "CardId",
-                principalTable: "Cards",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_CardLegalities_Cards_CardId",
-                table: "CardLegalities");
-
             migrationBuilder.DropTable(
                 name: "CardGameType");
 
             migrationBuilder.DropTable(
                 name: "CardImages");
+
+            migrationBuilder.DropTable(
+                name: "CardKeyword");
+
+            migrationBuilder.DropTable(
+                name: "CardLegalities");
 
             migrationBuilder.DropTable(
                 name: "CardPrices");
@@ -1003,7 +864,7 @@ namespace CardAtlas.Server.Migrations
                 name: "CardPrintFinish");
 
             migrationBuilder.DropTable(
-                name: "Keywords");
+                name: "CardPromoType");
 
             migrationBuilder.DropTable(
                 name: "GameTypes");
@@ -1018,22 +879,31 @@ namespace CardAtlas.Server.Migrations
                 name: "ImageTypes");
 
             migrationBuilder.DropTable(
+                name: "Keywords");
+
+            migrationBuilder.DropTable(
+                name: "Format");
+
+            migrationBuilder.DropTable(
+                name: "Legalities");
+
+            migrationBuilder.DropTable(
                 name: "Vendors");
 
             migrationBuilder.DropTable(
                 name: "PrintFinishes");
 
             migrationBuilder.DropTable(
-                name: "Currencies");
-
-            migrationBuilder.DropTable(
                 name: "Cards");
 
             migrationBuilder.DropTable(
-                name: "Artists");
+                name: "PromoType");
 
             migrationBuilder.DropTable(
-                name: "CardLegalities");
+                name: "Currencies");
+
+            migrationBuilder.DropTable(
+                name: "Artists");
 
             migrationBuilder.DropTable(
                 name: "FrameLayouts");
@@ -1046,9 +916,6 @@ namespace CardAtlas.Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "Sets");
-
-            migrationBuilder.DropTable(
-                name: "Legalities");
 
             migrationBuilder.DropTable(
                 name: "SetTypes");

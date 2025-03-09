@@ -41,6 +41,13 @@ namespace CardAtlas.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Artists");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = -1,
+                            Name = "Unknown - Default artist"
+                        });
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Card", b =>
@@ -56,9 +63,6 @@ namespace CardAtlas.Server.Migrations
 
                     b.Property<bool>("CanBeFoundInBoosters")
                         .HasColumnType("bit");
-
-                    b.Property<long>("CardLegalityId")
-                        .HasColumnType("bigint");
 
                     b.Property<string>("CollectorNumber")
                         .IsRequired()
@@ -87,6 +91,9 @@ namespace CardAtlas.Server.Migrations
                     b.Property<bool>("IsFullArt")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsOnReservedList")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsOversized")
                         .HasColumnType("bit");
 
@@ -96,15 +103,11 @@ namespace CardAtlas.Server.Migrations
                     b.Property<bool>("IsReprint")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsReserved")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsTextless")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Keywords")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<bool>("IsWotcOfficial")
+                        .HasColumnType("bit");
 
                     b.Property<int>("LanguageId")
                         .HasColumnType("int");
@@ -133,9 +136,6 @@ namespace CardAtlas.Server.Migrations
                         .HasMaxLength(3)
                         .HasColumnType("nvarchar(3)");
 
-                    b.Property<string>("PromoTypes")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("RarityId")
                         .HasColumnType("int");
 
@@ -161,8 +161,6 @@ namespace CardAtlas.Server.Migrations
 
                     b.HasIndex("ArtistId");
 
-                    b.HasIndex("CardLegalityId");
-
                     b.HasIndex("FrameLayoutId");
 
                     b.HasIndex("LanguageId");
@@ -176,7 +174,53 @@ namespace CardAtlas.Server.Migrations
                     b.ToTable("Cards");
                 });
 
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardLegality", b =>
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardGameType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("CardId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("GameTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CardId");
+
+                    b.HasIndex("GameTypeId");
+
+                    b.ToTable("CardGameType");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardPrintFinish", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("CardId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("PrintFinishId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CardId");
+
+                    b.HasIndex("PrintFinishId");
+
+                    b.ToTable("CardPrintFinish");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardImage", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -184,127 +228,93 @@ namespace CardAtlas.Server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<int>("AlchemyLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("BrawlLegalityId")
-                        .HasColumnType("int");
-
                     b.Property<long>("CardId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("CommanderLegalityId")
+                    b.Property<int>("Height")
                         .HasColumnType("int");
 
-                    b.Property<int>("DuelCommanderLegalityId")
+                    b.Property<int>("ImageFormatId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ExplorerLegalityId")
+                    b.Property<int>("ImageStatusId")
                         .HasColumnType("int");
 
-                    b.Property<int>("FutureLegalityId")
+                    b.Property<int>("ImageTypeId")
                         .HasColumnType("int");
 
-                    b.Property<int>("GladiatorLegalityId")
-                        .HasColumnType("int");
+                    b.Property<string>("Uri")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("HistoricLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LegacyLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ModernLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OatBreakerLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OldSchoolLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PauperCommanderLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PauperLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PennyLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PioneerLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PreDHLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PreModernlLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StandardBrawlLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StandardLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TimelessLegalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("VintageLegalityId")
+                    b.Property<int>("Width")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AlchemyLegalityId");
+                    b.HasIndex("CardId");
 
-                    b.HasIndex("BrawlLegalityId");
+                    b.HasIndex("ImageFormatId");
+
+                    b.HasIndex("ImageStatusId");
+
+                    b.HasIndex("ImageTypeId");
+
+                    b.ToTable("CardImages");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardKeyword", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("CardId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("KeywordId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("CardId");
 
-                    b.HasIndex("CommanderLegalityId");
+                    b.HasIndex("KeywordId");
 
-                    b.HasIndex("DuelCommanderLegalityId");
+                    b.ToTable("CardKeyword");
+                });
 
-                    b.HasIndex("ExplorerLegalityId");
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardLegality", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
 
-                    b.HasIndex("FutureLegalityId");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.HasIndex("GladiatorLegalityId");
+                    b.Property<long>("CardId")
+                        .HasColumnType("bigint");
 
-                    b.HasIndex("HistoricLegalityId");
+                    b.Property<int>("FormatId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("LegacyLegalityId");
+                    b.Property<int>("LegalityId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("ModernLegalityId");
+                    b.HasKey("Id");
 
-                    b.HasIndex("OatBreakerLegalityId");
+                    b.HasIndex("CardId");
 
-                    b.HasIndex("OldSchoolLegalityId");
+                    b.HasIndex("FormatId");
 
-                    b.HasIndex("PauperCommanderLegalityId");
-
-                    b.HasIndex("PauperLegalityId");
-
-                    b.HasIndex("PennyLegalityId");
-
-                    b.HasIndex("PioneerLegalityId");
-
-                    b.HasIndex("PreDHLegalityId");
-
-                    b.HasIndex("PreModernlLegalityId");
-
-                    b.HasIndex("StandardBrawlLegalityId");
-
-                    b.HasIndex("StandardLegalityId");
-
-                    b.HasIndex("TimelessLegalityId");
-
-                    b.HasIndex("VintageLegalityId");
+                    b.HasIndex("LegalityId");
 
                     b.ToTable("CardLegalities");
                 });
 
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardPrice", b =>
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardPrice", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -337,6 +347,29 @@ namespace CardAtlas.Server.Migrations
                     b.HasIndex("VendorId");
 
                     b.ToTable("CardPrices");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardPromoType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("CardId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("PromoTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CardId");
+
+                    b.HasIndex("PromoTypeId");
+
+                    b.ToTable("CardPromoType");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Currency", b =>
@@ -377,6 +410,28 @@ namespace CardAtlas.Server.Migrations
                             Id = -1,
                             Name = "NotImplemented"
                         });
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Format", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Format");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.FrameLayout", b =>
@@ -467,49 +522,6 @@ namespace CardAtlas.Server.Migrations
                             Id = -1,
                             Name = "NotImplemented"
                         });
-                });
-
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.Image.CardImage", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("CardId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("Height")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ImageFormatId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ImageStatusId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ImageTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Uri")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Width")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CardId");
-
-                    b.HasIndex("ImageFormatId");
-
-                    b.HasIndex("ImageStatusId");
-
-                    b.HasIndex("ImageTypeId");
-
-                    b.ToTable("CardImages");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Image.ImageFormat", b =>
@@ -872,6 +884,24 @@ namespace CardAtlas.Server.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.PromoType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PromoType");
+                });
+
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Rarity", b =>
                 {
                     b.Property<int>("Id")
@@ -1182,47 +1212,11 @@ namespace CardAtlas.Server.Migrations
                         });
                 });
 
-            modelBuilder.Entity("CardGameType", b =>
-                {
-                    b.Property<long>("CardsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("GameTypesId")
-                        .HasColumnType("int");
-
-                    b.HasKey("CardsId", "GameTypesId");
-
-                    b.HasIndex("GameTypesId");
-
-                    b.ToTable("CardGameType");
-                });
-
-            modelBuilder.Entity("CardPrintFinish", b =>
-                {
-                    b.Property<long>("CardsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("PrintFinishesId")
-                        .HasColumnType("int");
-
-                    b.HasKey("CardsId", "PrintFinishesId");
-
-                    b.HasIndex("PrintFinishesId");
-
-                    b.ToTable("CardPrintFinish");
-                });
-
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Card", b =>
                 {
                     b.HasOne("CardAtlas.Server.Models.Data.Artist", "Artist")
                         .WithMany("Cards")
                         .HasForeignKey("ArtistId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.CardLegality", "Legality")
-                        .WithMany()
-                        .HasForeignKey("CardLegalityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1239,7 +1233,7 @@ namespace CardAtlas.Server.Migrations
                         .IsRequired();
 
                     b.HasOne("CardAtlas.Server.Models.Data.Card", "ParentCard")
-                        .WithMany()
+                        .WithMany("ChildCards")
                         .HasForeignKey("ParentCardId");
 
                     b.HasOne("CardAtlas.Server.Models.Data.Rarity", "Rarity")
@@ -1260,8 +1254,6 @@ namespace CardAtlas.Server.Migrations
 
                     b.Navigation("Language");
 
-                    b.Navigation("Legality");
-
                     b.Navigation("ParentCard");
 
                     b.Navigation("Rarity");
@@ -1269,216 +1261,48 @@ namespace CardAtlas.Server.Migrations
                     b.Navigation("Set");
                 });
 
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardLegality", b =>
-                {
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Alchemy")
-                        .WithMany()
-                        .HasForeignKey("AlchemyLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Brawl")
-                        .WithMany()
-                        .HasForeignKey("BrawlLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Card", "Card")
-                        .WithMany()
-                        .HasForeignKey("CardId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Commander")
-                        .WithMany()
-                        .HasForeignKey("CommanderLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "DuelCommander")
-                        .WithMany()
-                        .HasForeignKey("DuelCommanderLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Explorer")
-                        .WithMany()
-                        .HasForeignKey("ExplorerLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Future")
-                        .WithMany()
-                        .HasForeignKey("FutureLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Gladiator")
-                        .WithMany()
-                        .HasForeignKey("GladiatorLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Historic")
-                        .WithMany()
-                        .HasForeignKey("HistoricLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Legacy")
-                        .WithMany()
-                        .HasForeignKey("LegacyLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Modern")
-                        .WithMany()
-                        .HasForeignKey("ModernLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "OatBreaker")
-                        .WithMany()
-                        .HasForeignKey("OatBreakerLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "OldSchool")
-                        .WithMany()
-                        .HasForeignKey("OldSchoolLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "PauperCommander")
-                        .WithMany()
-                        .HasForeignKey("PauperCommanderLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Pauper")
-                        .WithMany()
-                        .HasForeignKey("PauperLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Penny")
-                        .WithMany()
-                        .HasForeignKey("PennyLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Pioneer")
-                        .WithMany()
-                        .HasForeignKey("PioneerLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "PreDH")
-                        .WithMany()
-                        .HasForeignKey("PreDHLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "PreModern")
-                        .WithMany()
-                        .HasForeignKey("PreModernlLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "StandardBrawl")
-                        .WithMany()
-                        .HasForeignKey("StandardBrawlLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Standard")
-                        .WithMany()
-                        .HasForeignKey("StandardLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Timeless")
-                        .WithMany()
-                        .HasForeignKey("TimelessLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Vintage")
-                        .WithMany()
-                        .HasForeignKey("VintageLegalityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Alchemy");
-
-                    b.Navigation("Brawl");
-
-                    b.Navigation("Card");
-
-                    b.Navigation("Commander");
-
-                    b.Navigation("DuelCommander");
-
-                    b.Navigation("Explorer");
-
-                    b.Navigation("Future");
-
-                    b.Navigation("Gladiator");
-
-                    b.Navigation("Historic");
-
-                    b.Navigation("Legacy");
-
-                    b.Navigation("Modern");
-
-                    b.Navigation("OatBreaker");
-
-                    b.Navigation("OldSchool");
-
-                    b.Navigation("Pauper");
-
-                    b.Navigation("PauperCommander");
-
-                    b.Navigation("Penny");
-
-                    b.Navigation("Pioneer");
-
-                    b.Navigation("PreDH");
-
-                    b.Navigation("PreModern");
-
-                    b.Navigation("Standard");
-
-                    b.Navigation("StandardBrawl");
-
-                    b.Navigation("Timeless");
-
-                    b.Navigation("Vintage");
-                });
-
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardPrice", b =>
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardGameType", b =>
                 {
                     b.HasOne("CardAtlas.Server.Models.Data.Card", "Card")
-                        .WithMany("CardPrices")
+                        .WithMany("CardGameTypes")
                         .HasForeignKey("CardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CardAtlas.Server.Models.Data.Vendor", "Vendor")
-                        .WithMany()
-                        .HasForeignKey("VendorId")
+                    b.HasOne("CardAtlas.Server.Models.Data.GameType", "GameType")
+                        .WithMany("CardGameTypes")
+                        .HasForeignKey("GameTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Card");
 
-                    b.Navigation("Vendor");
+                    b.Navigation("GameType");
                 });
 
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.Image.CardImage", b =>
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardPrintFinish", b =>
                 {
                     b.HasOne("CardAtlas.Server.Models.Data.Card", "Card")
-                        .WithMany("ImageUris")
+                        .WithMany("CardPrintFinishes")
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CardAtlas.Server.Models.Data.PrintFinish", "PrintFinish")
+                        .WithMany("CardPrintFinishes")
+                        .HasForeignKey("PrintFinishId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Card");
+
+                    b.Navigation("PrintFinish");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardImage", b =>
+                {
+                    b.HasOne("CardAtlas.Server.Models.Data.Card", "Card")
+                        .WithMany("Images")
                         .HasForeignKey("CardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1510,6 +1334,90 @@ namespace CardAtlas.Server.Migrations
                     b.Navigation("ImageType");
                 });
 
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardKeyword", b =>
+                {
+                    b.HasOne("CardAtlas.Server.Models.Data.Card", "Card")
+                        .WithMany("Keywords")
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CardAtlas.Server.Models.Data.Keyword", "Keyword")
+                        .WithMany("CardKeywords")
+                        .HasForeignKey("KeywordId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Card");
+
+                    b.Navigation("Keyword");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardLegality", b =>
+                {
+                    b.HasOne("CardAtlas.Server.Models.Data.Card", "Card")
+                        .WithMany("Legality")
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CardAtlas.Server.Models.Data.Format", "Format")
+                        .WithMany("CardLegalities")
+                        .HasForeignKey("FormatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CardAtlas.Server.Models.Data.Legality", "Legality")
+                        .WithMany("CardLegalities")
+                        .HasForeignKey("LegalityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Card");
+
+                    b.Navigation("Format");
+
+                    b.Navigation("Legality");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardPrice", b =>
+                {
+                    b.HasOne("CardAtlas.Server.Models.Data.Card", "Card")
+                        .WithMany("Prices")
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CardAtlas.Server.Models.Data.Vendor", "Vendor")
+                        .WithMany()
+                        .HasForeignKey("VendorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Card");
+
+                    b.Navigation("Vendor");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardPromoType", b =>
+                {
+                    b.HasOne("CardAtlas.Server.Models.Data.Card", "Card")
+                        .WithMany("PromoTypes")
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CardAtlas.Server.Models.Data.PromoType", "PromoType")
+                        .WithMany("PromoTypes")
+                        .HasForeignKey("PromoTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Card");
+
+                    b.Navigation("PromoType");
+                });
+
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Set", b =>
                 {
                     b.HasOne("CardAtlas.Server.Models.Data.SetType", "SetType")
@@ -1532,36 +1440,6 @@ namespace CardAtlas.Server.Migrations
                     b.Navigation("Currency");
                 });
 
-            modelBuilder.Entity("CardGameType", b =>
-                {
-                    b.HasOne("CardAtlas.Server.Models.Data.Card", null)
-                        .WithMany()
-                        .HasForeignKey("CardsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.GameType", null)
-                        .WithMany()
-                        .HasForeignKey("GameTypesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("CardPrintFinish", b =>
-                {
-                    b.HasOne("CardAtlas.Server.Models.Data.Card", null)
-                        .WithMany()
-                        .HasForeignKey("CardsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.PrintFinish", null)
-                        .WithMany()
-                        .HasForeignKey("PrintFinishesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Artist", b =>
                 {
                     b.Navigation("Cards");
@@ -1569,9 +1447,21 @@ namespace CardAtlas.Server.Migrations
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Card", b =>
                 {
-                    b.Navigation("CardPrices");
+                    b.Navigation("CardGameTypes");
 
-                    b.Navigation("ImageUris");
+                    b.Navigation("CardPrintFinishes");
+
+                    b.Navigation("ChildCards");
+
+                    b.Navigation("Images");
+
+                    b.Navigation("Keywords");
+
+                    b.Navigation("Legality");
+
+                    b.Navigation("Prices");
+
+                    b.Navigation("PromoTypes");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Currency", b =>
@@ -1579,9 +1469,19 @@ namespace CardAtlas.Server.Migrations
                     b.Navigation("Vendors");
                 });
 
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Format", b =>
+                {
+                    b.Navigation("CardLegalities");
+                });
+
             modelBuilder.Entity("CardAtlas.Server.Models.Data.FrameLayout", b =>
                 {
                     b.Navigation("Cards");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.GameType", b =>
+                {
+                    b.Navigation("CardGameTypes");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Image.ImageFormat", b =>
@@ -1599,9 +1499,29 @@ namespace CardAtlas.Server.Migrations
                     b.Navigation("CardImages");
                 });
 
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Keyword", b =>
+                {
+                    b.Navigation("CardKeywords");
+                });
+
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Language", b =>
                 {
                     b.Navigation("Cards");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Legality", b =>
+                {
+                    b.Navigation("CardLegalities");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.PrintFinish", b =>
+                {
+                    b.Navigation("CardPrintFinishes");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.PromoType", b =>
+                {
+                    b.Navigation("PromoTypes");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Rarity", b =>
