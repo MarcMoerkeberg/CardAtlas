@@ -8,6 +8,7 @@ public interface ISetService
 	/// Returns the <see cref="Set"/> from the db with the specified <paramref name="scryfallId"/>.
 	/// </summary>
 	/// <returns>The <see cref="Set"/> with the specified <paramref name="scryfallId"/> or null if no match is found.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
 	Task<Set?> GetFromScryfallId(Guid scryfallId);
 
 	/// <summary>
