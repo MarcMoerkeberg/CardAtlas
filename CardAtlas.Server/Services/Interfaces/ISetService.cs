@@ -21,6 +21,7 @@ public interface ISetService
 	/// Updates existing entity with changes from <paramref name="setWithChanges"/>.<br/>
 	/// </summary>
 	/// <returns>The updated <see cref="Set"/>.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
 	Task<Set> Update(Set setWithChanges);
 
 	/// <summary>
@@ -35,5 +36,6 @@ public interface ISetService
 	/// Does not update the if there are no changes.
 	/// </summary>
 	/// <returns>The updated <see cref="Set"/>.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
 	Task<Set> UpdateIfChanged(Set setWithChanges);
 }

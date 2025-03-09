@@ -1,50 +1,63 @@
-﻿using CardAtlas.Server.Mappers;
+﻿using CardAtlas.Server.DAL;
+using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
-using CardAtlas.Server.Resources.Errors;
 using CardAtlas.Server.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace CardAtlas.Server.Services;
 
 public class CardService : ICardService
 {
 	private readonly IEqualityComparer<Card> _cardComparer;
-	public CardService(IEqualityComparer<Card> comparer)
+	private readonly ApplicationDbContext _dbContext;
+	public CardService(
+		IEqualityComparer<Card> comparer,
+		ApplicationDbContext dbContext)
 	{
 		_cardComparer = comparer;
+		_dbContext = dbContext;
 	}
 
-	public Task<Card> Get(long cardId)
+	public async Task<Card> Get(long cardId)
 	{
-		throw new NotImplementedException();
+		return await _dbContext.Cards.SingleAsync(card => card.Id == cardId);
 	}
-	public Task<Card> Create(Card card)
+	public async Task<Card> Create(Card card)
 	{
-		throw new NotImplementedException();
+		EntityEntry<Card> addedCard = await _dbContext.Cards.AddAsync(card);
+		await _dbContext.SaveChangesAsync();
+
+		return addedCard.Entity;
 	}
 
-	public Task<Card> Update(Card card)
+	public async Task<Card> Update(Card cardWithChanges)
 	{
-		throw new NotImplementedException();
+		Card cardToUpdate = await Get(cardWithChanges.Id);
+		CardMapper.MergeProperties(cardToUpdate, cardWithChanges);
+
+		await _dbContext.SaveChangesAsync();
+
+		return cardToUpdate;
 	}
 
-	public async Task<Card> Merge(Card oldCard, Card newCard)
+	public async Task<Card> UpdateIfChanged(Card cardWithChanges)
 	{
-		if (oldCard.Id != newCard.Id)
+		Card existingCard = await Get(cardWithChanges.Id);
+
+		if (!_cardComparer.Equals(existingCard, cardWithChanges))
 		{
-			throw new Exception(Errors.MergingIdsAreNotEqual);
+			CardMapper.MergeProperties(existingCard, cardWithChanges);
+			await _dbContext.SaveChangesAsync();
 		}
 
-		if (!_cardComparer.Equals(oldCard, newCard))
-		{
-			CardMapper.MergeProperties(oldCard, newCard);
-			return await Update(oldCard);
-		}
-
-		return oldCard;
+		return existingCard;
 	}
 
-	public Task<Card?> GetFromScryfallId(Guid scryfallId)
+	public async Task<IEnumerable<Card>> GetFromScryfallId(Guid scryfallId)
 	{
-		throw new NotImplementedException();
+		return await _dbContext.Cards
+			.Where(card => card.ScryfallId == scryfallId)
+			.ToListAsync();
 	}
 }
