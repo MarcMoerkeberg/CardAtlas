@@ -1,52 +1,68 @@
-﻿using CardAtlas.Server.Mappers;
+﻿using CardAtlas.Server.DAL;
+using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
-using CardAtlas.Server.Resources.Errors;
 using CardAtlas.Server.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace CardAtlas.Server.Services;
 
 public class SetService : ISetService
 {
+	private readonly ApplicationDbContext _dbContext;
 	private readonly IEqualityComparer<Set> _setComparer;
-	public SetService(IEqualityComparer<Set> equalityComparer)
+	public SetService(
+		ApplicationDbContext context,
+		IEqualityComparer<Set> equalityComparer)
 	{
+		_dbContext = context;
 		_setComparer = equalityComparer;
 	}
 
-
-	public Task<Set?> GetFromScryfallId(Guid scryfallId)
+	public async Task<Set?> GetFromScryfallId(Guid scryfallId)
 	{
-		throw new NotImplementedException();
-	}
-
-	public Task<Set> Create(Set set)
-	{
-		throw new NotImplementedException();
-	}
-
-	public Task<Set> Get(int setId)
-	{
-		throw new NotImplementedException();
-	}
-
-	public Task<Set> Update(Set set)
-	{
-		throw new NotImplementedException();
-	}
-
-	public async Task<Set> Merge(Set oldSet, Set newSet)
-	{
-		if (oldSet.Id != newSet.Id)
+		if (scryfallId == Guid.Empty)
 		{
-			throw new Exception(Errors.MergingIdsAreNotEqual);
+			return null;
 		}
 
-		if (!_setComparer.Equals(oldSet, newSet))
+		return await _dbContext.Sets
+			.SingleOrDefaultAsync(set => set.ScryfallId == scryfallId);
+	}
+
+	public async Task<Set> Create(Set set)
+	{
+		EntityEntry<Set> savedSet = await _dbContext.Sets.AddAsync(set);
+		await _dbContext.SaveChangesAsync();
+
+		return savedSet.Entity;
+	}
+
+	public async Task<Set> Get(int setId)
+	{
+		return await _dbContext.Sets.SingleAsync(set => set.Id == setId);
+	}
+
+	public async Task<Set> Update(Set setWithChanges)
+	{
+		Set setToUpdate = await Get(setWithChanges.Id);
+		SetMapper.MergeProperties(setToUpdate, setWithChanges);
+
+		await _dbContext.SaveChangesAsync();
+
+		return setToUpdate;
+	}
+
+	public async Task<Set> UpdateIfChanged(Set setWithChanges)
+	{
+		Set existingSet = await Get(setWithChanges.Id);
+
+		if (!_setComparer.Equals(existingSet, setWithChanges))
 		{
-			SetMapper.MergeProperties(oldSet, newSet);
-			return await Update(oldSet);
+			SetMapper.MergeProperties(existingSet, setWithChanges);
+			await _dbContext.SaveChangesAsync();
 		}
 
-		return oldSet;
+		return existingSet;
 	}
 }

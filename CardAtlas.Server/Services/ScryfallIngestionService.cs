@@ -32,7 +32,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		await UpsertSets();
 
-		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
+		foreach (ApiCard apiCard in await _scryfallApi.GetBulkCardData(BulkDataType.AllCards))
 		{
 			await UpsertCard(apiCard);
 
@@ -62,7 +62,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			else
 			{
 				mappedSet.Id = existingSet.Id;
-				await _setService.Merge(existingSet, mappedSet);
+				await _setService.UpdateIfChanged(mappedSet);
 			}
 		}
 	}
