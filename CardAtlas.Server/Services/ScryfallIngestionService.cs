@@ -31,9 +31,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task UpsertCardCollection()
 	{
-		await UpsertSets();
+		//await UpsertSets();
 
-		foreach (ApiCard apiCard in await _scryfallApi.GetBulkCardData(BulkDataType.AllCards))
+		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
 			await UpsertCard(apiCard);
 

@@ -198,7 +198,7 @@ public class Card
 	[JsonIgnore]
 	private FrameLayoutType? _frameLayout { get; set; }
 	[JsonIgnore]
-	public FrameLayoutType FrameLayout => _frameLayout ??= ScryfallParser.ToEnumKey<FrameLayoutType>(FrameType);
+	public FrameLayoutType FrameLayout => _frameLayout ??= ScryfallParser.ToFrameLayoutType(FrameType);
 
 	[JsonPropertyName("full_art")]
 	public bool IsFullArt { get; set; }

@@ -22,19 +22,21 @@ public static class CardMapper
 				? cardFace.Name
 				: apiCard.Name,
 
-			OracleText = cardFace?.OracleText ?? apiCard.OracleText,
+			OracleText = cardFace is not null 
+				? cardFace.OracleText 
+				: apiCard.OracleText,
 
 			TypeLine = cardFace is not null
 				? cardFace.TypeLine ?? string.Empty
 				: apiCard.TypeLine,
 
 			FlavorText = cardFace is not null
-				? cardFace?.FlavorText
+				? cardFace.FlavorText
 				: apiCard.FlavorText,
 
 			ManaCost = cardFace is not null
-				? cardFace.ManaCost
-				: apiCard.ManaCost,
+				? NormalizeManaCost(cardFace.ManaCost)
+				: NormalizeManaCost(apiCard.ManaCost),
 
 			ConvertedManaCost = cardFace is not null
 				? cardFace.ConvertedManaCost
@@ -75,6 +77,8 @@ public static class CardMapper
 			ArtistId = artist.Id,
 		};
 	}
+
+	private static string? NormalizeManaCost(string? manaCostString) => string.IsNullOrWhiteSpace(manaCostString) ? null : manaCostString;
 
 	private static RarityType GetRarity(ApiCard apiCard)
 	{

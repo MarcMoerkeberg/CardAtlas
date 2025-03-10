@@ -1,7 +1,7 @@
 using Asp.Versioning;
 using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using ScryfallApi;
 
 namespace CardAtlas.Server.Controllers
 {
@@ -10,16 +10,17 @@ namespace CardAtlas.Server.Controllers
 	[Route("api/[controller]")]
 	public class CardsController : ControllerBase
 	{
-		private readonly IScryfallApi _scryfallApi;
+		private readonly IScryfallIngestionService _scryfallInjectionService;
 
-		public CardsController(IScryfallApi scryfallApi)
+		public CardsController(IScryfallIngestionService scryfallIngestionService)
 		{
-			_scryfallApi = scryfallApi;
+			_scryfallInjectionService = scryfallIngestionService;
 		}
 
 		[HttpGet]
-		public Task<IEnumerable<Card>> Get()
+		public async Task<IEnumerable<Card>> Get()
 		{
+			await _scryfallInjectionService.UpsertCardCollection();
 			throw new NotImplementedException();
 		}
 

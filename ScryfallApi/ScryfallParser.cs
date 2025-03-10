@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using ScryfallApi.Models.Types;
+using System.Collections.Concurrent;
 using System.Reflection;
 
 namespace ScryfallApi;
@@ -250,5 +251,18 @@ public static class ScryfallParser
 		}
 
 		return model;
+	}
+
+	public static FrameLayoutType ToFrameLayoutType(string value)
+	{
+		return value switch
+		{
+			"1993" => FrameLayoutType.Year1993,
+			"1997" => FrameLayoutType.Year1997,
+			"2003" => FrameLayoutType.Year2003,
+			"2015" => FrameLayoutType.Year2015,
+			"future" => FrameLayoutType.Future,
+			_ => FrameLayoutType.NotImplemented
+		};
 	}
 }
