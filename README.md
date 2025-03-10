@@ -27,7 +27,7 @@ Install Entity Framework.
 - `dotnet tool install --global dotnet-ef`
 
 Add new Migration:
-- `dotnet ef add {migrationName}`
+- `dotnet ef Migrations add {migrationName}`
 
 Update database with Migrations:
-- `dotnet ef update`
+- `dotnet ef Database update`
