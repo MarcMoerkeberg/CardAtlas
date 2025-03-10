@@ -1,4 +1,5 @@
-﻿using CardAtlas.Server.Mappers;
+﻿using CardAtlas.Server.Extensions;
+using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Services.Interfaces;
 using ScryfallApi;
@@ -89,7 +90,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		foreach (CardFace cardFace in cardFaces)
 		{
 			Artist artist = await GetOrCreateArtist(apiCard, cardFace);
-			Card? existingCard = await _cardService.GetFromScryfallId(apiCard.Id);
+			Card? existingCard = await GetExistingCard(apiCard, cardFace);
 
 			Card mappedCard = CardMapper.MapCard(apiCard, set, artist, cardFace);
 			mappedCard.ParentCardId = parentId;
@@ -101,7 +102,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			else
 			{
 				mappedCard.Id = existingCard.Id;
-				cards.Add(await _cardService.Merge(existingCard, mappedCard));
+				cards.Add(await _cardService.UpdateIfChanged(mappedCard));
 			}
 
 			if (isFirstCardFace)
@@ -124,7 +125,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		Set set = await GetOrCreateSet(apiCard.SetId);
 		Artist artist = await GetOrCreateArtist(apiCard);
 		Card mappedCard = CardMapper.MapCard(apiCard, set, artist);
-		Card? existingCard = await _cardService.GetFromScryfallId(apiCard.Id);
+		Card? existingCard = await GetExistingCard(apiCard);
 
 		if (existingCard is null)
 		{
@@ -133,7 +134,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		else
 		{
 			mappedCard.Id = existingCard.Id;
-			return await _cardService.Merge(existingCard, mappedCard);
+			return await _cardService.UpdateIfChanged(mappedCard);
 		}
 	}
 
@@ -169,6 +170,32 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return artistFromCard.ScryfallId.HasValue
 			? await _artistService.GetFromScryfallId(artistFromCard.ScryfallId.Value) ?? await _artistService.Create(artistFromCard)
 			: await _artistService.Get(Artist.DefaultArtistId);
+	}
+
+	/// <summary>
+	/// Gets cards from the database with the scryfall id as <paramref name="apiCard"/>.<br/>
+	/// Returns the first <see cref="Card"/> entry if multiple is found or null if none is found.
+	/// </summary>
+	/// <returns>The first <see cref="Card"/> with matching scryfall id. Returns null if no match is found.</returns>
+	private async Task<Card?> GetExistingCard(ApiCard apiCard)
+	{
+		IEnumerable<Card> existingCard = await _cardService.GetFromScryfallId(apiCard.Id);
+
+		return existingCard.FirstOrDefault();
+	}
+
+	/// <summary>
+	/// Gets cards from the database with the scryfall id as <paramref name="apiCard"/>.<br/>
+	/// Returns the first card that matches the <paramref name="cardFace"/> or null if none is found.
+	/// </summary>
+	/// <returns>The first <see cref="Card"/> that matches the <paramref name="cardFace"/>. Returns null if no match is found.</returns>
+	private async Task<Card?> GetExistingCard(ApiCard apiCard, CardFace cardFace)
+	{
+		IEnumerable<Card> existingCard = await _cardService.GetFromScryfallId(apiCard.Id);
+
+		return existingCard.Any() 
+			? existingCard.FindMatchingCard(cardFace) 
+			: null;
 	}
 
 	private void UpsertLegality(ApiCard card)
