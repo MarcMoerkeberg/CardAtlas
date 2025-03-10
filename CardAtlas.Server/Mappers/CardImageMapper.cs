@@ -1,6 +1,8 @@
 ﻿using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.Image;
+using ScryfallApi.Models;
 using ApiCard = ScryfallApi.Models.Card;
+using CardFace = ScryfallApi.Models.CardFace;
 using ImageStatus = ScryfallApi.Models.Types.ImageStatus;
 
 namespace CardAtlas.Server.Mappers;
@@ -8,24 +10,28 @@ namespace CardAtlas.Server.Mappers;
 public class CardImageMapper
 {
 	/// <summary>
-	/// Maps the card images from the Scryfall API to the database model.
+	/// Maps the card images from the Scryfall API to the database model.<br/>
+	/// Uses the <paramref name="cardFace"/> if provided, otherwise uses the data from <paramref name="apiCard"/>.
 	/// </summary>
 	/// <param name="cardId">The id of the <see cref="Card"/> that owns these images.</param>
 	/// <returns>A new list of <see cref="CardImage"/>. May be empty if <paramref name="apiCard"/> has no imagery data.</returns>
-	public static IEnumerable<CardImage> MapCardImages(long cardId, ApiCard apiCard)
+	public static IEnumerable<CardImage> MapCardImages(long cardId, ApiCard apiCard, CardFace? cardFace = null)
 	{
 		var cardImages = new List<CardImage>();
-		if (apiCard.ImageUris is null || apiCard.ImageStatus is ImageStatus.Missing) return cardImages;
+		ImageUris? imageUris = cardFace is null 
+			? apiCard.ImageUris 
+			: cardFace.ImageUris;
+		if (imageUris is null || apiCard.ImageStatus is ImageStatus.Missing) return cardImages;
 
 		ImageStatusType cardImageStatus = GetImageStatusType(apiCard);
 		var imageMapping = new (ImageTypeKind Type, Uri? Uri)[]
 		{
-			(ImageTypeKind.Png, apiCard.ImageUris.Png),
-			(ImageTypeKind.BorderCrop, apiCard.ImageUris.BorderCrop),
-			(ImageTypeKind.ArtCrop, apiCard.ImageUris.ArtCrop),
-			(ImageTypeKind.Large, apiCard.ImageUris.Large),
-			(ImageTypeKind.Normal, apiCard.ImageUris.Normal),
-			(ImageTypeKind.Small, apiCard.ImageUris.Small)
+			(ImageTypeKind.Png, imageUris.Png),
+			(ImageTypeKind.BorderCrop, imageUris.BorderCrop),
+			(ImageTypeKind.ArtCrop, imageUris.ArtCrop),
+			(ImageTypeKind.Large, imageUris.Large),
+			(ImageTypeKind.Normal, imageUris.Normal),
+			(ImageTypeKind.Small,imageUris.Small)
 		};
 
 		foreach (var (imageType, imageUri) in imageMapping)
