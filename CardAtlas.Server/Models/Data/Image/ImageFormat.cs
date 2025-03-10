@@ -13,6 +13,6 @@ public class ImageFormat : TypeEntity<ImageFormatType>
 public enum ImageFormatType
 {
 	NotImplemented = -1,
-	PNG = 1,
-	JPG = 2,
+	Png = 1,
+	Jpg = 2,
 }
