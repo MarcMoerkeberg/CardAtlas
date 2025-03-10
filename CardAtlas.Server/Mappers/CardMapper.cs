@@ -18,41 +18,42 @@ public static class CardMapper
 	{
 		return new Card
 		{
-			Name = cardFace is not null
-				? cardFace.Name
-				: apiCard.Name,
+			Name = cardFace is null
+				? apiCard.Name
+				: cardFace.Name,
 
-			OracleText = cardFace is not null 
-				? cardFace.OracleText 
-				: apiCard.OracleText,
+			OracleText = cardFace is null 
+				? apiCard.OracleText
+				: cardFace.OracleText, 
 
-			TypeLine = cardFace is not null
-				? cardFace.TypeLine ?? string.Empty
-				: apiCard.TypeLine,
+			TypeLine = cardFace is null
+				? apiCard.TypeLine
+				: cardFace.TypeLine ?? string.Empty,
 
-			FlavorText = cardFace is not null
-				? cardFace.FlavorText
-				: apiCard.FlavorText,
+			FlavorText = cardFace is null
+				? apiCard.FlavorText
+				: cardFace.FlavorText,
 
-			ManaCost = cardFace is not null
-				? NormalizeManaCost(cardFace.ManaCost)
-				: NormalizeManaCost(apiCard.ManaCost),
+			ManaCost = NormalizeManaCost(cardFace is null
+				? apiCard.ManaCost
+				: cardFace.ManaCost
+			),
 
-			ConvertedManaCost = cardFace is not null
-				? cardFace.ConvertedManaCost
-				: apiCard.ConvertedManaCost,
+			ConvertedManaCost = cardFace is null
+				? apiCard.ConvertedManaCost
+				: cardFace.ConvertedManaCost,
 
-			Power = cardFace is not null
-				? cardFace.Power
-				: apiCard.Power,
+			Power = cardFace is null
+				? apiCard.Power
+				: cardFace.Power,
 
-			Toughness = cardFace is not null
-				? cardFace.Toughness
-				: apiCard.Toughness,
+			Toughness = cardFace is null
+				? apiCard.Toughness
+				: cardFace.Toughness,
 
-			Loyalty = cardFace is not null
-				? cardFace.Loyalty
-				: apiCard.Loyalty,
+			Loyalty = cardFace is null
+				? apiCard.Loyalty
+				: cardFace.Loyalty,
 
 			ScryfallId = apiCard.Id,
 			CollectorNumber = apiCard.CollectorNumber,
