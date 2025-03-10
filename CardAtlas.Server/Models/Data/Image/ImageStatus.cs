@@ -13,8 +13,7 @@ public class ImageStatus : TypeEntity<ImageStatusType>
 public enum ImageStatusType
 {
 	NotImplemented = -1,
-	Missing = 1,
-	Placeholder = 2,
-	LowResolution = 3,
-	HighResolutionScan = 4,
+	Placeholder = 1,
+	LowResolution = 2,
+	HighResolutionScan = 3,
 }
