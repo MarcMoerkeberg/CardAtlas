@@ -1,5 +1,6 @@
 ﻿using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Cards;
+using CardAtlas.Server.Models.Data.Image;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;

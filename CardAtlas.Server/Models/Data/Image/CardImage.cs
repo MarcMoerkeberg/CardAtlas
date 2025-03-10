@@ -1,8 +1,7 @@
-﻿using CardAtlas.Server.Models.Data.Image;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CardAtlas.Server.Models.Data.Cards;
+namespace CardAtlas.Server.Models.Data.Image;
 
 public class CardImage
 {

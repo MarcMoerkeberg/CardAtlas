@@ -1,5 +1,4 @@
 ﻿using CardAtlas.Server.Models.Data;
-using CardAtlas.Server.Models.Data.Cards;
 using CardAtlas.Server.Models.Data.Image;
 using ApiCard = ScryfallApi.Models.Card;
 using ImageStatus = ScryfallApi.Models.Types.ImageStatus;
