@@ -17,17 +17,20 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly IArtistService _artistService;
 	private readonly ISetService _setService;
 	private readonly ICardService _cardService;
+	private readonly ICardImageService _cardImageService;
 
 	public ScryfallIngestionService(
 		IScryfallApi scryfallApi,
 		IArtistService artistService,
 		ISetService setService,
-		ICardService cardService)
+		ICardService cardService,
+		ICardImageService cardImageService)
 	{
 		_scryfallApi = scryfallApi;
 		_artistService = artistService;
 		_setService = setService;
 		_cardService = cardService;
+		_cardImageService = cardImageService;
 	}
 
 	public async Task UpsertCardCollection()
@@ -37,8 +40,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
 			await UpsertCard(apiCard);
-
-			UpsertImages(apiCard);
+			await UpsertCardImages(apiCard);
 			UpsertPrices(apiCard);
 			UpsertPrintFinishes(apiCard);
 			UpsertGameTypes(apiCard);
@@ -195,8 +197,81 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		IEnumerable<Card> existingCard = await _cardService.GetFromScryfallId(apiCard.Id);
 
 		return existingCard.Any() 
-			? existingCard.FindMatchingCard(cardFace) 
+			? existingCard.FindMatchByName(cardFace) 
 			: null;
+	}
+
+	public async Task<IEnumerable<CardImage>> UpsertCardImages(ApiCard apiCard)
+	{
+		return apiCard.CardFaces is { Length: > 1 }
+			? await UpsertMultipleCardImagery(apiCard, apiCard.CardFaces)
+			: await UpsertSingleCardImagery(apiCard);
+	}
+
+	/// <summary>
+	/// Creates or updates card imagery data from <paramref name="apiCard"/> to the database.<br/>
+	/// Should be called when <paramref name="apiCard"/> has multiple <see cref="CardFace"/>.
+	/// </summary>
+	/// <returns>All created or updated <see cref="CardImage"/> objects.</returns>
+	private async Task<IEnumerable<CardImage>> UpsertMultipleCardImagery(ApiCard apiCard, IEnumerable<CardFace> cardFaces)
+	{
+		var upsertedCardImages = new List<CardImage>();
+
+		foreach (CardFace cardFace in cardFaces)
+		{
+			Card? cardImageryOwner = await GetExistingCard(apiCard, cardFace);
+			if (cardImageryOwner is null) continue;
+
+			IEnumerable<CardImage> apiCardImages = CardImageMapper.MapCardImages(cardImageryOwner.Id, apiCard, cardFace);
+
+			upsertedCardImages.AddRange(await UpsertCardImages(cardImageryOwner.Id, apiCardImages));
+		}
+
+		return upsertedCardImages;
+	}
+
+	/// <summary>
+	/// Creates or updates card imagery data from <paramref name="apiCard"/> to the database.<br/>
+	/// Should not be called when <paramref name="apiCard"/> has multiple <see cref="CardFace"/>.
+	/// </summary>
+	/// <returns>All created or updated <see cref="CardImage"/> objects.</returns>
+	private async Task<IEnumerable<CardImage>> UpsertSingleCardImagery(ApiCard apiCard)
+	{
+		Card? cardImageryOwner = await GetExistingCard(apiCard);
+		if (cardImageryOwner is null) return new List<CardImage>();
+
+		IEnumerable<CardImage> imagesToUpsert = CardImageMapper.MapCardImages(cardImageryOwner.Id, apiCard);
+		
+		return await UpsertCardImages(cardImageryOwner.Id, imagesToUpsert);
+	}
+
+	/// <summary>
+	/// Creates or updates card <paramref name="imagesToUpsert"/>.<br/>
+	/// When updating an existing card image, the existing image is found by type and source.
+	/// </summary>
+	/// <returns>All created or updated <see cref="CardImage"/> objects.</returns>
+	private async Task<IEnumerable<CardImage>> UpsertCardImages(long cardId, IEnumerable<CardImage> imagesToUpsert)
+	{
+		var upsertedCardImages = new List<CardImage>();
+		if(!imagesToUpsert.Any()) return upsertedCardImages;
+
+		IEnumerable<CardImage> existingCardImages = await _cardImageService.GetFromCardId(cardId);
+		foreach (CardImage imageToUpsert in imagesToUpsert)
+		{
+			CardImage? existingCardImage = existingCardImages.FindMatchingScryfallImageByType(imageToUpsert);
+
+			if (existingCardImage is null)
+			{
+				upsertedCardImages.Add(await _cardImageService.Create(imageToUpsert));
+			}
+			else
+			{
+				imageToUpsert.Id = existingCardImage.Id;
+				upsertedCardImages.Add(await _cardImageService.UpdateIfChanged(imageToUpsert));
+			}
+		}
+
+		return upsertedCardImages;
 	}
 
 	private void UpsertLegality(ApiCard card)
@@ -225,11 +300,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	private static void UpsertPrices(ApiCard apiCard)
-	{
-		throw new NotImplementedException();
-	}
-
-	private static void UpsertImages(ApiCard apiCard)
 	{
 		throw new NotImplementedException();
 	}
