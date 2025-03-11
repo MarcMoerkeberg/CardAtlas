@@ -13,7 +13,7 @@ class CardExtensionsTests
 		IEnumerable<Card> targetCollection = new List<Card>();
 		CardFace cardFace = CardDataHelper.CreateCardFace();
 		
-		Card? result = targetCollection.FindMatchingCard(cardFace);
+		Card? result = targetCollection.FindMatchByName(cardFace);
 		
 		Assert.That(result, Is.Null);
 	}
@@ -31,7 +31,7 @@ class CardExtensionsTests
 
 		CardFace cardFace = CardDataHelper.CreateCardFace(name: expectedName);
 
-		Card? result = targetCollection.FindMatchingCard(cardFace);
+		Card? result = targetCollection.FindMatchByName(cardFace);
 		
 		Assert.That(result, Is.Not.Null);
 		Assert.That(result?.Name, Is.EqualTo(expectedName));
@@ -50,7 +50,7 @@ class CardExtensionsTests
 
 		CardFace cardFace = CardDataHelper.CreateCardFace(name: expectedName);
 
-		Card? result = targetCollection.FindMatchingCard(cardFace);
+		Card? result = targetCollection.FindMatchByName(cardFace);
 		
 		Assert.That(result, Is.Not.Null);
 		Assert.That(result?.Name, Is.EqualTo(expectedName));
@@ -68,7 +68,7 @@ class CardExtensionsTests
 
 		CardFace cardFace = CardDataHelper.CreateCardFace(name: "Name with no matches");
 
-		Card? result = targetCollection.FindMatchingCard(cardFace);
+		Card? result = targetCollection.FindMatchByName(cardFace);
 
 		Assert.That(result, Is.Null);
 	}
