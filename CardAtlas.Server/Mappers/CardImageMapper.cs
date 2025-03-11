@@ -46,7 +46,8 @@ public class CardImageMapper
 				CardId = cardId,
 				Width = GetImageWidth(imageType),
 				Height = GetImageHeight(imageType),
-				Uri = imageUri
+				Uri = imageUri,
+				ImageSourceId = (int)ImageSourceType.Scryfall,
 			});
 		}
 
