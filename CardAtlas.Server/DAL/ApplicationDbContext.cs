@@ -34,4 +34,5 @@ public class ApplicationDbContext : DbContext
 	public DbSet<FrameLayout> FrameLayouts { get; set; }
 	public DbSet<PrintFinish> PrintFinishes { get; set; }
 	public DbSet<GameType> GameTypes { get; set; }
+	public DbSet<ImageSource> ImageSources { get; set; }
 }
