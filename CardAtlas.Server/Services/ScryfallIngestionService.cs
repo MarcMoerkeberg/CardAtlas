@@ -258,7 +258,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		IEnumerable<CardImage> existingCardImages = await _cardImageService.GetFromCardId(cardId);
 		foreach (CardImage imageToUpsert in imagesToUpsert)
 		{
-			CardImage? existingCardImage = existingCardImages.FindMatchingScryfallImageByType(imageToUpsert);
+			CardImage? existingCardImage = existingCardImages.FindMatchByTypeAndSource(imageToUpsert);
 
 			if (existingCardImage is null)
 			{
