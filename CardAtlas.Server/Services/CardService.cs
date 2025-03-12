@@ -1,6 +1,7 @@
 ﻿using CardAtlas.Server.DAL;
 using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.Cards;
 using CardAtlas.Server.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -57,7 +58,44 @@ public class CardService : ICardService
 	public async Task<IEnumerable<Card>> GetFromScryfallId(Guid scryfallId)
 	{
 		return await _dbContext.Cards
+			.Include(card => card.Images)
+			.Include(card => card.Set)
+			.Include(card => card.Prices)
 			.Where(card => card.ScryfallId == scryfallId)
 			.ToListAsync();
+	}
+
+	public async Task<CardPrice> GetPrice(long priceId)
+	{
+		return await _dbContext.CardPrices.SingleAsync(price => price.Id == priceId);
+	}
+
+	public async Task<IEnumerable<CardPrice>> GetPrices(long cardId)
+	{
+		return await _dbContext.CardPrices
+			.Where(price => price.CardId == cardId)
+			.ToListAsync();
+	}
+
+	public async Task<CardPrice> CreatePrice(CardPrice priceToUpsert)
+	{
+		EntityEntry<CardPrice> addedPrice = await _dbContext.CardPrices.AddAsync(priceToUpsert);
+		await _dbContext.SaveChangesAsync();
+
+		return addedPrice.Entity;
+	}
+
+	public async Task<CardPrice> UpdatePrice(CardPrice priceToUpdate)
+	{
+		CardPrice existingPrice = await GetPrice(priceToUpdate.Id);
+		CardPriceMapper.MergeProperties(existingPrice, priceToUpdate);
+		await _dbContext.SaveChangesAsync();
+
+		return existingPrice;
+	}
+
+	public Task<CardPrice> UpdatePriceIfChanged(CardPrice priceToUpsert)
+	{
+		throw new NotImplementedException();
 	}
 }
