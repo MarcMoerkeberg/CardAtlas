@@ -225,7 +225,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 			IEnumerable<CardImage> apiCardImages = CardImageMapper.MapCardImages(cardImageryOwner.Id, apiCard, cardFace);
 
-			upsertedCardImages.AddRange(await UpsertCardImages(cardImageryOwner.Id, apiCardImages));
+			upsertedCardImages.AddRange(await UpsertCardImages(cardImageryOwner, apiCardImages));
 		}
 
 		return upsertedCardImages;
@@ -243,7 +243,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		IEnumerable<CardImage> imagesToUpsert = CardImageMapper.MapCardImages(cardImageryOwner.Id, apiCard);
 		
-		return await UpsertCardImages(cardImageryOwner.Id, imagesToUpsert);
+		return await UpsertCardImages(cardImageryOwner, imagesToUpsert);
 	}
 
 	/// <summary>
@@ -251,15 +251,18 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// When updating an existing card image, the existing image is found by type and source.
 	/// </summary>
 	/// <returns>All created or updated <see cref="CardImage"/> objects.</returns>
-	private async Task<IEnumerable<CardImage>> UpsertCardImages(long cardId, IEnumerable<CardImage> imagesToUpsert)
+	private async Task<IEnumerable<CardImage>> UpsertCardImages(Card imageryOwner, IEnumerable<CardImage> imagesToUpsert)
 	{
 		var upsertedCardImages = new List<CardImage>();
 		if(!imagesToUpsert.Any()) return upsertedCardImages;
 
-		IEnumerable<CardImage> existingCardImages = await _cardImageService.GetFromCardId(cardId);
+		IEnumerable<CardImage> existingImages = imageryOwner.Images.Any() 
+			? imageryOwner.Images 
+			: await _cardImageService.GetFromCardId(imageryOwner.Id);
+		
 		foreach (CardImage imageToUpsert in imagesToUpsert)
 		{
-			CardImage? existingCardImage = existingCardImages.FindMatchByTypeAndSource(imageToUpsert);
+			CardImage? existingCardImage = existingImages.FindMatchByTypeAndSource(imageToUpsert);
 
 			if (existingCardImage is null)
 			{
