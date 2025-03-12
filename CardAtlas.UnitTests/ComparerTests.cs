@@ -1,5 +1,6 @@
 ﻿using CardAtlas.Server.Comparers;
 using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.Cards;
 using CardAtlas.Server.Models.Data.Image;
 using CardAtlas.UnitTests.DataHelpers;
 
@@ -10,6 +11,7 @@ class ComparerTests
 	private readonly CardComparer _cardComparer = new CardComparer();
 	private readonly SetComparer _setComparer = new SetComparer();
 	private readonly CardImageComparer _cardImageComparer = new CardImageComparer();
+	private readonly CardPriceComparer _cardPriceComparer = new CardPriceComparer();
 
 	[Test]
 	public void CardEqualityComparer_Equals_ExpectsMatchingObjectsTrue()
@@ -66,5 +68,23 @@ class ComparerTests
 		cardImage2.Uri = new Uri("https://differentUri.com");
 
 		Assert.That(_cardImageComparer.Equals(cardImage1, cardImage2), Is.False);
+	}
+	
+	[Test]
+	public void CardPriceComparer_Equals_ExpectsMatchingObjectsTrue()
+	{
+		CardPrice cardPrice1 = CardDataHelper.CreateCardPrice();
+		CardPrice cardPrice2 = CardDataHelper.CreateCardPrice();
+
+		Assert.That(_cardPriceComparer.Equals(cardPrice1, cardPrice2), Is.True);
+	}
+	
+	[Test]
+	public void CardPriceComparer_Equals_ExpectsMatchingObjectsFalse()
+	{
+		CardPrice cardPrice1 = CardDataHelper.CreateCardPrice(cardId: 1);
+		CardPrice cardPrice2 = CardDataHelper.CreateCardPrice(cardId: 2);
+
+		Assert.That(_cardPriceComparer.Equals(cardPrice1, cardPrice2), Is.False);
 	}
 }
