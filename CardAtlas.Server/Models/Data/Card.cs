@@ -73,14 +73,14 @@ public class Card
 	public required int ArtistId { get; set; }
 
 	[InverseProperty("Card")]
-	public ICollection<CardImage>? Images { get; set; }
+	public ICollection<CardImage> Images { get; set; } = new HashSet<CardImage>();
 
 	[ForeignKey("RarityId")]
 	public Rarity Rarity { get; set; } = null!;
 	public required int RarityId { get; set; }
 
 	[InverseProperty("Card")]
-	public ICollection<CardPrice>? Prices { get; set; }
+	public ICollection<CardPrice> Prices { get; set; } = new HashSet<CardPrice>();
 
 	[ForeignKey("LanguageId")]
 	public Language Language { get; set; } = null!;
@@ -93,10 +93,10 @@ public class Card
 	public IEnumerable<string> ColorIdentities => ColorIdentity.Split(',');
 
 	[InverseProperty("Card")]
-	public ICollection<CardKeyword>? Keywords { get; set; }
+	public ICollection<CardKeyword> Keywords { get; set; } = new HashSet<CardKeyword>();
 
 	[InverseProperty("Card")]
-	public ICollection<CardPromoType>? PromoTypes { get; set; }
+	public ICollection<CardPromoType> PromoTypes { get; set; } = new HashSet<CardPromoType>();
 
 	[ForeignKey("FrameLayoutId")]
 	public FrameLayout FrameLayout { get; set; } = null!;

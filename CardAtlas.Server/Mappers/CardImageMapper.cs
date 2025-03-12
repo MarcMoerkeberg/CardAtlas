@@ -110,7 +110,7 @@ public class CardImageMapper
 	/// <summary>
 	/// Assigns all intrinsic properties from the <paramref name="source"/> onto the <paramref name="target"/>.<br/>
 	/// These properties represent the core data of the <see cref="CardImage"/> (such as foreign keys, Uri, numeric values, etc.)
-	/// that are directly managed by the Set entity, excluding any navigational or derived properties.
+	/// that are directly managed by the CardImage entity, excluding any navigational or derived properties.
 	/// </summary>
 	/// <param name="target">The entity being updated.</param>
 	/// <param name="source">The properties of this object will be assigned to <paramref name="target"/>.</param>

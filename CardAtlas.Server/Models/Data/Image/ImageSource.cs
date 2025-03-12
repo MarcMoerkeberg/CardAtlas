@@ -5,7 +5,7 @@ namespace CardAtlas.Server.Models.Data.Image;
 
 public class ImageSource : TypeEntity<ImageSourceType>
 {
-	[InverseProperty("ImageType")]
+	[InverseProperty("ImageSource")]
 	public required ICollection<CardImage> CardImages { get; set; }
 }
 

@@ -8,6 +8,8 @@ public interface IScryfallIngestionService
 {
 	Task UpsertCardCollection();
 	
+	Task<int> UpsertSets();
+
 	/// <summary>
 	/// Upserts data from <paramref name="apiCard"/> into the database.<br/>
 	/// If <paramref name="apiCard"/> has multiple <see cref="ScryfallApi.Models.CardFace"/>, each face will be upserted as a separate card with a parent/child relationship.
