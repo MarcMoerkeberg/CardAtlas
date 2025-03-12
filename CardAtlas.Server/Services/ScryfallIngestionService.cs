@@ -1,6 +1,7 @@
 ﻿using CardAtlas.Server.Extensions;
 using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.Cards;
 using CardAtlas.Server.Models.Data.Image;
 using CardAtlas.Server.Services.Interfaces;
 using ScryfallApi;
@@ -42,7 +43,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			await UpsertCard(apiCard);
 
 			await UpsertCardImages(apiCard);
-			UpsertPrices(apiCard);
+			UpsertCardPrices(apiCard);
 			UpsertPrintFinishes(apiCard);
 			UpsertGameTypes(apiCard);
 			UpsertKeywords(apiCard);
@@ -51,8 +52,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 	}
 
-	public async Task UpsertSets()
+	public async Task<int> UpsertSets()
 	{
+		int rowsAffected = 0;
 		IEnumerable<ApiSet> apiSets = await _scryfallApi.GetSets();
 
 		foreach (ApiSet apiSet in apiSets)
@@ -69,7 +71,11 @@ public class ScryfallIngestionService : IScryfallIngestionService
 				mappedSet.Id = existingSet.Id;
 				await _setService.UpdateIfChanged(mappedSet);
 			}
+			
+			rowsAffected++;
 		}
+
+		return rowsAffected;
 	}
 
 	public async Task<IEnumerable<Card>> UpsertCard(ApiCard apiCard)
@@ -278,6 +284,53 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return upsertedCardImages;
 	}
 
+	public async Task<IEnumerable<CardPrice>> UpsertCardPrices(ApiCard apiCard)
+	{
+		var upsertedCardPrices = new List<CardPrice>();
+
+		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		if(!existingCards.Any()) return upsertedCardPrices;
+
+		foreach (Card card in existingCards)
+		{
+			upsertedCardPrices.AddRange(await UpsertCardPrices(card, apiCard));
+		}
+
+		return upsertedCardPrices;
+	}
+
+	/// <summary>
+	/// Creates or updates card prices from <paramref name="apiCard"/> to the database.
+	/// </summary>
+	/// <returns>All created or updated <see cref="CardPrice"/> objects. May be none if <paramref name="apiCard"/> contains no price data.</returns>
+	private async Task<IEnumerable<CardPrice>> UpsertCardPrices(Card cardWithPrices, ApiCard apiCard)
+	{
+		var upsertedCardPrices = new List<CardPrice>();
+		IEnumerable<CardPrice> pricesToUpsert = CardPriceMapper.MapCardPrices(cardWithPrices.Id, apiCard);
+		if (!pricesToUpsert.Any()) return upsertedCardPrices;
+
+		IEnumerable<CardPrice> existingPrices = cardWithPrices.Prices.Any()
+			? cardWithPrices.Prices
+			: await _cardService.GetPrices(cardWithPrices.Id);
+
+		foreach (CardPrice priceToUpsert in pricesToUpsert)
+		{
+			CardPrice? existingCardPrice = existingPrices.FindMatchByVendorAndCurrency(priceToUpsert);
+			
+			if (existingCardPrice is null)
+			{
+				upsertedCardPrices.Add(await _cardService.CreatePrice(priceToUpsert));
+			}
+			else
+			{
+				priceToUpsert.Id = existingCardPrice.Id;
+				upsertedCardPrices.Add(await _cardService.UpdatePriceIfChanged(priceToUpsert));
+			}
+		}
+
+		return upsertedCardPrices;
+	}
+
 	private void UpsertLegality(ApiCard card)
 	{
 		throw new NotImplementedException();
@@ -299,11 +352,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	private static void UpsertPrintFinishes(ApiCard apiCard)
-	{
-		throw new NotImplementedException();
-	}
-
-	private static void UpsertPrices(ApiCard apiCard)
 	{
 		throw new NotImplementedException();
 	}
