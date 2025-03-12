@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CardAtlas.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InititalCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -91,6 +91,19 @@ namespace CardAtlas.Server.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ImageFormats", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ImageSources",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ImageSources", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -374,6 +387,7 @@ namespace CardAtlas.Server.Migrations
                     ImageTypeId = table.Column<int>(type: "int", nullable: false),
                     ImageFormatId = table.Column<int>(type: "int", nullable: false),
                     ImageStatusId = table.Column<int>(type: "int", nullable: false),
+                    ImageSourceId = table.Column<int>(type: "int", nullable: false),
                     CardId = table.Column<long>(type: "bigint", nullable: false),
                     Width = table.Column<int>(type: "int", nullable: false),
                     Height = table.Column<int>(type: "int", nullable: false),
@@ -392,6 +406,12 @@ namespace CardAtlas.Server.Migrations
                         name: "FK_CardImages_ImageFormats_ImageFormatId",
                         column: x => x.ImageFormatId,
                         principalTable: "ImageFormats",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CardImages_ImageSources_ImageSourceId",
+                        column: x => x.ImageSourceId,
+                        principalTable: "ImageSources",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -594,8 +614,18 @@ namespace CardAtlas.Server.Migrations
                 values: new object[,]
                 {
                     { -1, "NotImplemented" },
-                    { 1, "PNG" },
-                    { 2, "JPG" }
+                    { 1, "Png" },
+                    { 2, "Jpg" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "ImageSources",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { -1, "NotImplemented" },
+                    { 1, "Scryfall" },
+                    { 2, "User" }
                 });
 
             migrationBuilder.InsertData(
@@ -604,10 +634,9 @@ namespace CardAtlas.Server.Migrations
                 values: new object[,]
                 {
                     { -1, "NotImplemented" },
-                    { 1, "Missing" },
-                    { 2, "Placeholder" },
-                    { 3, "LowResolution" },
-                    { 4, "HighResolutionScan" }
+                    { 1, "Placeholder" },
+                    { 2, "LowResolution" },
+                    { 3, "HighResolutionScan" }
                 });
 
             migrationBuilder.InsertData(
@@ -735,6 +764,11 @@ namespace CardAtlas.Server.Migrations
                 name: "IX_CardImages_ImageFormatId",
                 table: "CardImages",
                 column: "ImageFormatId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CardImages_ImageSourceId",
+                table: "CardImages",
+                column: "ImageSourceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CardImages_ImageStatusId",
@@ -871,6 +905,9 @@ namespace CardAtlas.Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "ImageFormats");
+
+            migrationBuilder.DropTable(
+                name: "ImageSources");
 
             migrationBuilder.DropTable(
                 name: "ImageStatuses");

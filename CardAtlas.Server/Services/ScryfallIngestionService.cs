@@ -40,6 +40,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
 			await UpsertCard(apiCard);
+
 			await UpsertCardImages(apiCard);
 			UpsertPrices(apiCard);
 			UpsertPrintFinishes(apiCard);

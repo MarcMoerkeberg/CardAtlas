@@ -220,49 +220,6 @@ namespace CardAtlas.Server.Migrations
                     b.ToTable("CardPrintFinish");
                 });
 
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardImage", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("CardId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("Height")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ImageFormatId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ImageStatusId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ImageTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Uri")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Width")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CardId");
-
-                    b.HasIndex("ImageFormatId");
-
-                    b.HasIndex("ImageStatusId");
-
-                    b.HasIndex("ImageTypeId");
-
-                    b.ToTable("CardImages");
-                });
-
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardKeyword", b =>
                 {
                     b.Property<int>("Id")
@@ -524,6 +481,54 @@ namespace CardAtlas.Server.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Image.CardImage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CardId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ImageFormatId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ImageSourceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ImageStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ImageTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Uri")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CardId");
+
+                    b.HasIndex("ImageFormatId");
+
+                    b.HasIndex("ImageSourceId");
+
+                    b.HasIndex("ImageStatusId");
+
+                    b.HasIndex("ImageTypeId");
+
+                    b.ToTable("CardImages");
+                });
+
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Image.ImageFormat", b =>
                 {
                     b.Property<int>("Id")
@@ -545,12 +550,47 @@ namespace CardAtlas.Server.Migrations
                         new
                         {
                             Id = 1,
-                            Name = "PNG"
+                            Name = "Png"
                         },
                         new
                         {
                             Id = 2,
-                            Name = "JPG"
+                            Name = "Jpg"
+                        },
+                        new
+                        {
+                            Id = -1,
+                            Name = "NotImplemented"
+                        });
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Image.ImageSource", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ImageSources");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Scryfall"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "User"
                         },
                         new
                         {
@@ -580,21 +620,16 @@ namespace CardAtlas.Server.Migrations
                         new
                         {
                             Id = 1,
-                            Name = "Missing"
-                        },
-                        new
-                        {
-                            Id = 2,
                             Name = "Placeholder"
                         },
                         new
                         {
-                            Id = 3,
+                            Id = 2,
                             Name = "LowResolution"
                         },
                         new
                         {
-                            Id = 4,
+                            Id = 3,
                             Name = "HighResolutionScan"
                         },
                         new
@@ -1299,41 +1334,6 @@ namespace CardAtlas.Server.Migrations
                     b.Navigation("PrintFinish");
                 });
 
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardImage", b =>
-                {
-                    b.HasOne("CardAtlas.Server.Models.Data.Card", "Card")
-                        .WithMany("Images")
-                        .HasForeignKey("CardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Image.ImageFormat", "ImageFormat")
-                        .WithMany("ImageFormats")
-                        .HasForeignKey("ImageFormatId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Image.ImageStatus", "ImageStatus")
-                        .WithMany("CardImages")
-                        .HasForeignKey("ImageStatusId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CardAtlas.Server.Models.Data.Image.ImageType", "ImageType")
-                        .WithMany("CardImages")
-                        .HasForeignKey("ImageTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Card");
-
-                    b.Navigation("ImageFormat");
-
-                    b.Navigation("ImageStatus");
-
-                    b.Navigation("ImageType");
-                });
-
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Cards.CardKeyword", b =>
                 {
                     b.HasOne("CardAtlas.Server.Models.Data.Card", "Card")
@@ -1418,6 +1418,49 @@ namespace CardAtlas.Server.Migrations
                     b.Navigation("PromoType");
                 });
 
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Image.CardImage", b =>
+                {
+                    b.HasOne("CardAtlas.Server.Models.Data.Card", "Card")
+                        .WithMany("Images")
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CardAtlas.Server.Models.Data.Image.ImageFormat", "ImageFormat")
+                        .WithMany("ImageFormats")
+                        .HasForeignKey("ImageFormatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CardAtlas.Server.Models.Data.Image.ImageSource", "ImageSource")
+                        .WithMany("CardImages")
+                        .HasForeignKey("ImageSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CardAtlas.Server.Models.Data.Image.ImageStatus", "ImageStatus")
+                        .WithMany("CardImages")
+                        .HasForeignKey("ImageStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CardAtlas.Server.Models.Data.Image.ImageType", "ImageType")
+                        .WithMany("CardImages")
+                        .HasForeignKey("ImageTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Card");
+
+                    b.Navigation("ImageFormat");
+
+                    b.Navigation("ImageSource");
+
+                    b.Navigation("ImageStatus");
+
+                    b.Navigation("ImageType");
+                });
+
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Set", b =>
                 {
                     b.HasOne("CardAtlas.Server.Models.Data.SetType", "SetType")
@@ -1487,6 +1530,11 @@ namespace CardAtlas.Server.Migrations
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Image.ImageFormat", b =>
                 {
                     b.Navigation("ImageFormats");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Image.ImageSource", b =>
+                {
+                    b.Navigation("CardImages");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Image.ImageStatus", b =>

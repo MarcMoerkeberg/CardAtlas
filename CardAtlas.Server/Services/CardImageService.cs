@@ -1,32 +1,67 @@
-﻿using CardAtlas.Server.Models.Data.Image;
+﻿using CardAtlas.Server.DAL;
+using CardAtlas.Server.Mappers;
+using CardAtlas.Server.Models.Data.Image;
 using CardAtlas.Server.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace CardAtlas.Server.Services;
 
 public class CardImageService : ICardImageService
 {
-	public Task<CardImage> Create(CardImage cardImage)
+	private readonly IEqualityComparer<CardImage> _cardImageComparer;
+	private readonly ApplicationDbContext _dbContext;
+	public CardImageService(
+		IEqualityComparer<CardImage> cardImageComparer, 
+		ApplicationDbContext dbContext)
 	{
-		throw new NotImplementedException();
+		_cardImageComparer = cardImageComparer;
+		_dbContext = dbContext;
 	}
 
-	public Task<CardImage> Get(long cardImageId)
+	public async Task<CardImage> Create(CardImage cardImage)
 	{
-		throw new NotImplementedException();
+		EntityEntry<CardImage> addedCardImage = await _dbContext.CardImages.AddAsync(cardImage);
+		await _dbContext.SaveChangesAsync();
+
+		return addedCardImage.Entity;
 	}
 
-	public Task<IEnumerable<CardImage>> GetFromCardId(long cardId)
+	public async Task<CardImage> Get(long cardImageId)
 	{
-		throw new NotImplementedException();
+		return await _dbContext.CardImages.SingleAsync(cardImage => cardImage.Id == cardImageId);
 	}
 
-	public Task<CardImage> Update(CardImage cardImageWithChanges)
+	public async Task<IEnumerable<CardImage>> GetFromCardId(long cardId)
 	{
-		throw new NotImplementedException();
+		return await _dbContext.CardImages
+			.Include(ci => ci.ImageType)
+			.Include(ci => ci.ImageFormat)
+			.Include(ci => ci.ImageStatus)
+			.Include(ci => ci.ImageSource)
+			.Where(cardImage => cardImage.CardId == cardId)
+			.ToListAsync();
 	}
 
-	public Task<CardImage> UpdateIfChanged(CardImage cardImageWithChanges)
+	public async Task<CardImage> Update(CardImage cardImageWithChanges)
 	{
-		throw new NotImplementedException();
+		CardImage imageToUpdate = await Get(cardImageWithChanges.Id);
+		CardImageMapper.MergeProperties(imageToUpdate, cardImageWithChanges);
+
+		await _dbContext.SaveChangesAsync();
+		return imageToUpdate;
+	}
+
+	public async Task<CardImage> UpdateIfChanged(CardImage cardImageWithChanges)
+	{
+		CardImage imageToUpdate = await Get(cardImageWithChanges.Id);
+
+		if (!_cardImageComparer.Equals(imageToUpdate, cardImageWithChanges))
+		{
+			CardImageMapper.MergeProperties(imageToUpdate, cardImageWithChanges);
+			await _dbContext.SaveChangesAsync();
+		}
+
+		return imageToUpdate;
 	}
 }

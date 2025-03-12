@@ -11,8 +11,8 @@ public static class CardImageExtensions
 	public static CardImage? FindMatchByTypeAndSource(this IEnumerable<CardImage> targetCollection, CardImage cardImage)
 	{
 		return targetCollection.FirstOrDefault(collectionImage =>
-			collectionImage.Source == cardImage.Source &&
-			collectionImage.Type == cardImage.Type &&
+			collectionImage.ImageSourceId == cardImage.ImageSourceId &&
+			collectionImage.ImageTypeId == cardImage.ImageTypeId &&
 			collectionImage.CardId == cardImage.CardId
 		);
 	}
