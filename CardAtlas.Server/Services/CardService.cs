@@ -11,12 +11,15 @@ namespace CardAtlas.Server.Services;
 public class CardService : ICardService
 {
 	private readonly IEqualityComparer<Card> _cardComparer;
+	private readonly IEqualityComparer<CardPrice> _cardPriceComparer;
 	private readonly ApplicationDbContext _dbContext;
 	public CardService(
 		IEqualityComparer<Card> comparer,
+		IEqualityComparer<CardPrice> cardPriceComparer,
 		ApplicationDbContext dbContext)
 	{
 		_cardComparer = comparer;
+		_cardPriceComparer = cardPriceComparer;
 		_dbContext = dbContext;
 	}
 
@@ -94,8 +97,16 @@ public class CardService : ICardService
 		return existingPrice;
 	}
 
-	public Task<CardPrice> UpdatePriceIfChanged(CardPrice priceToUpsert)
+	public async Task<CardPrice> UpdatePriceIfChanged(CardPrice priceToUpdate)
 	{
-		throw new NotImplementedException();
+		CardPrice existingPrice = await GetPrice(priceToUpdate.Id);
+
+		if(!_cardPriceComparer.Equals(existingPrice, priceToUpdate))
+		{
+			CardPriceMapper.MergeProperties(existingPrice, priceToUpdate);
+			await _dbContext.SaveChangesAsync();
+		}
+
+		return existingPrice;
 	}
 }
