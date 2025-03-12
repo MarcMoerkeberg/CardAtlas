@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.Cards;
 using CardFace = ScryfallApi.Models.CardFace;
 using ImageUris = ScryfallApi.Models.ImageUris;
 
@@ -73,4 +74,20 @@ public static class CardDataHelper
 		ArtCrop = new Uri("https://example.com/art_crop.jpg"),
 		BorderCrop = new Uri("https://example.com/border_crop.jpg"),
 	};
+
+	public static CardPrice CreateCardPrice(
+		long cardId = 1,
+		VendorType vendor = VendorType.NotImplemented,
+		CurrencyType currency = CurrencyType.NotImplemented)
+	{
+		return new CardPrice
+		{
+			Price = 1m,
+			FoilPrice = 1m,
+			PurchaseUri = new Uri("https://example.com/purchase"),
+			VendorId = (int)vendor,
+			CurrencyId = (int)currency,
+			CardId = cardId,
+		};
+	}
 }
