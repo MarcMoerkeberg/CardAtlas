@@ -1,13 +1,13 @@
 ﻿using CardAtlas.Server.Models.Data.Base;
+using CardAtlas.Server.Models.Data.Cards;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data;
 
 public class Vendor : TypeEntity<VendorType>
 {
-	[ForeignKey("CurrencyId")]
-	public Currency Currency { get; set; } = null!;
-	public required int CurrencyId { get; set; }
+	[InverseProperty("Vendor")]
+	public ICollection<CardPrice> CardPrices { get; set; } = new HashSet<CardPrice>();
 }
 
 public enum VendorType
@@ -16,4 +16,5 @@ public enum VendorType
 	TcgPlayer = 1,
 	CardMarket = 2,
 	CardHoarder = 3,
+	Mtgo = 4,
 }

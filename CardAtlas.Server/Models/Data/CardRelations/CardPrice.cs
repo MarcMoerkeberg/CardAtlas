@@ -20,7 +20,11 @@ public class CardPrice
 	public Vendor Vendor { get; set; } = null!;
 	public required int VendorId { get; set; }
 
-	public required Uri PurchaseUri { get; set; }
+	public Uri? PurchaseUri { get; set; }
+
+	[ForeignKey("CurrencyId")]
+	public Currency Currency { get; set; } = null!;
+	public required int CurrencyId { get; set; }
 
 	[ForeignKey("CardId")]
 	public Card Card { get; set; } = null!;
