@@ -231,18 +231,11 @@ namespace CardAtlas.Server.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    CurrencyId = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Vendors", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Vendors_Currencies_CurrencyId",
-                        column: x => x.CurrencyId,
-                        principalTable: "Currencies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -496,7 +489,8 @@ namespace CardAtlas.Server.Migrations
                     Price = table.Column<decimal>(type: "decimal(8,2)", precision: 8, scale: 2, nullable: true),
                     FoilPrice = table.Column<decimal>(type: "decimal(8,2)", precision: 8, scale: 2, nullable: true),
                     VendorId = table.Column<int>(type: "int", nullable: false),
-                    PurchaseUri = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PurchaseUri = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CurrencyId = table.Column<int>(type: "int", nullable: false),
                     CardId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
@@ -506,6 +500,12 @@ namespace CardAtlas.Server.Migrations
                         name: "FK_CardPrices_Cards_CardId",
                         column: x => x.CardId,
                         principalTable: "Cards",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CardPrices_Currencies_CurrencyId",
+                        column: x => x.CurrencyId,
+                        principalTable: "Currencies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -736,13 +736,14 @@ namespace CardAtlas.Server.Migrations
 
             migrationBuilder.InsertData(
                 table: "Vendors",
-                columns: new[] { "Id", "CurrencyId", "Name" },
+                columns: new[] { "Id", "Name" },
                 values: new object[,]
                 {
-                    { -1, -1, "NotImplemented" },
-                    { 1, 1, "TcgPlayer" },
-                    { 2, 2, "CardMarket" },
-                    { 3, 3, "CardHoarder" }
+                    { -1, "NotImplemented" },
+                    { 1, "TcgPlayer" },
+                    { 2, "CardMarket" },
+                    { 3, "CardHoarder" },
+                    { 4, "Mtgo" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -811,6 +812,11 @@ namespace CardAtlas.Server.Migrations
                 column: "CardId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CardPrices_CurrencyId",
+                table: "CardPrices",
+                column: "CurrencyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CardPrices_VendorId",
                 table: "CardPrices",
                 column: "VendorId");
@@ -869,11 +875,6 @@ namespace CardAtlas.Server.Migrations
                 name: "IX_Sets_SetTypeId",
                 table: "Sets",
                 column: "SetTypeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Vendors_CurrencyId",
-                table: "Vendors",
-                column: "CurrencyId");
         }
 
         /// <inheritdoc />
@@ -925,6 +926,9 @@ namespace CardAtlas.Server.Migrations
                 name: "Legalities");
 
             migrationBuilder.DropTable(
+                name: "Currencies");
+
+            migrationBuilder.DropTable(
                 name: "Vendors");
 
             migrationBuilder.DropTable(
@@ -935,9 +939,6 @@ namespace CardAtlas.Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "PromoType");
-
-            migrationBuilder.DropTable(
-                name: "Currencies");
 
             migrationBuilder.DropTable(
                 name: "Artists");

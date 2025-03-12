@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.Models.Data.Base;
+using CardAtlas.Server.Models.Data.Cards;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data;
@@ -6,7 +7,7 @@ namespace CardAtlas.Server.Models.Data;
 public class Currency : TypeEntity<CurrencyType>
 {
 	[InverseProperty("Currency")]
-	public ICollection<Vendor> Vendors { get; set; } = new HashSet<Vendor>();
+	public ICollection<CardPrice> CardPrices { get; set; } = new HashSet<CardPrice>();
 }
 
 public enum CurrencyType

@@ -282,6 +282,9 @@ namespace CardAtlas.Server.Migrations
                     b.Property<long>("CardId")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("CurrencyId")
+                        .HasColumnType("int");
+
                     b.Property<decimal?>("FoilPrice")
                         .HasPrecision(8, 2)
                         .HasColumnType("decimal(8,2)");
@@ -291,7 +294,6 @@ namespace CardAtlas.Server.Migrations
                         .HasColumnType("decimal(8,2)");
 
                     b.Property<string>("PurchaseUri")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("VendorId")
@@ -300,6 +302,8 @@ namespace CardAtlas.Server.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CardId");
+
+                    b.HasIndex("CurrencyId");
 
                     b.HasIndex("VendorId");
 
@@ -1206,9 +1210,6 @@ namespace CardAtlas.Server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CurrencyId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -1216,33 +1217,32 @@ namespace CardAtlas.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CurrencyId");
-
                     b.ToTable("Vendors");
 
                     b.HasData(
                         new
                         {
                             Id = 1,
-                            CurrencyId = 1,
                             Name = "TcgPlayer"
                         },
                         new
                         {
                             Id = 2,
-                            CurrencyId = 2,
                             Name = "CardMarket"
                         },
                         new
                         {
                             Id = 3,
-                            CurrencyId = 3,
                             Name = "CardHoarder"
                         },
                         new
                         {
+                            Id = 4,
+                            Name = "Mtgo"
+                        },
+                        new
+                        {
                             Id = -1,
-                            CurrencyId = -1,
                             Name = "NotImplemented"
                         });
                 });
@@ -1388,13 +1388,21 @@ namespace CardAtlas.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CardAtlas.Server.Models.Data.Currency", "Currency")
+                        .WithMany("CardPrices")
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("CardAtlas.Server.Models.Data.Vendor", "Vendor")
-                        .WithMany()
+                        .WithMany("CardPrices")
                         .HasForeignKey("VendorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Card");
+
+                    b.Navigation("Currency");
 
                     b.Navigation("Vendor");
                 });
@@ -1472,17 +1480,6 @@ namespace CardAtlas.Server.Migrations
                     b.Navigation("SetType");
                 });
 
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.Vendor", b =>
-                {
-                    b.HasOne("CardAtlas.Server.Models.Data.Currency", "Currency")
-                        .WithMany("Vendors")
-                        .HasForeignKey("CurrencyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Currency");
-                });
-
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Artist", b =>
                 {
                     b.Navigation("Cards");
@@ -1509,7 +1506,7 @@ namespace CardAtlas.Server.Migrations
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Currency", b =>
                 {
-                    b.Navigation("Vendors");
+                    b.Navigation("CardPrices");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Format", b =>
@@ -1585,6 +1582,11 @@ namespace CardAtlas.Server.Migrations
             modelBuilder.Entity("CardAtlas.Server.Models.Data.SetType", b =>
                 {
                     b.Navigation("Sets");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Vendor", b =>
+                {
+                    b.Navigation("CardPrices");
                 });
 #pragma warning restore 612, 618
         }
