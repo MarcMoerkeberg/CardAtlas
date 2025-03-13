@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Cards;
 
 namespace CardAtlas.Server.Services.Interfaces;
@@ -74,4 +75,10 @@ public interface ICardService
 	/// <returns>The updated <see cref="CardPrice"/> entity.</returns>
 	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
 	Task<CardPrice> UpdatePriceIfChanged(CardPrice priceToUpdate);
+
+	/// <summary>
+	/// Creates a new <see cref="CardPrintFinish"/> entry in the database for each <paramref name="cardPrintFinishes"/>.
+	/// </summary>
+	/// <returns>The added <see cref="CardPrintFinish"/> entities with identity.</returns>
+	Task<IEnumerable<CardPrintFinish>> CreatePrintFinishes(IEnumerable<CardPrintFinish> cardPrintFinishes);
 }

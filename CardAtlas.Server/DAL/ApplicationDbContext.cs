@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Cards;
 using CardAtlas.Server.Models.Data.Image;
 using Microsoft.EntityFrameworkCore;
@@ -35,4 +36,5 @@ public class ApplicationDbContext : DbContext
 	public DbSet<PrintFinish> PrintFinishes { get; set; }
 	public DbSet<GameType> GameTypes { get; set; }
 	public DbSet<ImageSource> ImageSources { get; set; }
+	public DbSet<CardPrintFinish> CardPrintFinishes { get; set; }
 }

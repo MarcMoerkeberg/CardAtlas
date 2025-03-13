@@ -2,6 +2,7 @@
 using ApiCard = ScryfallApi.Models.Card;
 using CardFace = ScryfallApi.Models.CardFace;
 using FrameLayoutType = ScryfallApi.Models.Types.FrameLayoutType;
+using ScryfallPrintFinish = ScryfallApi.Models.Types.Finish;
 using ScryfallRarity = ScryfallApi.Models.Types.Rarity;
 
 namespace CardAtlas.Server.Mappers;
@@ -22,9 +23,9 @@ public static class CardMapper
 				? apiCard.Name
 				: cardFace.Name,
 
-			OracleText = cardFace is null 
+			OracleText = cardFace is null
 				? apiCard.OracleText
-				: cardFace.OracleText, 
+				: cardFace.OracleText,
 
 			TypeLine = cardFace is null
 				? apiCard.TypeLine
@@ -171,5 +172,20 @@ public static class CardMapper
 		target.ColorIdentity = source.ColorIdentity;
 		target.FrameLayoutId = source.FrameLayoutId;
 		target.ParentCardId = source.ParentCardId;
+	}
+
+	/// <summary>
+	/// Maps the print finishes from <paramref name="apiCard"/> to a collection of <see cref="PrintFinishType"/>
+	/// </summary>
+	public static IEnumerable<PrintFinishType> MapPrintFinishes(ApiCard apiCard)
+	{
+		return apiCard.ComesInFinishes
+			.Select(finish => finish switch 
+			{
+				ScryfallPrintFinish.Nonfoil => PrintFinishType.NonFoil,
+				ScryfallPrintFinish.Foil => PrintFinishType.Foil,
+				ScryfallPrintFinish.Etched => PrintFinishType.Etched,
+				_ => PrintFinishType.NotImplemented 
+			});
 	}
 }

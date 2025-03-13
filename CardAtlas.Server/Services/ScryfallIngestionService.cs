@@ -1,6 +1,7 @@
 ﻿using CardAtlas.Server.Extensions;
 using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Cards;
 using CardAtlas.Server.Models.Data.Image;
 using CardAtlas.Server.Services.Interfaces;
@@ -43,8 +44,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			await UpsertCard(apiCard);
 
 			await UpsertCardImages(apiCard);
-			UpsertCardPrices(apiCard);
-			UpsertPrintFinishes(apiCard);
+			await UpsertCardPrices(apiCard);
+			UpdatePrintFinishes(apiCard);
 			UpsertGameTypes(apiCard);
 			UpsertKeywords(apiCard);
 			UpsertPromoTypes(apiCard);
@@ -331,6 +332,41 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return upsertedCardPrices;
 	}
 
+	public async Task<IEnumerable<CardPrintFinish>> UpdatePrintFinishes(ApiCard apiCard)
+	{
+		var printFinishes = new List<CardPrintFinish>();
+
+		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		if (!existingCards.Any()) return printFinishes;
+
+		foreach (Card card in existingCards)
+		{
+			printFinishes.AddRange(await GetOrCreatePrintFinishes(card, apiCard));
+		}
+
+		return printFinishes;
+	}
+
+	private async Task<IEnumerable<CardPrintFinish>> GetOrCreatePrintFinishes(Card card, ApiCard apiCard)
+	{
+		IEnumerable<PrintFinishType> apiPrintFinishes = CardMapper.MapPrintFinishes(apiCard);
+		IEnumerable<CardPrintFinish> missingFinishes = apiPrintFinishes
+			.Where(apiFinish => !card.PrintFinishes.Contains(apiFinish))
+			.Select(apiFinish => 
+				new CardPrintFinish 
+				{	
+					CardId = card.Id, 
+					PrintFinishId = (int)apiFinish
+				}
+			);
+		
+		if(!missingFinishes.Any()) return new List<CardPrintFinish>();
+
+		var newPrintFinishes = await _cardService.CreatePrintFinishes(missingFinishes);
+
+		return card.CardPrintFinishes.Union(newPrintFinishes);
+	}
+
 	private void UpsertLegality(ApiCard card)
 	{
 		throw new NotImplementedException();
@@ -347,11 +383,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	private static void UpsertGameTypes(ApiCard apiCard)
-	{
-		throw new NotImplementedException();
-	}
-
-	private static void UpsertPrintFinishes(ApiCard apiCard)
 	{
 		throw new NotImplementedException();
 	}

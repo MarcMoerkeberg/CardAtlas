@@ -1,6 +1,7 @@
 ﻿using CardAtlas.Server.DAL;
 using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Cards;
 using CardAtlas.Server.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -64,6 +65,7 @@ public class CardService : ICardService
 			.Include(card => card.Images)
 			.Include(card => card.Set)
 			.Include(card => card.Prices)
+			.Include(card => card.CardPrintFinishes)
 			.Where(card => card.ScryfallId == scryfallId)
 			.ToListAsync();
 	}
@@ -108,5 +110,20 @@ public class CardService : ICardService
 		}
 
 		return existingPrice;
+	}
+
+	public async Task<IEnumerable<CardPrintFinish>> CreatePrintFinishes(IEnumerable<CardPrintFinish> cardPrintFinishes)
+	{
+		var addedCardPrintFinishes = new List<CardPrintFinish>();
+
+		foreach (CardPrintFinish cardPrintFinish in cardPrintFinishes)
+		{
+			EntityEntry<CardPrintFinish> addedCardPrintFinish = await _dbContext.CardPrintFinishes.AddAsync(cardPrintFinish);
+			addedCardPrintFinishes.Add(addedCardPrintFinish.Entity);
+		}
+
+		await _dbContext.SaveChangesAsync();
+
+		return addedCardPrintFinishes;
 	}
 }

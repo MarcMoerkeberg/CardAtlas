@@ -6,7 +6,7 @@ namespace CardAtlas.Server.Models.Data.CardRelations;
 public class CardPrintFinish
 {
 	[Key]
-	public int Id { get; set; }
+	public long Id { get; set; }
 
 	[ForeignKey("CardId")]
 	public required long CardId { get; set; }
