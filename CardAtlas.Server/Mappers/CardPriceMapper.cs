@@ -6,6 +6,10 @@ namespace CardAtlas.Server.Mappers;
 
 public static class CardPriceMapper
 {
+	/// <summary>
+	/// Returns a new list of <see cref="CardPrice"/> objects populted with data from <paramref name="apiCard"/><br/>
+	/// The list may be empty or missing some <see cref="VendorType"/> if <paramref name="apiCard"/> does not have sufficient data (eg. no prices).
+	/// </summary>
 	public static IEnumerable<CardPrice> MapCardPrices(long cardId, ApiCard apiCard) 
 	{
 		var cardPrices = new List<CardPrice>();
@@ -35,7 +39,7 @@ public static class CardPriceMapper
 			});
 		}
 
-		return cardPrices.Where(cp => cp is not null).ToList();
+		return cardPrices;
 	}
 
 	private static CurrencyType GetCurrencyTypeFromVendor(VendorType vendor)
