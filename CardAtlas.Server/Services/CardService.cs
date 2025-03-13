@@ -112,7 +112,7 @@ public class CardService : ICardService
 		return existingPrice;
 	}
 
-	public async Task<IEnumerable<CardPrintFinish>> CreatePrintFinishes(IEnumerable<CardPrintFinish> cardPrintFinishes)
+	public async Task<IEnumerable<CardPrintFinish>> CreateCardPrintFinishes(IEnumerable<CardPrintFinish> cardPrintFinishes)
 	{
 		var addedCardPrintFinishes = new List<CardPrintFinish>();
 
@@ -125,5 +125,20 @@ public class CardService : ICardService
 		await _dbContext.SaveChangesAsync();
 
 		return addedCardPrintFinishes;
+	}
+
+	public async Task<IEnumerable<CardGameType>> CreateCardGameTypes(IEnumerable<CardGameType> cardGameTypes)
+	{
+		var addedCardGameTypes = new List<CardGameType>();
+
+		foreach (CardGameType cardGameType in cardGameTypes)
+		{
+			EntityEntry<CardGameType> addedCardPrintFinish = await _dbContext.CardGameTypes.AddAsync(cardGameType);
+			addedCardGameTypes.Add(addedCardPrintFinish.Entity);
+		}
+
+		await _dbContext.SaveChangesAsync();
+
+		return addedCardGameTypes;
 	}
 }

@@ -42,4 +42,10 @@ public interface IScryfallIngestionService
 	/// Reponse is empty if no <see cref="Card"/> entities are associated with the <paramref name="apiCard"/>.
 	/// </returns>
 	Task<IEnumerable<CardPrintFinish>> UpdatePrintFinishes(ApiCard apiCard);
+
+	/// <summary>
+	/// Adds any missing <see cref="CardGameType"/> from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/> entities.
+	/// </summary>
+	/// <returns>All <see cref="CardGameType"/> associated with the <see cref="Card"/> entities found from <paramref name="apiCard"/> after updating.</returns>
+	Task<IEnumerable<CardGameType>> UpdateGameTypes(ApiCard apiCard);
 }

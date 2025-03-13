@@ -7,7 +7,7 @@ public class CardGameType
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-	public int Id { get; set; }
+	public long Id { get; set; }
 
 	[ForeignKey("Card")]
 	public required long CardId { get; set; }

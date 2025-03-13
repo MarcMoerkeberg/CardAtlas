@@ -46,7 +46,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			await UpsertCardImages(apiCard);
 			await UpsertCardPrices(apiCard);
 			await UpdatePrintFinishes(apiCard);
-			UpsertGameTypes(apiCard);
+			await UpdateGameTypes(apiCard);
 			UpsertKeywords(apiCard);
 			UpsertPromoTypes(apiCard);
 			UpsertLegality(apiCard);
@@ -366,10 +366,50 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		
 		if(!missingFinishes.Any()) return card.CardPrintFinishes;
 
-		var newPrintFinishes = await _cardService.CreatePrintFinishes(missingFinishes);
+		var newPrintFinishes = await _cardService.CreateCardPrintFinishes(missingFinishes);
 
 		return card.CardPrintFinishes
 			.Union(newPrintFinishes);
+	}
+
+	public async Task<IEnumerable<CardGameType>> UpdateGameTypes(ApiCard apiCard)
+	{
+		var gameTypes = new List<CardGameType>();
+
+		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		if (!existingCards.Any()) return gameTypes;
+
+		foreach (Card card in existingCards)
+		{
+			gameTypes.AddRange(await CreateMissingGameTypes(card, apiCard));
+		}
+
+		return gameTypes;
+	}
+
+	/// <summary>
+	/// Creates <see cref="CardGameType"/> entities from <paramref name="apiCard"/> that are missing on <paramref name="card"/>.
+	/// </summary>
+	/// <returns>All <see cref="CardGameType"/> associated with <paramref name="card"/> (including newly created ones).</returns>
+	private async Task<IEnumerable<CardGameType>> CreateMissingGameTypes(Card card, ApiCard apiCard)
+	{
+		HashSet<GameKind> apiGameTypes = CardMapper.MapGameTypes(apiCard);
+		IEnumerable<CardGameType> missingGameTypes = apiGameTypes
+			.Where(apiGameKind => !card.PrintedInGameTypes.Contains(apiGameKind))
+			.Select(apiGameKind =>
+				new CardGameType
+				{
+					CardId = card.Id,
+					GameTypeId = (int)apiGameKind
+				}
+			);
+
+		if (!missingGameTypes.Any()) return card.GameTypes;
+
+		var newGameTypes = await _cardService.CreateCardGameTypes(missingGameTypes);
+
+		return card.GameTypes
+			.Union(newGameTypes);
 	}
 
 	private void UpsertLegality(ApiCard card)
@@ -383,11 +423,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	private void UpsertKeywords(ApiCard card)
-	{
-		throw new NotImplementedException();
-	}
-
-	private static void UpsertGameTypes(ApiCard apiCard)
 	{
 		throw new NotImplementedException();
 	}

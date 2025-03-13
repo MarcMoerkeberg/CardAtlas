@@ -37,4 +37,5 @@ public class ApplicationDbContext : DbContext
 	public DbSet<GameType> GameTypes { get; set; }
 	public DbSet<ImageSource> ImageSources { get; set; }
 	public DbSet<CardPrintFinish> CardPrintFinishes { get; set; }
+	public DbSet<CardGameType> CardGameTypes { get; set; }
 }

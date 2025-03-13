@@ -80,5 +80,11 @@ public interface ICardService
 	/// Creates a new <see cref="CardPrintFinish"/> entry in the database for each <paramref name="cardPrintFinishes"/>.
 	/// </summary>
 	/// <returns>The added <see cref="CardPrintFinish"/> entities with identity.</returns>
-	Task<IEnumerable<CardPrintFinish>> CreatePrintFinishes(IEnumerable<CardPrintFinish> cardPrintFinishes);
+	Task<IEnumerable<CardPrintFinish>> CreateCardPrintFinishes(IEnumerable<CardPrintFinish> cardPrintFinishes);
+
+	/// <summary>
+	/// Creates a new <see cref="CardGameType"/> entry in the database for each <paramref name="cardGameTypes"/>.
+	/// </summary>
+	/// <returns>The added <see cref="CardGameType"/> entities with identity.</returns>
+	Task<IEnumerable<CardGameType>> CreateCardGameTypes(IEnumerable<CardGameType> cardGameTypes);
 }
