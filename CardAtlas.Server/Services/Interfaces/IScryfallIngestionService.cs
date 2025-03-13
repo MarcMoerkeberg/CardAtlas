@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Cards;
 using CardAtlas.Server.Models.Data.Image;
 using ApiCard = ScryfallApi.Models.Card;
@@ -32,4 +33,13 @@ public interface IScryfallIngestionService
 	/// </summary>
 	/// <returns>All <see cref="CardPrice"/> entries which was created or updated.</returns>
 	Task<IEnumerable<CardPrice>> UpsertCardPrices(ApiCard apiCard);
+
+	/// <summary>
+	/// Adds any missing <see cref="PrintFinishType"/> from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/> entities.
+	/// </summary>
+	/// <returns>
+	/// All <see cref="CardPrintFinish"/> associated with the <see cref="Card"/> entities found from <paramref name="apiCard"/> after updating.<br/>
+	/// Reponse is empty if no <see cref="Card"/> entities are associated with the <paramref name="apiCard"/>.
+	/// </returns>
+	Task<IEnumerable<CardPrintFinish>> UpdatePrintFinishes(ApiCard apiCard);
 }

@@ -177,15 +177,22 @@ public static class CardMapper
 	/// <summary>
 	/// Maps the print finishes from <paramref name="apiCard"/> to a collection of <see cref="PrintFinishType"/>
 	/// </summary>
-	public static IEnumerable<PrintFinishType> MapPrintFinishes(ApiCard apiCard)
+	public static HashSet<PrintFinishType> MapPrintFinishes(ApiCard apiCard)
 	{
-		return apiCard.ComesInFinishes
-			.Select(finish => finish switch 
+		var printFinishes = new HashSet<PrintFinishType>();
+		if (apiCard.ComesInFinishes is null) return printFinishes;
+
+		foreach (var finish in apiCard.ComesInFinishes)
+		{
+			printFinishes.Add(finish switch
 			{
-				ScryfallPrintFinish.Nonfoil => PrintFinishType.NonFoil,
 				ScryfallPrintFinish.Foil => PrintFinishType.Foil,
+				ScryfallPrintFinish.Nonfoil => PrintFinishType.NonFoil,
 				ScryfallPrintFinish.Etched => PrintFinishType.Etched,
-				_ => PrintFinishType.NotImplemented 
+				_ => PrintFinishType.NotImplemented,
 			});
+		}
+
+		return printFinishes;
 	}
 }

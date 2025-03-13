@@ -45,7 +45,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 			await UpsertCardImages(apiCard);
 			await UpsertCardPrices(apiCard);
-			UpdatePrintFinishes(apiCard);
+			await UpdatePrintFinishes(apiCard);
 			UpsertGameTypes(apiCard);
 			UpsertKeywords(apiCard);
 			UpsertPromoTypes(apiCard);
@@ -341,15 +341,19 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		foreach (Card card in existingCards)
 		{
-			printFinishes.AddRange(await GetOrCreatePrintFinishes(card, apiCard));
+			printFinishes.AddRange(await CreateMissingPrintFinishes(card, apiCard));
 		}
 
 		return printFinishes;
 	}
 
-	private async Task<IEnumerable<CardPrintFinish>> GetOrCreatePrintFinishes(Card card, ApiCard apiCard)
+	/// <summary>
+	/// Creates finishes from <paramref name="apiCard"/> that are missing from <paramref name="card"/>.
+	/// </summary>
+	/// <returns>All <see cref="CardPrintFinish"/> associated with <paramref name="card"/>.</returns>
+	private async Task<IEnumerable<CardPrintFinish>> CreateMissingPrintFinishes(Card card, ApiCard apiCard)
 	{
-		IEnumerable<PrintFinishType> apiPrintFinishes = CardMapper.MapPrintFinishes(apiCard);
+		HashSet<PrintFinishType> apiPrintFinishes = CardMapper.MapPrintFinishes(apiCard);
 		IEnumerable<CardPrintFinish> missingFinishes = apiPrintFinishes
 			.Where(apiFinish => !card.PrintFinishes.Contains(apiFinish))
 			.Select(apiFinish => 
@@ -360,11 +364,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 				}
 			);
 		
-		if(!missingFinishes.Any()) return new List<CardPrintFinish>();
+		if(!missingFinishes.Any()) return card.CardPrintFinishes;
 
 		var newPrintFinishes = await _cardService.CreatePrintFinishes(missingFinishes);
 
-		return card.CardPrintFinishes.Union(newPrintFinishes);
+		return card.CardPrintFinishes
+			.Union(newPrintFinishes);
 	}
 
 	private void UpsertLegality(ApiCard card)
