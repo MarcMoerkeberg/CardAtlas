@@ -3,7 +3,7 @@ using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.Image;
 using CardAtlas.UnitTests.DataHelpers;
 
-namespace CardAtlas.UnitTests;
+namespace CardAtlas.UnitTests.ExtensionTests;
 
 class CardImageExtensionsTests
 {

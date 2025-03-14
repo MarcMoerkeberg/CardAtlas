@@ -4,7 +4,7 @@ using CardAtlas.Server.Models.Data.Cards;
 using CardAtlas.UnitTests.DataHelpers;
 using CardFace = ScryfallApi.Models.CardFace;
 
-namespace CardAtlas.UnitTests;
+namespace CardAtlas.UnitTests.ExtensionTests;
 
 class CardExtensionsTests
 {
