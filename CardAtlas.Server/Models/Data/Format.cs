@@ -21,5 +21,11 @@ public class Format
 	[InverseProperty("Format")]
 	public ICollection<CardLegality> CardLegalities { get; set; } = new HashSet<CardLegality>();
 
-	//TODO: Down the line consider adding nullable userId to this, so users can create their own formats and search through them at-will
+	[ForeignKey("SourceId")]
+	public Source Source { get; set; } = null!;
+	public required int SourceId { get; set; }
+	[NotMapped]
+	public SourceType SourceType => Source.Type;
+
+	//TODO: Add nullable userId to this entity, so users can create their own formats.
 }

@@ -50,4 +50,12 @@ public class Set
 	public bool IsFoilOnly { get; set; }
 	public bool IsNonFoilOnly { get; set; }
 	public DateOnly? ReleaseDate { get; set; }
+
+	[ForeignKey("SourceId")]
+	public Source Source { get; set; } = null!;
+	public required int SourceId { get; set; }
+	[NotMapped]
+	public SourceType SourceType => Source.Type;
+
+	//TODO: Add nullable userId to this entity, so users can create their own formats.
 }

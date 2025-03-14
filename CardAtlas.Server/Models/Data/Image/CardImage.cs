@@ -27,11 +27,12 @@ public class CardImage
 	[NotMapped]
 	public ImageStatusType Status => ImageStatus.Type;
 	
-	[ForeignKey("ImageSourceId")]
+	[ForeignKey("SourceId")]
 	public Source Source { get; set; } = null!;
 	public required int SourceId { get; set; }
 	[NotMapped]
 	public SourceType SourceType => Source.Type;
+	//TODO: Add nullable userId to this entity, to ensure that only the user who uploaded the image can delete it.
 
 	[ForeignKey("CardId")]
 	public Card Card { get; set; } = null!;
