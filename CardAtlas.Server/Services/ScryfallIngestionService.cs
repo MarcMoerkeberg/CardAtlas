@@ -15,24 +15,27 @@ namespace CardAtlas.Server.Services;
 
 public class ScryfallIngestionService : IScryfallIngestionService
 {
-	private readonly IScryfallApi _scryfallApi;
 	private readonly IArtistService _artistService;
-	private readonly ISetService _setService;
-	private readonly ICardService _cardService;
 	private readonly ICardImageService _cardImageService;
+	private readonly ICardService _cardService;
+	private readonly IGameService _gameService;
+	private readonly IScryfallApi _scryfallApi;
+	private readonly ISetService _setService;
 
 	public ScryfallIngestionService(
-		IScryfallApi scryfallApi,
 		IArtistService artistService,
-		ISetService setService,
+		ICardImageService cardImageService,
 		ICardService cardService,
-		ICardImageService cardImageService)
+		IGameService gameService,
+		IScryfallApi scryfallApi,
+		ISetService setService)
 	{
-		_scryfallApi = scryfallApi;
 		_artistService = artistService;
-		_setService = setService;
-		_cardService = cardService;
 		_cardImageService = cardImageService;
+		_cardService = cardService;
+		_gameService = gameService;
+		_scryfallApi = scryfallApi;
+		_setService = setService;
 	}
 
 	public async Task UpsertCardCollection()
@@ -406,7 +409,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		if (!missingGameTypes.Any()) return card.GameTypes;
 
-		var newGameTypes = await _cardService.CreateCardGameTypes(missingGameTypes);
+		var newGameTypes = await _gameService.CreateCardGameTypes(missingGameTypes);
 
 		return card.GameTypes
 			.Union(newGameTypes);
@@ -414,6 +417,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	private void UpsertLegality(ApiCard card)
 	{
+		//Upsert formats
+		//Upsert CardLegalities
 		throw new NotImplementedException();
 	}
 
