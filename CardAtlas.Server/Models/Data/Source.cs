@@ -1,15 +1,16 @@
 ﻿using CardAtlas.Server.Models.Data.Base;
+using CardAtlas.Server.Models.Data.Image;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CardAtlas.Server.Models.Data.Image;
+namespace CardAtlas.Server.Models.Data;
 
-public class ImageSource : TypeEntity<ImageSourceType>
+public class Source : TypeEntity<SourceType>
 {
 	[InverseProperty("ImageSource")]
 	public required ICollection<CardImage> CardImages { get; set; }
 }
 
-public enum ImageSourceType
+public enum SourceType
 {
 	NotImplemented = -1,
 	Scryfall = 1,

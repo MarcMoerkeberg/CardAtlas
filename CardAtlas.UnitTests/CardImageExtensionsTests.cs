@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.Extensions;
+using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.Image;
 using CardAtlas.UnitTests.DataHelpers;
 
@@ -18,17 +19,17 @@ class CardImageExtensionsTests
 	}
 
 	[Test]
-	[TestCase(2, ImageSourceType.Scryfall, ImageTypeKind.Normal)]
-	[TestCase(1, ImageSourceType.User, ImageTypeKind.Normal)]
-	[TestCase(1, ImageSourceType.Scryfall, ImageTypeKind.Small)]
-	public void FindMatchByTypeAndSource_ExpectsNull_WhenMatchPropertyDiffers(long cardId, ImageSourceType source, ImageTypeKind imageType)
+	[TestCase(2, SourceType.Scryfall, ImageTypeKind.Normal)]
+	[TestCase(1, SourceType.User, ImageTypeKind.Normal)]
+	[TestCase(1, SourceType.Scryfall, ImageTypeKind.Small)]
+	public void FindMatchByTypeAndSource_ExpectsNull_WhenMatchPropertyDiffers(long cardId, SourceType source, ImageTypeKind imageType)
 	{
 		IEnumerable<CardImage> targetCollection = new List<CardImage>
 		{
 			CardImageDataHelper.CreateCardImage(cardId, source, imageType),
 		};
 
-		CardImage searchImage = CardImageDataHelper.CreateCardImage(cardId: 1, source: ImageSourceType.Scryfall, imageType: ImageTypeKind.Normal);
+		CardImage searchImage = CardImageDataHelper.CreateCardImage(cardId: 1, source: SourceType.Scryfall, imageType: ImageTypeKind.Normal);
 
 		CardImage? result = targetCollection.FindMatchByTypeAndSource(searchImage);
 

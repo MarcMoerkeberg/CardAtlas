@@ -17,7 +17,7 @@ public class CardImageComparer : IEqualityComparer<CardImage>
 			&& x.Width == y.Width
 			&& x.Height == y.Height
 			&& x.Uri == y.Uri
-			&& x.ImageSourceId == y.ImageSourceId;
+			&& x.SourceId == y.SourceId;
 	}
 
 	public int GetHashCode(CardImage obj)
@@ -31,7 +31,7 @@ public class CardImageComparer : IEqualityComparer<CardImage>
 		hash.Add(obj.Width);
 		hash.Add(obj.Height);
 		hash.Add(obj.Uri);
-		hash.Add(obj.ImageSourceId);
+		hash.Add(obj.SourceId);
 
 		return hash.ToHashCode();
 	}

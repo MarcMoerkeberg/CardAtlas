@@ -38,7 +38,7 @@ public class CardImageService : ICardImageService
 			.Include(ci => ci.ImageType)
 			.Include(ci => ci.ImageFormat)
 			.Include(ci => ci.ImageStatus)
-			.Include(ci => ci.ImageSource)
+			.Include(ci => ci.Source)
 			.Where(cardImage => cardImage.CardId == cardId)
 			.ToListAsync();
 	}

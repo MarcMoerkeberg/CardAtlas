@@ -28,10 +28,10 @@ public class CardImage
 	public ImageStatusType Status => ImageStatus.Type;
 	
 	[ForeignKey("ImageSourceId")]
-	public ImageSource ImageSource { get; set; } = null!;
-	public required int ImageSourceId { get; set; }
+	public Source Source { get; set; } = null!;
+	public required int SourceId { get; set; }
 	[NotMapped]
-	public ImageSourceType Source => ImageSource.Type;
+	public SourceType SourceType => Source.Type;
 
 	[ForeignKey("CardId")]
 	public Card Card { get; set; } = null!;

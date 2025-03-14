@@ -47,7 +47,7 @@ public class CardImageMapper
 				Width = GetImageWidth(imageType),
 				Height = GetImageHeight(imageType),
 				Uri = imageUri,
-				ImageSourceId = (int)ImageSourceType.Scryfall,
+				SourceId = (int)SourceType.Scryfall,
 			});
 		}
 
@@ -120,7 +120,7 @@ public class CardImageMapper
 		target.ImageTypeId = source.ImageTypeId;
 		target.ImageFormatId = source.ImageFormatId;
 		target.ImageStatusId = source.ImageStatusId;
-		target.ImageSourceId = source.ImageSourceId;
+		target.SourceId = source.SourceId;
 		target.CardId = source.CardId;
 		target.Width = source.Width;
 		target.Height = source.Height;
