@@ -396,7 +396,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>All <see cref="CardGameType"/> associated with <paramref name="card"/> (including newly created ones).</returns>
 	private async Task<IEnumerable<CardGameType>> CreateMissingGameTypes(Card card, ApiCard apiCard)
 	{
-		HashSet<GameKind> apiGameTypes = CardMapper.MapGameTypes(apiCard);
+		HashSet<GameKind> apiGameTypes = GameMapper.MapGameTypes(apiCard);
 		IEnumerable<CardGameType> missingGameTypes = apiGameTypes
 			.Where(apiGameKind => !card.PrintedInGameTypes.Contains(apiGameKind))
 			.Select(apiGameKind =>
