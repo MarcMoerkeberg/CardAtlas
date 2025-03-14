@@ -38,10 +38,31 @@ public class GameService : IGameService
 		
 		return addedGameType.Entity;
 	}
+	
+	public async Task<IEnumerable<GameFormat>> CreateFormats(IEnumerable<GameFormat> formats)
+	{
+		var addedFormats = new List<GameFormat>();
+		foreach (var format in formats)
+		{
+			EntityEntry<GameFormat> addedGameType = await _dbContext.GameFormats.AddAsync(format);
+			addedFormats.Add(addedGameType.Entity);
+		}
+
+		await _dbContext.SaveChangesAsync();
+		
+		return addedFormats;
+	}
 
 	public async Task<IEnumerable<GameFormat>> GetFormats()
 	{
-		return await _dbContext.GameFormats.ToListAsync();
+		return await _dbContext.GameFormats.ToHashSetAsync();
+	}
+	
+	public async Task<HashSet<GameFormat>> GetFormats(SourceType source)
+	{
+		return await _dbContext.GameFormats
+			.Where(format => format.SourceId == (int)source)
+			.ToHashSetAsync();
 	}
 	
 	public async Task<GameFormat> GetFormat(int formatId)
