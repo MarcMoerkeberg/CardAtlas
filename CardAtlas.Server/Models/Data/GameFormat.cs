@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data;
 
-public class Format
+public class GameFormat
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]

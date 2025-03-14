@@ -13,9 +13,9 @@ public class CardLegality
 	public required long CardId { get; set; }
 	public Card Card { get; set; } = null!;
 
-	[ForeignKey("FormatId")]
-	public required int FormatId { get; set; }
-	public Format Format { get; set; } = null!;
+	[ForeignKey("GameFormatId")]
+	public required int GameFormatId { get; set; }
+	public GameFormat GameFormat { get; set; } = null!;
 
 	[ForeignKey("LegalityId")]
 	public int LegalityId { get; set; }
