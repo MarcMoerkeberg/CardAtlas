@@ -23,7 +23,8 @@ public class SetComparer : IEqualityComparer<Set>
 			&& x.IsDigitalOnly == y.IsDigitalOnly
 			&& x.IsFoilOnly == y.IsFoilOnly
 			&& x.IsNonFoilOnly == y.IsNonFoilOnly
-			&& Equals(x.ReleaseDate, y.ReleaseDate);
+			&& Equals(x.ReleaseDate, y.ReleaseDate)
+			&& x.SourceId == y.SourceId;
 	}
 
 	public int GetHashCode(Set obj)
@@ -44,6 +45,7 @@ public class SetComparer : IEqualityComparer<Set>
 		hash.Add(obj.IsFoilOnly);
 		hash.Add(obj.IsNonFoilOnly);
 		hash.Add(obj.ReleaseDate);
+		hash.Add(obj.SourceId);
 
 		return hash.ToHashCode();
 	}

@@ -22,7 +22,8 @@ public static class SetDataHelper
 			IsDigitalOnly = false,
 			IsFoilOnly = false,
 			IsNonFoilOnly = false,
-			ReleaseDate = new DateOnly(2025, 1, 1)
+			ReleaseDate = new DateOnly(2025, 1, 1),
+			SourceId = (int)SourceType.Scryfall,
 		};
 	}
 }

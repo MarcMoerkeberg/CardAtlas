@@ -35,6 +35,7 @@ public static class SetMapper
 			IsFoilOnly = apiSet.IsFoilOnly,
 			IsNonFoilOnly = apiSet.IsNonFoilOnly,
 			ReleaseDate = apiSet.ReleasedDate,
+			SourceId = (int)SourceType.Scryfall,
 		};
 	}
 
@@ -93,5 +94,6 @@ public static class SetMapper
 		target.IsFoilOnly = source.IsFoilOnly;
 		target.IsNonFoilOnly = source.IsNonFoilOnly;
 		target.ReleaseDate = source.ReleaseDate;
+		target.SourceId = source.SourceId;
 	}
 }
