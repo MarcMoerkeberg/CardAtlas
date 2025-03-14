@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.Extensions;
+using CardAtlas.Server.Helpers;
 using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
@@ -50,6 +51,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			await UpsertCardPrices(apiCard);
 			await UpdatePrintFinishes(apiCard);
 			await UpdateGameTypes(apiCard);
+			await CreateMissingGameFormats(apiCard);
 			UpsertKeywords(apiCard);
 			UpsertPromoTypes(apiCard);
 			UpsertLegality(apiCard);
@@ -406,11 +408,24 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			.Union(newGameTypes);
 	}
 
-	private void UpsertLegality(ApiCard card)
+	private async Task<CardLegality> UpsertLegality(ApiCard card)
 	{
 		//Upsert formats
 		//Upsert CardLegalities
 		throw new NotImplementedException();
+	}
+
+	private async Task<IEnumerable<GameFormat>> CreateMissingGameFormats(ApiCard apiCard)
+	{
+		HashSet<GameFormat> existingFormats = await _gameService.GetFormats(SourceType.Scryfall);
+		HashSet<GameFormat> missingFormats = GameHelpers.GetMissingGameFormats(apiCard, existingFormats);
+
+		if(missingFormats.Any())
+		{
+			await _gameService.CreateFormats(missingFormats);
+		}
+
+		return existingFormats;
 	}
 
 	private void UpsertPromoTypes(ApiCard card)
