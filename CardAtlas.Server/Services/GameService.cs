@@ -1,6 +1,8 @@
 ﻿using CardAtlas.Server.DAL;
+using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace CardAtlas.Server.Services;
@@ -27,5 +29,24 @@ public class GameService : IGameService
 		await _dbContext.SaveChangesAsync();
 
 		return addedCardGameTypes;
+	}
+
+	public async Task<GameFormat> CreateFormat(GameFormat format)
+	{
+		EntityEntry<GameFormat> addedGameType = await _dbContext.GameFormats.AddAsync(format);
+		await _dbContext.SaveChangesAsync();
+		
+		return addedGameType.Entity;
+	}
+
+	public async Task<IEnumerable<GameFormat>> GetFormats()
+	{
+		return await _dbContext.GameFormats.ToListAsync();
+	}
+	
+	public async Task<GameFormat> GetFormat(int formatId)
+	{
+		return await _dbContext.GameFormats
+			.SingleAsync(gameFormat => gameFormat.Id == formatId);
 	}
 }
