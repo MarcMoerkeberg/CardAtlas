@@ -12,6 +12,7 @@ class ComparerTests
 	private readonly SetComparer _setComparer = new SetComparer();
 	private readonly CardImageComparer _cardImageComparer = new CardImageComparer();
 	private readonly CardPriceComparer _cardPriceComparer = new CardPriceComparer();
+	private readonly CardLegalityComparer _cardLegalityComparer = new CardLegalityComparer();
 
 	[Test]
 	public void CardEqualityComparer_Equals_ExpectsMatchingObjectsTrue()
@@ -86,5 +87,24 @@ class ComparerTests
 		CardPrice cardPrice2 = CardDataHelper.CreateCardPrice(cardId: 2);
 
 		Assert.That(_cardPriceComparer.Equals(cardPrice1, cardPrice2), Is.False);
+	}
+
+	[Test]
+	public void CardLegalityComparer_Equals_ExpectsMatchingObjectsTrue()
+	{
+		CardLegality cardLegality1 = CardDataHelper.CreateCardLegality();
+		CardLegality cardLegality2 = CardDataHelper.CreateCardLegality();
+
+		Assert.That(_cardLegalityComparer.Equals(cardLegality1, cardLegality2), Is.True);
+	}
+
+	[Test]
+	public void CardLegalityComparer_Equals_ExpectsMatchingObjectsFalse()
+	{
+		CardLegality cardLegality1 = CardDataHelper.CreateCardLegality();
+		CardLegality cardLegality2 = CardDataHelper.CreateCardLegality();
+		cardLegality2.Id = 2;
+
+		Assert.That(_cardLegalityComparer.Equals(cardLegality1, cardLegality2), Is.False);
 	}
 }

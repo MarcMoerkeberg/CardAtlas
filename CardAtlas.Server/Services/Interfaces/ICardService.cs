@@ -80,4 +80,53 @@ public interface ICardService
 	/// </summary>
 	/// <returns>The added <see cref="CardPrintFinish"/> entities with identity.</returns>
 	Task<IEnumerable<CardPrintFinish>> CreateCardPrintFinishes(IEnumerable<CardPrintFinish> cardPrintFinishes);
+
+	/// <summary>
+	/// Returns the <see cref="CardLegality"/> from the db with the specified <paramref name="cardLegalityId"/>.<br/>
+	/// Throws an <see cref="InvalidOperationException"/> if no, or one or more <see cref="CardLegality"/> entities is found.
+	/// </summary>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<CardLegality> GetCardLegality(long cardLegalityId);
+
+	/// <summary>
+	/// Adds the <paramref name="legality"/> to the database.
+	/// </summary>
+	/// <returns>The added <see cref="CardLegality"/> with identity.</returns>
+	Task<CardLegality> CreateCradLegality(CardLegality legality);
+
+	/// <summary>
+	/// Adds a new <see cref="CardLegality"/> entry in the database for each <paramref name="legalities"/>.
+	/// </summary>
+	/// <returns>The added <see cref="CardLegality"/> entities with identity.</returns>
+	Task<IEnumerable<CardLegality>> CreateCradLegality(IEnumerable<CardLegality> legalities);
+
+	/// <summary>
+	/// Updates the existing entity from <paramref name="legalityWithChanges"/>.
+	/// </summary>
+	/// <returns>The updated <see cref="CardLegality"/> entity.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<CardLegality> UpdateCardLegality(CardLegality legalityWithChanges);
+
+	/// <summary>
+	/// Updates the existing entites from <paramref name="legalitiesWithChanges"/>.
+	/// </summary>
+	/// <returns>The updated <see cref="CardLegality"/> entities.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<IEnumerable<CardLegality>> UpdateCardLegalities(IEnumerable<CardLegality> legalitiesWithChanges);
+
+	/// <summary>
+	/// Updates the existing entity with changes from <paramref name="legalityWithChanges"/>.<br/>
+	/// Does not update if there are no changes.
+	/// </summary>
+	/// <returns>The updated <see cref="CardLegality"/> entity.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<CardLegality> UpdateCardLegalityIfChanged(CardLegality legalityWithChanges);
+
+	/// <summary>
+	/// Updates the existing entites with changes from <paramref name="legalitiesWithChanges"/>.<br/>
+	/// Does not update if there are no changes.
+	/// </summary>
+	/// <returns>The updated <see cref="CardLegality"/> entites.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<IEnumerable<CardLegality>> UpdateCardLegalitiesIfChanged(IEnumerable<CardLegality> legalitiesWithChanges);
 }

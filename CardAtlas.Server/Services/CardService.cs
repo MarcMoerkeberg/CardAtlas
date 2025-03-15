@@ -11,14 +11,17 @@ namespace CardAtlas.Server.Services;
 public class CardService : ICardService
 {
 	private readonly IEqualityComparer<Card> _cardComparer;
+	private readonly IEqualityComparer<CardLegality> _cardLegalityComparer;
 	private readonly IEqualityComparer<CardPrice> _cardPriceComparer;
 	private readonly ApplicationDbContext _dbContext;
 	public CardService(
 		IEqualityComparer<Card> comparer,
+		IEqualityComparer<CardLegality> cardLegalityComparer,
 		IEqualityComparer<CardPrice> cardPriceComparer,
 		ApplicationDbContext dbContext)
 	{
 		_cardComparer = comparer;
+		_cardLegalityComparer = cardLegalityComparer;
 		_cardPriceComparer = cardPriceComparer;
 		_dbContext = dbContext;
 	}
@@ -65,6 +68,7 @@ public class CardService : ICardService
 			.Include(card => card.Set)
 			.Include(card => card.Prices)
 			.Include(card => card.CardPrintFinishes)
+			.Include(card => card.Legalities)
 			.Where(card => card.ScryfallId == scryfallId)
 			.ToListAsync();
 	}
@@ -81,9 +85,9 @@ public class CardService : ICardService
 			.ToListAsync();
 	}
 
-	public async Task<CardPrice> CreatePrice(CardPrice priceToUpsert)
+	public async Task<CardPrice> CreatePrice(CardPrice cardPrice)
 	{
-		EntityEntry<CardPrice> addedPrice = await _dbContext.CardPrices.AddAsync(priceToUpsert);
+		EntityEntry<CardPrice> addedPrice = await _dbContext.CardPrices.AddAsync(cardPrice);
 		await _dbContext.SaveChangesAsync();
 
 		return addedPrice.Entity;
@@ -102,7 +106,7 @@ public class CardService : ICardService
 	{
 		CardPrice existingPrice = await GetPrice(priceToUpdate.Id);
 
-		if(!_cardPriceComparer.Equals(existingPrice, priceToUpdate))
+		if (!_cardPriceComparer.Equals(existingPrice, priceToUpdate))
 		{
 			CardPriceMapper.MergeProperties(existingPrice, priceToUpdate);
 			await _dbContext.SaveChangesAsync();
@@ -124,5 +128,94 @@ public class CardService : ICardService
 		await _dbContext.SaveChangesAsync();
 
 		return addedCardPrintFinishes;
+	}
+
+	public async Task<CardLegality> GetCardLegality(long cardLegalityId)
+	{
+		return await _dbContext.CardLegalities.SingleAsync(cardLegality => cardLegality.Id == cardLegalityId);
+	}
+
+	public async Task<CardLegality> CreateCradLegality(CardLegality legality)
+	{
+		EntityEntry<CardLegality> addedLegality = await _dbContext.CardLegalities.AddAsync(legality);
+		await _dbContext.SaveChangesAsync();
+
+		return addedLegality.Entity;
+	}
+
+	public async Task<IEnumerable<CardLegality>> CreateCradLegality(IEnumerable<CardLegality> legalities)
+	{
+		var addedLegalities = new List<CardLegality>();
+
+		foreach (var legality in legalities)
+		{
+			EntityEntry<CardLegality> addedLegality = await _dbContext.CardLegalities.AddAsync(legality);
+			addedLegalities.Add(addedLegality.Entity);
+		}
+
+		await _dbContext.SaveChangesAsync();
+
+		return addedLegalities;
+	}
+
+	public async Task<CardLegality> UpdateCardLegality(CardLegality legalityWithChanges)
+	{
+		CardLegality legalityToUpdate = await GetCardLegality(legalityWithChanges.Id);
+		CardMapper.MergeProperties(legalityToUpdate, legalityWithChanges);
+
+		await _dbContext.SaveChangesAsync();
+
+		return legalityToUpdate;
+	}
+
+	public async Task<IEnumerable<CardLegality>> UpdateCardLegalities(IEnumerable<CardLegality> legalitiesWithChanges)
+	{
+		var updatedCardLegalities = new List<CardLegality>();
+
+		foreach (var legalityWithChanges in legalitiesWithChanges)
+		{
+			CardLegality legalityToUpdate = await GetCardLegality(legalityWithChanges.Id);
+
+			CardMapper.MergeProperties(legalityToUpdate, legalityWithChanges);
+			updatedCardLegalities.Add(legalityToUpdate);
+		}
+
+		await _dbContext.SaveChangesAsync();
+
+		return updatedCardLegalities;
+	}
+
+	public async Task<CardLegality> UpdateCardLegalityIfChanged(CardLegality legalityWithChanges)
+	{
+		CardLegality legalityToUpdate = await GetCardLegality(legalityWithChanges.Id);
+
+		if (_cardLegalityComparer.Equals(legalityToUpdate, legalityWithChanges))
+		{
+			CardMapper.MergeProperties(legalityToUpdate, legalityWithChanges);
+			await _dbContext.SaveChangesAsync();
+		}
+
+		return legalityToUpdate;
+	}
+
+	public async Task<IEnumerable<CardLegality>> UpdateCardLegalitiesIfChanged(IEnumerable<CardLegality> legalitiesWithChanges)
+	{
+		var updatedCardLegalities = new List<CardLegality>();
+
+		foreach (var legalityWithChanges in legalitiesWithChanges)
+		{
+			CardLegality legalityToUpdate = await GetCardLegality(legalityWithChanges.Id);
+
+			if (_cardLegalityComparer.Equals(legalityToUpdate, legalityWithChanges))
+			{
+				CardMapper.MergeProperties(legalityToUpdate, legalityWithChanges);
+			}
+
+			updatedCardLegalities.Add(legalityToUpdate);
+		}
+
+		await _dbContext.SaveChangesAsync();
+
+		return updatedCardLegalities;
 	}
 }
