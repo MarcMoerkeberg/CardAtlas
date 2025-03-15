@@ -90,4 +90,14 @@ public static class CardDataHelper
 			CardId = cardId,
 		};
 	}
+
+	public static CardLegality CreateCardLegality()
+	{
+		return new CardLegality
+		{
+			CardId = 1,
+			GameFormatId = 1,
+			LegalityId = (int)LegalityType.NotImplemented
+		};
+	}
 }
