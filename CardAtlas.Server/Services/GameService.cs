@@ -35,10 +35,10 @@ public class GameService : IGameService
 	{
 		EntityEntry<GameFormat> addedGameType = await _dbContext.GameFormats.AddAsync(format);
 		await _dbContext.SaveChangesAsync();
-		
+
 		return addedGameType.Entity;
 	}
-	
+
 	public async Task<IEnumerable<GameFormat>> CreateFormats(IEnumerable<GameFormat> formats)
 	{
 		var addedFormats = new List<GameFormat>();
@@ -49,7 +49,7 @@ public class GameService : IGameService
 		}
 
 		await _dbContext.SaveChangesAsync();
-		
+
 		return addedFormats;
 	}
 
@@ -57,14 +57,14 @@ public class GameService : IGameService
 	{
 		return await _dbContext.GameFormats.ToHashSetAsync();
 	}
-	
+
 	public async Task<HashSet<GameFormat>> GetFormats(SourceType source)
 	{
 		return await _dbContext.GameFormats
 			.Where(format => format.SourceId == (int)source)
 			.ToHashSetAsync();
 	}
-	
+
 	public async Task<GameFormat> GetFormat(int formatId)
 	{
 		return await _dbContext.GameFormats

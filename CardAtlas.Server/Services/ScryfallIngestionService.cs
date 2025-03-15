@@ -408,13 +408,59 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			.Union(newGameTypes);
 	}
 
-	private async Task<CardLegality> UpsertLegality(ApiCard card)
+	private async Task<IEnumerable<CardLegality>> UpsertLegality(ApiCard apiCard)
 	{
-		//Upsert formats
-		//Upsert CardLegalities
-		throw new NotImplementedException();
+		var upsertedLegalities = new List<CardLegality>();
+		HashSet<GameFormat> gameFormats = await CreateMissingGameFormats(apiCard);
+		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+
+		foreach (Card card in existingCards)
+		{
+			HashSet<CardLegality> legalitiesToUpsert = CardMapper.MapCardLegalities(card.Id, apiCard, gameFormats);
+			upsertedLegalities.AddRange(await UpsertLegalities(card, legalitiesToUpsert));
+		}
+
+		return upsertedLegalities;
 	}
 
+	private async Task<HashSet<CardLegality>> UpsertLegalities(Card card, HashSet<CardLegality> legalitiesToUpsert)
+	{
+		var upsertedLegalities = new HashSet<CardLegality>();
+		var legalitiesToCreate = new HashSet<CardLegality>();
+		var legalitiesToUpdate = new HashSet<CardLegality>();
+
+		foreach (CardLegality cardLegality in legalitiesToUpsert)
+		{
+			CardLegality? existingLegality = card.Legalities.SingleOrDefault(legality => legality.GameFormatId == cardLegality.GameFormatId);
+
+			if (existingLegality is null)
+			{
+				legalitiesToCreate.Add(cardLegality);
+			}
+			else
+			{
+				cardLegality.Id = existingLegality.Id;
+				legalitiesToUpdate.Add(cardLegality);
+			}
+		}
+
+		if (legalitiesToCreate.Count > 0)
+		{
+
+		}
+
+		if (legalitiesToUpdate.Count > 0)
+		{
+
+		}
+
+		return upsertedLegalities;
+	}
+
+	/// <summary>
+	/// Creates a new <see cref="GameFormat"/> for each format not already existing.
+	/// </summary>
+	/// <returns>All <see cref="GameFormat"/> entities with <see cref="SourceType.Scryfall"/> as their source.</returns>
 	private async Task<HashSet<GameFormat>> CreateMissingGameFormats(ApiCard apiCard)
 	{
 		HashSet<GameFormat> existingFormats = await _gameService.GetFormats(SourceType.Scryfall);
