@@ -39,7 +39,7 @@ public static class GameHelpers
 
 		foreach (string scryfallFormatName in apiCard.ScryfallLegalities.Keys)
 		{
-			if (formats.ExistsWithName(scryfallFormatName)) continue;
+			if (formats.ExistsWithName(scryfallFormatName, SourceType.Scryfall)) continue;
 
 			missingFormats.Add(new GameFormat
 			{
@@ -49,13 +49,5 @@ public static class GameHelpers
 		}
 
 		return missingFormats;
-	}
-
-	private static bool ExistsWithName(this HashSet<GameFormat> formats, string formatName)
-	{
-		return formats.Any(format =>
-			format.SourceId == (int)SourceType.Scryfall &&
-			string.Equals(format.Name, formatName, StringComparison.OrdinalIgnoreCase)
-		);
 	}
 }
