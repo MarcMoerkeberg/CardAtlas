@@ -3,7 +3,6 @@ using CardAtlas.Server.Helpers;
 using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
-using CardAtlas.Server.Models.Data.Cards;
 using CardAtlas.Server.Models.Data.Image;
 using CardAtlas.Server.Services.Interfaces;
 using ScryfallApi;
@@ -45,6 +44,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
+			//TODO: Add memorycache module
 			await UpsertCard(apiCard);
 
 			await UpsertCardImages(apiCard);
@@ -52,9 +52,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			await UpdatePrintFinishes(apiCard);
 			await UpdateGameTypes(apiCard);
 			await CreateMissingGameFormats(apiCard);
+			await UpsertLegality(apiCard);
 			UpsertKeywords(apiCard);
 			UpsertPromoTypes(apiCard);
-			UpsertLegality(apiCard);
 		}
 	}
 
@@ -77,7 +77,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 				mappedSet.Id = existingSet.Id;
 				await _setService.UpdateIfChanged(mappedSet);
 			}
-			
+
 			rowsAffected++;
 		}
 
@@ -209,8 +209,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		IEnumerable<Card> existingCard = await _cardService.GetFromScryfallId(apiCard.Id);
 
-		return existingCard.Any() 
-			? existingCard.FindMatchByName(cardFace) 
+		return existingCard.Any()
+			? existingCard.FindMatchByName(cardFace)
 			: null;
 	}
 
@@ -254,7 +254,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		if (cardImageryOwner is null) return new List<CardImage>();
 
 		IEnumerable<CardImage> imagesToUpsert = CardImageMapper.MapCardImages(cardImageryOwner.Id, apiCard);
-		
+
 		return await UpsertCardImages(cardImageryOwner, imagesToUpsert);
 	}
 
@@ -266,12 +266,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private async Task<IEnumerable<CardImage>> UpsertCardImages(Card imageryOwner, IEnumerable<CardImage> imagesToUpsert)
 	{
 		var upsertedCardImages = new List<CardImage>();
-		if(!imagesToUpsert.Any()) return upsertedCardImages;
+		if (!imagesToUpsert.Any()) return upsertedCardImages;
 
-		IEnumerable<CardImage> existingImages = imageryOwner.Images.Any() 
-			? imageryOwner.Images 
+		IEnumerable<CardImage> existingImages = imageryOwner.Images.Any()
+			? imageryOwner.Images
 			: await _cardImageService.GetFromCardId(imageryOwner.Id);
-		
+
 		foreach (CardImage imageToUpsert in imagesToUpsert)
 		{
 			CardImage? existingCardImage = existingImages.FindMatchByTypeAndSource(imageToUpsert);
@@ -295,7 +295,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		var upsertedCardPrices = new List<CardPrice>();
 
 		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
-		if(!existingCards.Any()) return upsertedCardPrices;
+		if (!existingCards.Any()) return upsertedCardPrices;
 
 		foreach (Card card in existingCards)
 		{
@@ -322,7 +322,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		foreach (CardPrice priceToUpsert in pricesToUpsert)
 		{
 			CardPrice? existingCardPrice = existingPrices.FindMatchByVendorAndCurrency(priceToUpsert);
-			
+
 			if (existingCardPrice is null)
 			{
 				upsertedCardPrices.Add(await _cardService.CreatePrice(priceToUpsert));
@@ -361,15 +361,15 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		HashSet<PrintFinishType> apiPrintFinishes = CardMapper.MapPrintFinishes(apiCard);
 		IEnumerable<CardPrintFinish> missingFinishes = apiPrintFinishes
 			.Where(apiFinish => !card.PrintFinishes.Contains(apiFinish))
-			.Select(apiFinish => 
-				new CardPrintFinish 
-				{	
-					CardId = card.Id, 
+			.Select(apiFinish =>
+				new CardPrintFinish
+				{
+					CardId = card.Id,
 					PrintFinishId = (int)apiFinish
 				}
 			);
-		
-		if(!missingFinishes.Any()) return card.CardPrintFinishes;
+
+		if (!missingFinishes.Any()) return card.CardPrintFinishes;
 
 		var newPrintFinishes = await _cardService.CreateCardPrintFinishes(missingFinishes);
 
@@ -415,17 +415,17 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		throw new NotImplementedException();
 	}
 
-	private async Task<IEnumerable<GameFormat>> CreateMissingGameFormats(ApiCard apiCard)
+	private async Task<HashSet<GameFormat>> CreateMissingGameFormats(ApiCard apiCard)
 	{
 		HashSet<GameFormat> existingFormats = await _gameService.GetFormats(SourceType.Scryfall);
 		HashSet<GameFormat> missingFormats = GameHelpers.GetMissingGameFormats(apiCard, existingFormats);
 
-		if(missingFormats.Any())
+		if (missingFormats.Any())
 		{
 			await _gameService.CreateFormats(missingFormats);
 		}
 
-		return existingFormats;
+		return existingFormats.Union(missingFormats).ToHashSet();
 	}
 
 	private void UpsertPromoTypes(ApiCard card)

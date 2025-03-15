@@ -2,7 +2,6 @@
 using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
-using CardAtlas.Server.Models.Data.Cards;
 using CardAtlas.Server.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;

@@ -1,6 +1,6 @@
 ﻿using CardAtlas.Server.Comparers;
 using CardAtlas.Server.Models.Data;
-using CardAtlas.Server.Models.Data.Cards;
+using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Image;
 using CardAtlas.UnitTests.DataHelpers;
 
@@ -59,7 +59,7 @@ class ComparerTests
 
 		Assert.That(_cardImageComparer.Equals(cardImage1, cardImage2), Is.True);
 	}
-	
+
 	[Test]
 	public void ImageEqualityComparer_Equals_ExpectsMatchingObjectsFalse()
 	{
@@ -69,7 +69,7 @@ class ComparerTests
 
 		Assert.That(_cardImageComparer.Equals(cardImage1, cardImage2), Is.False);
 	}
-	
+
 	[Test]
 	public void CardPriceComparer_Equals_ExpectsMatchingObjectsTrue()
 	{
@@ -78,7 +78,7 @@ class ComparerTests
 
 		Assert.That(_cardPriceComparer.Equals(cardPrice1, cardPrice2), Is.True);
 	}
-	
+
 	[Test]
 	public void CardPriceComparer_Equals_ExpectsMatchingObjectsFalse()
 	{

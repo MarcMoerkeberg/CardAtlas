@@ -1,6 +1,5 @@
 ﻿using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
-using CardAtlas.Server.Models.Data.Cards;
 
 namespace CardAtlas.Server.Services.Interfaces;
 

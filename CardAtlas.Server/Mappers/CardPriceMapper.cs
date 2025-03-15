@@ -1,5 +1,5 @@
 ﻿using CardAtlas.Server.Models.Data;
-using CardAtlas.Server.Models.Data.Cards;
+using CardAtlas.Server.Models.Data.CardRelations;
 using ApiCard = ScryfallApi.Models.Card;
 
 namespace CardAtlas.Server.Mappers;

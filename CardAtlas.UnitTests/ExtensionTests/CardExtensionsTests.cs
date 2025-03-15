@@ -1,6 +1,6 @@
 ﻿using CardAtlas.Server.Extensions;
 using CardAtlas.Server.Models.Data;
-using CardAtlas.Server.Models.Data.Cards;
+using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.UnitTests.DataHelpers;
 using CardFace = ScryfallApi.Models.CardFace;
 

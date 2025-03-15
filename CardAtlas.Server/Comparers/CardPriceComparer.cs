@@ -1,4 +1,4 @@
-﻿using CardAtlas.Server.Models.Data.Cards;
+﻿using CardAtlas.Server.Models.Data.CardRelations;
 
 namespace CardAtlas.Server.Comparers;
 
