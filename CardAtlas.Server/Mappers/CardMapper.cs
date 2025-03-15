@@ -1,4 +1,6 @@
-﻿using CardAtlas.Server.Models.Data;
+﻿using CardAtlas.Server.Extensions;
+using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.CardRelations;
 using ApiCard = ScryfallApi.Models.Card;
 using CardFace = ScryfallApi.Models.CardFace;
 using FrameLayoutType = ScryfallApi.Models.Types.FrameLayoutType;
@@ -194,5 +196,53 @@ public static class CardMapper
 		}
 
 		return printFinishes;
+	}
+
+	public static HashSet<CardLegality> MapCardLegalities(long cardId, ApiCard apiCard, HashSet<GameFormat> gameFormats)
+	{
+		var legalities = new HashSet<CardLegality>();
+		if (apiCard.ScryfallLegalities is { Count: 0 } || gameFormats is { Count: 0 }) return legalities;
+
+		foreach (var (key, value) in apiCard.ScryfallLegalities)
+		{
+			GameFormat? gameFormat = gameFormats.GetWithName(key);
+			if (gameFormat is null) continue;
+
+			legalities.Add(new CardLegality
+			{
+				CardId = cardId,
+				GameFormatId = gameFormat.Id,
+				LegalityId = (int)GetLegalityType(value),
+			});
+		}
+
+		return legalities;
+	}
+
+	private static LegalityType GetLegalityType(string scryfallLegality)
+	{
+		return scryfallLegality switch
+		{
+			"legal" => LegalityType.Legal,
+			"not_legal" => LegalityType.NotLegal,
+			"restricted" => LegalityType.Restricted,
+			"banned" => LegalityType.Banned,
+			_ => LegalityType.NotImplemented
+		};
+	}
+
+	/// <summary>
+	/// Assigns all intrinsic properties from the <paramref name="source"/> onto the <paramref name="target"/>.<br/>
+	/// These properties represent the core data of the <see cref="CardLegality"/> (such as identifiers, text, numeric values, etc.)
+	/// that are directly managed by the CardLegality entity, excluding any navigational or derived properties.
+	/// </summary>
+	/// <param name="target">The entity being updated.</param>
+	/// <param name="source">The properties of this object will be assigned to <paramref name="target"/>.</param>
+	public static void MergeProperties(CardLegality target, CardLegality source)
+	{
+		target.Id = source.Id;
+		target.CardId = source.CardId;
+		target.GameFormatId = source.GameFormatId;
+		target.LegalityId = source.LegalityId;
 	}
 }
