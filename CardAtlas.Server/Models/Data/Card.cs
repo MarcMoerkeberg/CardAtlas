@@ -102,7 +102,7 @@ public class Card
 	public required int FrameLayoutId { get; set; }
 
 	[InverseProperty("Card")]
-	public ICollection<CardLegality> Legality { get; set; } = new HashSet<CardLegality>();
+	public ICollection<CardLegality> Legalities { get; set; } = new HashSet<CardLegality>();
 
 	[InverseProperty("Card")]
 	public ICollection<CardPrintFinish> CardPrintFinishes { get; set; } = new HashSet<CardPrintFinish>();
