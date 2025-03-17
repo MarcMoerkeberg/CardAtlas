@@ -250,4 +250,21 @@ public static class CardMapper
 		target.GameFormatId = source.GameFormatId;
 		target.LegalityId = source.LegalityId;
 	}
+
+	public static HashSet<Keyword> MapKeywords(ApiCard apiCard)
+	{
+		var keywords = new HashSet<Keyword>();
+		if (apiCard.Keywords is { Length: 0 }) return keywords;
+
+		foreach (var keyword in apiCard.Keywords)
+		{
+			keywords.Add(new Keyword
+			{
+				Name = keyword,
+				SourceId = (int)SourceType.Scryfall,
+			});
+		}
+
+		return keywords;
+	}
 }
