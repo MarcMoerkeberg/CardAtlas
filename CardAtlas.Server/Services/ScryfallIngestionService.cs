@@ -47,14 +47,16 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			//TODO: Add memorycache module
 			await UpsertCard(apiCard);
 
-			await UpsertCardImages(apiCard);
-			await UpsertCardPrices(apiCard);
-			await UpdatePrintFinishes(apiCard);
-			await UpdateGameTypes(apiCard);
-			await CreateMissingGameFormats(apiCard);
-			await UpsertLegality(apiCard);
-			UpsertKeywords(apiCard);
-			UpsertPromoTypes(apiCard);
+			await Task.WhenAll(
+				UpsertCardImages(apiCard),
+				UpsertCardPrices(apiCard),
+				UpdatePrintFinishes(apiCard),
+				UpdateGameTypes(apiCard),
+				CreateMissingGameFormats(apiCard),
+				UpsertLegality(apiCard),
+				UpsertKeywords(apiCard),
+				UpsertPromoTypes(apiCard)
+			);
 		}
 	}
 
@@ -471,12 +473,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return existingFormats.Union(missingFormats).ToHashSet();
 	}
 
-	private void UpsertPromoTypes(ApiCard card)
+	private async Task UpsertKeywords(ApiCard card)
 	{
 		throw new NotImplementedException();
 	}
 
-	private void UpsertKeywords(ApiCard card)
+	private async Task UpsertPromoTypes(ApiCard card)
 	{
 		throw new NotImplementedException();
 	}
