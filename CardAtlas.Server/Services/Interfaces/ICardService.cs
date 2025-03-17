@@ -129,4 +129,27 @@ public interface ICardService
 	/// <returns>The updated <see cref="CardLegality"/> entites.</returns>
 	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
 	Task<IEnumerable<CardLegality>> UpdateCardLegalitiesIfChanged(IEnumerable<CardLegality> legalitiesWithChanges);
+
+	/// <summary>
+	/// Returns all <see cref="Keyword"/> entities from the database.
+	/// </summary>
+	/// <returns></returns>
+	Task<IEnumerable<Keyword>> GetKeywords();
+
+	/// <summary>
+	/// Returns all <see cref="Keyword"/> entities with the source <paramref name="source"/> from the database.
+	/// </summary>
+	Task<IEnumerable<Keyword>> GetKeywords(SourceType source);
+
+	/// <summary>
+	/// Adds the <paramref name="keyword"/> to the database.
+	/// </summary>
+	/// <returns>The added <see cref="Keyword"/> with identity.</returns>
+	Task<Keyword> CreateKeyword(Keyword keyword);
+
+	/// <summary>
+	/// Adds a new <see cref="Keyword"/> entry in the database for each <paramref name="keywords"/>.
+	/// </summary>
+	/// <returns>The added <see cref="Keyword"/> entities with identity.</returns>
+	Task<IEnumerable<Keyword>> CreateKeywords(IEnumerable<Keyword> keywords);
 }

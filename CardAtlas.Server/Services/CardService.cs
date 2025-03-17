@@ -146,7 +146,7 @@ public class CardService : ICardService
 	public async Task<IEnumerable<CardLegality>> CreateCardLegalities(IEnumerable<CardLegality> legalities)
 	{
 		var addedLegalities = new List<CardLegality>();
-		if(!legalities.Any()) return addedLegalities;
+		if (!legalities.Any()) return addedLegalities;
 
 		foreach (var legality in legalities)
 		{
@@ -172,7 +172,7 @@ public class CardService : ICardService
 	public async Task<IEnumerable<CardLegality>> UpdateCardLegalities(IEnumerable<CardLegality> legalitiesWithChanges)
 	{
 		var updatedCardLegalities = new List<CardLegality>();
-		if(!legalitiesWithChanges.Any()) return updatedCardLegalities;
+		if (!legalitiesWithChanges.Any()) return updatedCardLegalities;
 
 		foreach (var legalityWithChanges in legalitiesWithChanges)
 		{
@@ -203,7 +203,7 @@ public class CardService : ICardService
 	public async Task<IEnumerable<CardLegality>> UpdateCardLegalitiesIfChanged(IEnumerable<CardLegality> legalitiesWithChanges)
 	{
 		var updatedCardLegalities = new List<CardLegality>();
-		if(!legalitiesWithChanges.Any()) return updatedCardLegalities;
+		if (!legalitiesWithChanges.Any()) return updatedCardLegalities;
 
 		foreach (var legalityWithChanges in legalitiesWithChanges)
 		{
@@ -220,5 +220,39 @@ public class CardService : ICardService
 		await _dbContext.SaveChangesAsync();
 
 		return updatedCardLegalities;
+	}
+
+	public async Task<IEnumerable<Keyword>> GetKeywords()
+	{
+		return await _dbContext.Keywords.ToListAsync();
+	}
+
+	public async Task<IEnumerable<Keyword>> GetKeywords(SourceType source)
+	{
+		return await _dbContext.Keywords
+			.Where(keyword => keyword.SourceId == (int)source)
+			.ToListAsync();
+	}
+
+	public async Task<Keyword> CreateKeyword(Keyword keyword)
+	{
+		EntityEntry<Keyword> addedKeyword = await _dbContext.Keywords.AddAsync(keyword);
+		await _dbContext.SaveChangesAsync();
+
+		return addedKeyword.Entity;
+	}
+
+	public async Task<IEnumerable<Keyword>> CreateKeywords(IEnumerable<Keyword> keywords)
+	{
+		var addedKeywords = new List<Keyword>();
+
+		foreach (Keyword keywordToAdd in keywords)
+		{
+			EntityEntry<Keyword> addedKeyword = await _dbContext.Keywords.AddAsync(keywordToAdd);
+			addedKeywords.Add(addedKeyword.Entity);
+		}
+		await _dbContext.SaveChangesAsync();
+
+		return addedKeywords;
 	}
 }

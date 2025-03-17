@@ -479,7 +479,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
 
-		foreach(Card card in existingCards)
+		foreach (Card card in existingCards)
 		{
 			await UpsertKeywordAssociation(apiCard, card);
 		}
@@ -487,6 +487,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	private async Task CreateMissingKeywords(ApiCard apiCard)
 	{
+		IEnumerable<Keyword> existingKeywords = await _cardService.GetKeywords();
 		HashSet<Keyword> apiCardKeywords = CardMapper.MapKeywords(apiCard);
 
 	}
