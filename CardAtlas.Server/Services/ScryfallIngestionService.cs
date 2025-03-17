@@ -408,7 +408,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			.Union(newGameTypes);
 	}
 
-	private async Task<IEnumerable<CardLegality>> UpsertLegality(ApiCard apiCard)
+	public async Task<IEnumerable<CardLegality>> UpsertLegality(ApiCard apiCard)
 	{
 		var upsertedLegalities = new List<CardLegality>();
 		HashSet<GameFormat> gameFormats = await CreateMissingGameFormats(apiCard);
@@ -423,38 +423,35 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return upsertedLegalities;
 	}
 
-	private async Task<HashSet<CardLegality>> UpsertLegalities(Card card, HashSet<CardLegality> legalitiesToUpsert)
+	/// <summary>
+	/// Creates or updates legalities associated with the <paramref name="card"/>.
+	/// </summary>
+	/// <returns>All created or updated <see cref="CardLegality"/> entities.</returns>
+	private async Task<IEnumerable<CardLegality>> UpsertLegalities(Card card, HashSet<CardLegality> legalitiesToUpsert)
 	{
-		var upsertedLegalities = new HashSet<CardLegality>();
-		var legalitiesToCreate = new HashSet<CardLegality>();
 		var legalitiesToUpdate = new HashSet<CardLegality>();
+		var legalitiesToCreate = new HashSet<CardLegality>();
+		Dictionary<(long CardId, int GameFormatId), CardLegality> existingLegalities = card.Legalities.ToDictionary(legality => (legality.CardId, legality.GameFormatId));
 
-		foreach (CardLegality cardLegality in legalitiesToUpsert)
+		foreach (CardLegality upsertLegality in legalitiesToUpsert)
 		{
-			CardLegality? existingLegality = card.Legalities.SingleOrDefault(legality => legality.GameFormatId == cardLegality.GameFormatId);
-
-			if (existingLegality is null)
+			if (existingLegalities.TryGetValue((upsertLegality.CardId, upsertLegality.GameFormatId), out CardLegality? existingLegality))
 			{
-				legalitiesToCreate.Add(cardLegality);
+				upsertLegality.Id = existingLegality.Id;
+				legalitiesToUpdate.Add(upsertLegality);
 			}
 			else
 			{
-				cardLegality.Id = existingLegality.Id;
-				legalitiesToUpdate.Add(cardLegality);
+				legalitiesToCreate.Add(upsertLegality);
 			}
 		}
 
-		if (legalitiesToCreate.Count > 0)
-		{
+		IEnumerable<CardLegality>[] upsertedLegalitiesArray = await Task.WhenAll(
+			_cardService.UpdateCardLegalitiesIfChanged(legalitiesToUpdate),
+			_cardService.CreateCardLegalities(legalitiesToCreate)
+		);
 
-		}
-
-		if (legalitiesToUpdate.Count > 0)
-		{
-
-		}
-
-		return upsertedLegalities;
+		return upsertedLegalitiesArray.SelectMany(upsertedLegalities => upsertedLegalities);
 	}
 
 	/// <summary>

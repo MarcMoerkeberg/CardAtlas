@@ -47,4 +47,10 @@ public interface IScryfallIngestionService
 	/// </summary>
 	/// <returns>All <see cref="CardGameType"/> associated with the <see cref="Card"/> entities found from <paramref name="apiCard"/> after updating.</returns>
 	Task<IEnumerable<CardGameType>> UpdateGameTypes(ApiCard apiCard);
+
+	/// <summary>
+	/// Upserts card legality information from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/> entities.
+	/// </summary>
+	/// <returns>All created or updated <see cref="CardLegality"/> entities.</returns>
+	Task<IEnumerable<CardLegality>> UpsertLegality(ApiCard apiCard);
 }

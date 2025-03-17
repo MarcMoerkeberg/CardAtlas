@@ -92,13 +92,13 @@ public interface ICardService
 	/// Adds the <paramref name="legality"/> to the database.
 	/// </summary>
 	/// <returns>The added <see cref="CardLegality"/> with identity.</returns>
-	Task<CardLegality> CreateCradLegality(CardLegality legality);
+	Task<CardLegality> CreateCardLegality(CardLegality legality);
 
 	/// <summary>
 	/// Adds a new <see cref="CardLegality"/> entry in the database for each <paramref name="legalities"/>.
 	/// </summary>
 	/// <returns>The added <see cref="CardLegality"/> entities with identity.</returns>
-	Task<IEnumerable<CardLegality>> CreateCradLegality(IEnumerable<CardLegality> legalities);
+	Task<IEnumerable<CardLegality>> CreateCardLegalities(IEnumerable<CardLegality> legalities);
 
 	/// <summary>
 	/// Updates the existing entity from <paramref name="legalityWithChanges"/>.

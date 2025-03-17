@@ -135,7 +135,7 @@ public class CardService : ICardService
 		return await _dbContext.CardLegalities.SingleAsync(cardLegality => cardLegality.Id == cardLegalityId);
 	}
 
-	public async Task<CardLegality> CreateCradLegality(CardLegality legality)
+	public async Task<CardLegality> CreateCardLegality(CardLegality legality)
 	{
 		EntityEntry<CardLegality> addedLegality = await _dbContext.CardLegalities.AddAsync(legality);
 		await _dbContext.SaveChangesAsync();
@@ -143,9 +143,10 @@ public class CardService : ICardService
 		return addedLegality.Entity;
 	}
 
-	public async Task<IEnumerable<CardLegality>> CreateCradLegality(IEnumerable<CardLegality> legalities)
+	public async Task<IEnumerable<CardLegality>> CreateCardLegalities(IEnumerable<CardLegality> legalities)
 	{
 		var addedLegalities = new List<CardLegality>();
+		if(!legalities.Any()) return addedLegalities;
 
 		foreach (var legality in legalities)
 		{
@@ -171,6 +172,7 @@ public class CardService : ICardService
 	public async Task<IEnumerable<CardLegality>> UpdateCardLegalities(IEnumerable<CardLegality> legalitiesWithChanges)
 	{
 		var updatedCardLegalities = new List<CardLegality>();
+		if(!legalitiesWithChanges.Any()) return updatedCardLegalities;
 
 		foreach (var legalityWithChanges in legalitiesWithChanges)
 		{
@@ -201,6 +203,7 @@ public class CardService : ICardService
 	public async Task<IEnumerable<CardLegality>> UpdateCardLegalitiesIfChanged(IEnumerable<CardLegality> legalitiesWithChanges)
 	{
 		var updatedCardLegalities = new List<CardLegality>();
+		if(!legalitiesWithChanges.Any()) return updatedCardLegalities;
 
 		foreach (var legalityWithChanges in legalitiesWithChanges)
 		{
