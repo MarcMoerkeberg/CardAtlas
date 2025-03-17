@@ -473,8 +473,30 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return existingFormats.Union(missingFormats).ToHashSet();
 	}
 
-	private async Task UpsertKeywords(ApiCard card)
+	private async Task UpsertKeywords(ApiCard apiCard)
 	{
+		//Create all not existing keywords
+
+		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+
+		foreach(Card card in existingCards)
+		{
+			await UpsertKeywordAssociation(apiCard, card);
+		}
+	}
+
+	private async Task CreateMissingKeywords(ApiCard apiCard)
+	{
+		HashSet<Keyword> apiCardKeywords = CardMapper.MapKeywords(apiCard);
+
+	}
+
+
+	private async Task UpsertKeywordAssociation(ApiCard apiCard, Card card)
+	{
+
+
+
 		throw new NotImplementedException();
 	}
 
