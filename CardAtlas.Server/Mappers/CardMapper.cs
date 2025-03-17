@@ -198,6 +198,11 @@ public static class CardMapper
 		return printFinishes;
 	}
 
+	/// <summary>
+	/// Maps the legalities from <paramref name="apiCard"/> to <see cref="CardLegality"/> objects associating the <see cref="Card"/> with <paramref name="cardId"/>.<br/>
+	/// Should have all relevant <see cref="GameFormat"/> entities loaded in <paramref name="gameFormats"/> to properly map the legalities.
+	/// </summary>
+	/// <returns>A new <see cref="CardLegality"/> object for each format that exists in <paramref name="gameFormats"/> and <paramref name="apiCard"/>.</returns>
 	public static HashSet<CardLegality> MapCardLegalities(long cardId, ApiCard apiCard, HashSet<GameFormat> gameFormats)
 	{
 		var legalities = new HashSet<CardLegality>();
