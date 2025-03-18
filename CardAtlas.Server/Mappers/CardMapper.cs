@@ -267,4 +267,20 @@ public static class CardMapper
 
 		return keywords;
 	}
+
+	public static HashSet<CardKeyword> MapCardKeywords(long cardId, IEnumerable<Keyword> keywordsOnCard)
+	{
+		HashSet<CardKeyword> keywords = new();
+
+		foreach (var keyword in keywordsOnCard)
+		{
+			keywords.Add(new CardKeyword
+			{
+				CardId = cardId,
+				KeywordId = keyword.Id,
+			});
+		}
+
+		return keywords;
+	}
 }

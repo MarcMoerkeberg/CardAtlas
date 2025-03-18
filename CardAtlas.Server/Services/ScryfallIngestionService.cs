@@ -475,30 +475,67 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	private async Task UpsertKeywords(ApiCard apiCard)
 	{
-		//Create all not existing keywords
-
 		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		IEnumerable<Keyword> keywordsOnCard = await GetKeywords(apiCard);
 
 		foreach (Card card in existingCards)
 		{
-			await UpsertKeywordAssociation(apiCard, card);
+			HashSet<CardKeyword> keywordAssociations = CardMapper.MapCardKeywords(card.Id, keywordsOnCard);
+			await UpsertKeywordAssociation(card, keywordAssociations);
 		}
 	}
 
-	private async Task CreateMissingKeywords(ApiCard apiCard)
+	private async Task<IEnumerable<Keyword>> GetKeywords(ApiCard apiCard)
 	{
-		IEnumerable<Keyword> existingKeywords = await _cardService.GetKeywords();
+		IEnumerable<Keyword> existingKeywords = await _cardService.GetKeywords(SourceType.Scryfall);
 		HashSet<Keyword> apiCardKeywords = CardMapper.MapKeywords(apiCard);
+		
+		IEnumerable<Keyword> missingKeywords = apiCardKeywords
+			.Where(apiKeyword => !existingKeywords.ExistsWithName(apiKeyword.Name, SourceType.Scryfall));
 
+		if (missingKeywords.Any())
+		{
+			IEnumerable<Keyword> newKeywords = await _cardService.CreateKeywords(missingKeywords);
+			existingKeywords.Union(newKeywords);
+		}
+
+		var keywordsOnCard = new HashSet<Keyword>();
+		foreach (Keyword apiCardKeyword in apiCardKeywords)
+		{
+			Keyword? existingKeyword = existingKeywords.FirstWithNameOrDefault(apiCardKeyword.Name);
+
+			if (existingKeyword is not null)
+			{
+				keywordsOnCard.Add(existingKeyword);
+			}
+		}
+
+		return keywordsOnCard;
 	}
 
 
-	private async Task UpsertKeywordAssociation(ApiCard apiCard, Card card)
+	private async Task UpsertKeywordAssociation(Card card, IEnumerable<CardKeyword> keywordAssociations)
 	{
+		HashSet<CardKeyword> cardKeywordsToCreate = new();
+		HashSet<CardKeyword> cardKeywordsToUpdate = new();
+		Dictionary<(long CardId, int KeywordId), CardKeyword> existingCardKeywords = card.Keywords.ToDictionary(keyword => (keyword.CardId, keyword.KeywordId));
+
+		foreach (CardKeyword cardKeyword in keywordAssociations)
+		{
+			if (existingCardKeywords.TryGetValue((cardKeyword.CardId, cardKeyword.KeywordId), out CardKeyword? existingCardKeyword))
+			{
+				cardKeywordsToUpdate.Add(cardKeyword);
+			}
+			else
+			{
+				cardKeyword.CardId = card.Id;
+				cardKeywordsToCreate.Add(cardKeyword);
+			}
+		}
 
 
-
-		throw new NotImplementedException();
+		await _cardService.CreateCardKeyword(existingKeyword);
+		await _cardService.UpdateCardKeywordIfChanged(cardKeyword);
 	}
 
 	private async Task UpsertPromoTypes(ApiCard card)
