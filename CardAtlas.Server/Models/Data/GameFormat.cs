@@ -1,10 +1,11 @@
 ﻿using CardAtlas.Server.Models.Data.CardRelations;
+using CardAtlas.Server.Models.Interfaces;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data;
 
-public class GameFormat
+public class GameFormat : INameable, ISourceable
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]

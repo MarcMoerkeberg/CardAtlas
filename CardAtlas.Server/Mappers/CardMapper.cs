@@ -210,7 +210,7 @@ public static class CardMapper
 
 		foreach (var (key, value) in apiCard.ScryfallLegalities)
 		{
-			GameFormat? gameFormat = gameFormats.GetWithName(key);
+			GameFormat? gameFormat = gameFormats.FirstWithNameOrDefault(key);
 			if (gameFormat is null) continue;
 
 			legalities.Add(new CardLegality

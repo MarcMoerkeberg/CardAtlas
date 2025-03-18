@@ -4,12 +4,12 @@ using CardAtlas.UnitTests.DataHelpers;
 
 namespace CardAtlas.UnitTests.ExtensionTests;
 
-class GameExtensionsTests
+class IEnumerableExtensionsTests
 {
 	[Test]
 	public void ExistsWithName_ExpectsFalse_WhenCollectionIsEmpty()
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>();
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>();
 
 		bool result = targetCollection.ExistsWithName("Some format name");
 
@@ -22,7 +22,7 @@ class GameExtensionsTests
 	[TestCase(" ")]
 	public void ExistsWithName_ExpectsFalse_WhenSearchNameIsNullEmptyOrWhitespace(string? searchName)
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat()
 		};
@@ -36,7 +36,7 @@ class GameExtensionsTests
 	public void ExistsWithName_ExpectsTrue_WhenCollectionIsPopulated()
 	{
 		string searchName = "Format name";
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName: searchName)
 		};
@@ -51,7 +51,7 @@ class GameExtensionsTests
 	[TestCase("format name")]
 	public void ExistsWithName_ExpectsTrue_WhenNameOnlyDiffersInCasing(string searchName)
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName: "Format name")
 		};
@@ -64,7 +64,7 @@ class GameExtensionsTests
 	[Test]
 	public void ExistsWithName_ExpectsFalse_WhenNoFormatWithMatchingNameExists()
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName: "Format name 1"),
 			GameDataHelper.CreateGameFormat(formatName: "Format name 2"),
@@ -80,7 +80,7 @@ class GameExtensionsTests
 	[Test]
 	public void ExistsWithName_ExpectsFalse_WhenCollectionIsEmpty_UsingOverloadWithSource()
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>();
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>();
 
 		bool result = targetCollection.ExistsWithName("Some format name", SourceType.Scryfall);
 
@@ -93,7 +93,7 @@ class GameExtensionsTests
 	[TestCase(" ")]
 	public void ExistsWithName_ExpectsFalse_WhenSearchNameIsNullEmptyOrWhitespace_UsingOverloadWithSource(string? searchName)
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(source: SourceType.Scryfall)
 		};
@@ -107,7 +107,7 @@ class GameExtensionsTests
 	public void ExistsWithName_ExpectsTrue_WhenCollectionIsPopulated_UsingOverloadWithSource()
 	{
 		string searchName = "Format name";
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName: searchName, SourceType.Scryfall)
 		};
@@ -122,7 +122,7 @@ class GameExtensionsTests
 	[TestCase("format name")]
 	public void ExistsWithName_ExpectsTrue_WhenNameOnlyDiffersInCasing_UsingOverloadWithSource(string searchName)
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName: "Format name", SourceType.Scryfall)
 		};
@@ -137,7 +137,7 @@ class GameExtensionsTests
 	[TestCase("Formatname", SourceType.Scryfall)]
 	public void ExistsWithName_ExpectsFalse_WhenNoFormatMatchExists_UsingOverloadWithSource(string formatName, SourceType source)
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName, source),
 			GameDataHelper.CreateGameFormat(formatName: "Format name 1", source),
@@ -150,11 +150,11 @@ class GameExtensionsTests
 	}
 
 	[Test]
-	public void GetWithName_ExpectsNull_WhenCollectionIsEmpty()
+	public void FirstWithNameOrDefault_ExpectsNull_WhenCollectionIsEmpty()
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>();
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>();
 
-		GameFormat? result = targetCollection.GetWithName("Some format name");
+		GameFormat? result = targetCollection.FirstWithNameOrDefault("Some format name");
 
 		Assert.That(result, Is.Null);
 	}
@@ -163,28 +163,28 @@ class GameExtensionsTests
 	[TestCase(null)]
 	[TestCase("")]
 	[TestCase(" ")]
-	public void GetWithName_ExpectsNull_WhenSearchNameIsNullEmptyOrWhitespace(string? searchName)
+	public void FirstWithNameOrDefault_ExpectsNull_WhenSearchNameIsNullEmptyOrWhitespace(string? searchName)
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat()
 		};
 
-		GameFormat? result = targetCollection.GetWithName(searchName);
+		GameFormat? result = targetCollection.FirstWithNameOrDefault(searchName);
 
 		Assert.That(result, Is.Null);
 	}
 
 	[Test]
-	public void GetWithName_ExpectsGameFormat_WhenCollectionIsPopulated()
+	public void FirstWithNameOrDefault_ExpectsGameFormat_WhenCollectionIsPopulated()
 	{
 		string searchName = "Format name";
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName: searchName)
 		};
 
-		GameFormat? result = targetCollection.GetWithName(searchName);
+		GameFormat? result = targetCollection.FirstWithNameOrDefault(searchName);
 
 		Assert.That(result, Is.Not.Null);
 		Assert.That(result.Name, Is.EqualTo(searchName));
@@ -193,54 +193,54 @@ class GameExtensionsTests
 	[Test]
 	[TestCase("Format name")]
 	[TestCase("format name")]
-	public void GetWithName_ExpectsGameFormat_WhenNameOnlyDiffersInCasing(string searchName)
+	public void FirstWithNameOrDefault_ExpectsGameFormat_WhenNameOnlyDiffersInCasing(string searchName)
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName: "Format name")
 		};
 
-		GameFormat? result = targetCollection.GetWithName(searchName);
+		GameFormat? result = targetCollection.FirstWithNameOrDefault(searchName);
 
 		Assert.That(result, Is.Not.Null);
 		Assert.That(result.Name, Is.EqualTo(targetCollection.First().Name));
 	}
 
 	[Test]
-	public void GetWithName_ExpectsNull_WhenNoFormatWithMatchingNameExists()
+	public void FirstWithNameOrDefault_ExpectsNull_WhenNoFormatWithMatchingNameExists()
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName: "Format name 1"),
 			GameDataHelper.CreateGameFormat(formatName: "Format name 2"),
 		};
 
-		GameFormat? result = targetCollection.GetWithName("Format name");
+		GameFormat? result = targetCollection.FirstWithNameOrDefault("Format name");
 
 		Assert.That(result, Is.Null);
 	}
 
 	[Test]
-	public void GetWithName_ExpectsFirstGameFormat_WhenMultipleMatchesExists()
+	public void FirstWithNameOrDefault_ExpectsFirstGameFormat_WhenMultipleMatchesExists()
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName: "Format name"),
 			GameDataHelper.CreateGameFormat(formatName: "Format name"),
 		};
 
-		GameFormat? result = targetCollection.GetWithName("Format name");
+		GameFormat? result = targetCollection.FirstWithNameOrDefault("Format name");
 
 		Assert.That(result, Is.Not.Null);
 		Assert.That(result, Is.EqualTo(targetCollection.First()));
 	}
 
 	[Test]
-	public void GetWithName_ExpectsNull_WhenCollectionIsEmpty_UsingOverloadWithSource()
+	public void FirstWithNameOrDefault_ExpectsNull_WhenCollectionIsEmpty_UsingOverloadWithSource()
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>();
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>();
 
-		GameFormat? result = targetCollection.GetWithName("Some format name", SourceType.Scryfall);
+		GameFormat? result = targetCollection.FirstWithNameOrDefault("Some format name", SourceType.Scryfall);
 
 		Assert.That(result, Is.Null);
 	}
@@ -249,28 +249,28 @@ class GameExtensionsTests
 	[TestCase(null)]
 	[TestCase("")]
 	[TestCase(" ")]
-	public void GetWithName_ExpectsNull_WhenSearchNameIsNullEmptyOrWhitespace_UsingOverloadWithSource(string? searchName)
+	public void FirstWithNameOrDefault_ExpectsNull_WhenSearchNameIsNullEmptyOrWhitespace_UsingOverloadWithSource(string? searchName)
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(source: SourceType.Scryfall)
 		};
 
-		GameFormat? result = targetCollection.GetWithName(searchName, SourceType.Scryfall);
+		GameFormat? result = targetCollection.FirstWithNameOrDefault(searchName, SourceType.Scryfall);
 
 		Assert.That(result, Is.Null);
 	}
 
 	[Test]
-	public void GetWithName_ExpectsGameFormat_WhenCollectionIsPopulated_UsingOverloadWithSource()
+	public void FirstWithNameOrDefault_ExpectsGameFormat_WhenCollectionIsPopulated_UsingOverloadWithSource()
 	{
 		string searchName = "Format name";
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName: searchName, SourceType.Scryfall)
 		};
 
-		GameFormat? result = targetCollection.GetWithName(searchName, SourceType.Scryfall);
+		GameFormat? result = targetCollection.FirstWithNameOrDefault(searchName, SourceType.Scryfall);
 
 		Assert.That(result, Is.Not.Null);
 		Assert.That(result.Name, Is.EqualTo(searchName));
@@ -279,14 +279,14 @@ class GameExtensionsTests
 	[Test]
 	[TestCase("Format name")]
 	[TestCase("format name")]
-	public void GetWithName_ExpectsGameFormat_WhenNameOnlyDiffersInCasing_UsingOverloadWithSource(string searchName)
+	public void FirstWithNameOrDefault_ExpectsGameFormat_WhenNameOnlyDiffersInCasing_UsingOverloadWithSource(string searchName)
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName: "Format name", SourceType.Scryfall)
 		};
 
-		GameFormat? result = targetCollection.GetWithName(searchName, SourceType.Scryfall);
+		GameFormat? result = targetCollection.FirstWithNameOrDefault(searchName, SourceType.Scryfall);
 
 		Assert.That(result, Is.Not.Null);
 		Assert.That(result.Name, Is.EqualTo(targetCollection.First().Name));
@@ -294,29 +294,29 @@ class GameExtensionsTests
 	}
 
 	[Test]
-	public void GetWithName_ExpectsNull_WhenNoFormatWithMatchingNameOrSourceExists_UsingOverloadWithSource()
+	public void FirstWithNameOrDefault_ExpectsNull_WhenNoFormatWithMatchingNameOrSourceExists_UsingOverloadWithSource()
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName: "Format name", SourceType.User),
 			GameDataHelper.CreateGameFormat(formatName: "Format name 1", SourceType.Scryfall),
 		};
 
-		GameFormat? result = targetCollection.GetWithName("Format name", SourceType.Scryfall);
+		GameFormat? result = targetCollection.FirstWithNameOrDefault("Format name", SourceType.Scryfall);
 
 		Assert.That(result, Is.Null);
 	}
 
 	[Test]
-	public void GetWithName_ExpectsFirstGameFormat_WhenMultipleMatchesExists_UsingOverloadWithSource()
+	public void FirstWithNameOrDefault_ExpectsFirstGameFormat_WhenMultipleMatchesExists_UsingOverloadWithSource()
 	{
-		HashSet<GameFormat> targetCollection = new HashSet<GameFormat>
+		IEnumerable<GameFormat> targetCollection = new List<GameFormat>
 		{
 			GameDataHelper.CreateGameFormat(formatName: "Format name", SourceType.Scryfall),
 			GameDataHelper.CreateGameFormat(formatName: "Format name", SourceType.Scryfall),
 		};
 
-		GameFormat? result = targetCollection.GetWithName("Format name", SourceType.Scryfall);
+		GameFormat? result = targetCollection.FirstWithNameOrDefault("Format name", SourceType.Scryfall);
 
 		Assert.That(result, Is.Not.Null);
 		Assert.That(result, Is.EqualTo(targetCollection.First()));
