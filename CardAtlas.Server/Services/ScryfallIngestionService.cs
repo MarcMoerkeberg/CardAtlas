@@ -209,10 +209,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>The first <see cref="Card"/> that matches the <paramref name="cardFace"/>. Returns null if no match is found.</returns>
 	private async Task<Card?> GetExistingCard(ApiCard apiCard, CardFace cardFace)
 	{
-		IEnumerable<Card> existingCard = await _cardService.GetFromScryfallId(apiCard.Id);
+		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
 
-		return existingCard.Any()
-			? existingCard.FindMatchByName(cardFace)
+		return existingCards.Any()
+			? existingCards.FirstWithNameOrDefault(cardFace.Name)
 			: null;
 	}
 

@@ -1,12 +1,13 @@
 ﻿using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Image;
+using CardAtlas.Server.Models.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data;
 
-public class Card
+public class Card : INameable
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
