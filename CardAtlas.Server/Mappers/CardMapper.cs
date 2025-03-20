@@ -283,4 +283,18 @@ public static class CardMapper
 
 		return keywords;
 	}
+
+	/// <summary>
+	/// Assigns all intrinsic properties from the <paramref name="source"/> onto the <paramref name="target"/>.<br/>
+	/// These properties represent the core data of the <see cref="CardKeyword"/>
+	/// that are directly managed by the CardKeyword entity, excluding any navigational or derived properties.
+	/// </summary>
+	/// <param name="target">The entity being updated.</param>
+	/// <param name="source">The properties of this object will be assigned to <paramref name="target"/>.</param>
+	public static void MergeProperties(CardKeyword target, CardKeyword source)
+	{
+		target.Id = source.Id;
+		target.CardId = source.CardId;
+		target.KeywordId = source.KeywordId;
+	}
 }

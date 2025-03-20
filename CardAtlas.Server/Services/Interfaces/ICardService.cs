@@ -152,4 +152,12 @@ public interface ICardService
 	/// </summary>
 	/// <returns>The added <see cref="Keyword"/> entities with identity.</returns>
 	Task<IEnumerable<Keyword>> CreateKeywords(IEnumerable<Keyword> keywords);
+
+	Task<CardKeyword> CreateCardKeyword(CardKeyword existingKeyword);
+	Task<IEnumerable<CardKeyword>> CreateCardKeywords(IEnumerable<CardKeyword> existingKeywords);
+	Task<CardKeyword> UpdateCardKeyword(CardKeyword existingKeyword);
+	Task<IEnumerable<CardKeyword>> UpdateCardKeywords(IEnumerable<CardKeyword> existingKeywords);
+	Task<CardKeyword> UpdateCardKeywordIfChanged(CardKeyword existingKeyword);
+	Task<IEnumerable<CardKeyword>> UpdateCardKeywordsIfChanged(IEnumerable<CardKeyword> existingKeywords);
+	Task<CardKeyword> GetCardKeyword(long cardKeywordId);
 }

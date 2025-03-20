@@ -255,4 +255,69 @@ public class CardService : ICardService
 
 		return addedKeywords;
 	}
+
+	public async Task<CardKeyword> GetCardKeyword(long cardKeywordId)
+	{
+		return await _dbContext.CardKeywords.SingleAsync(cardKeyword => cardKeyword.Id == cardKeywordId);
+	}
+
+	public async Task<CardKeyword> CreateCardKeyword(CardKeyword cardKeyword)
+	{
+		EntityEntry<CardKeyword> addedCardKeyword = await _dbContext.CardKeywords.AddAsync(cardKeyword);
+		await _dbContext.SaveChangesAsync();
+
+		return addedCardKeyword.Entity;
+	}
+
+	public async Task<IEnumerable<CardKeyword>> CreateCardKeywords(IEnumerable<CardKeyword> cardKeywords)
+	{
+		var addedCardKeywords = new List<CardKeyword>();
+
+		foreach (CardKeyword cardKeyword in cardKeywords)
+		{
+			EntityEntry<CardKeyword> addedCardKeyword = await _dbContext.CardKeywords.AddAsync(cardKeyword);
+			addedCardKeywords.Add(addedCardKeyword.Entity);
+		}
+		await _dbContext.SaveChangesAsync();
+
+		return addedCardKeywords;
+	}
+
+	public async Task<CardKeyword> UpdateCardKeyword(CardKeyword cardKeywordWithChanges)
+	{
+		CardKeyword cardKeywordToUpdate = await GetCardKeyword(cardKeywordWithChanges.Id);
+		CardMapper.MergeProperties(cardKeywordToUpdate, cardKeywordWithChanges);
+
+		await _dbContext.SaveChangesAsync();
+
+		return cardKeywordToUpdate;
+	}
+
+	public async Task<IEnumerable<CardKeyword>> UpdateCardKeywords(IEnumerable<CardKeyword> cardKeywordsWithChanges)
+	{
+		var updatedCardKeywords = new List<CardKeyword>();
+		if (!cardKeywordsWithChanges.Any()) return updatedCardKeywords;
+
+		foreach (var cardKeywordWithChanges in cardKeywordsWithChanges)
+		{
+			CardKeyword cardKeywordToUpdate = await GetCardKeyword(cardKeywordWithChanges.Id);
+
+			CardMapper.MergeProperties(cardKeywordToUpdate, cardKeywordWithChanges);
+			updatedCardKeywords.Add(cardKeywordWithChanges);
+		}
+
+		await _dbContext.SaveChangesAsync();
+
+		return updatedCardKeywords;
+	}
+
+	public Task<CardKeyword> UpdateCardKeywordIfChanged(CardKeyword existingKeyword)
+	{
+		throw new NotImplementedException();
+	}
+
+	public Task<IEnumerable<CardKeyword>> UpdateCardKeywordsIfChanged(IEnumerable<CardKeyword> existingKeywords)
+	{
+		throw new NotImplementedException();
+	}
 }

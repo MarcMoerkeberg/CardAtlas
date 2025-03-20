@@ -489,7 +489,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		IEnumerable<Keyword> existingKeywords = await _cardService.GetKeywords(SourceType.Scryfall);
 		HashSet<Keyword> apiCardKeywords = CardMapper.MapKeywords(apiCard);
-		
+
 		IEnumerable<Keyword> missingKeywords = apiCardKeywords
 			.Where(apiKeyword => !existingKeywords.ExistsWithName(apiKeyword.Name, SourceType.Scryfall));
 
@@ -533,9 +533,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			}
 		}
 
-
-		await _cardService.CreateCardKeyword(existingKeyword);
-		await _cardService.UpdateCardKeywordIfChanged(cardKeyword);
+		var upsertedCards = await Task.WhenAll(
+			_cardService.CreateCardKeyword(existingKeyword),
+			_cardService.UpdateCardKeywordIfChanged(cardKeyword)
+		);
 	}
 
 	private async Task UpsertPromoTypes(ApiCard card)
