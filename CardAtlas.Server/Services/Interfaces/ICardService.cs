@@ -153,11 +153,36 @@ public interface ICardService
 	/// <returns>The added <see cref="Keyword"/> entities with identity.</returns>
 	Task<IEnumerable<Keyword>> CreateKeywords(IEnumerable<Keyword> keywords);
 
-	Task<CardKeyword> CreateCardKeyword(CardKeyword existingKeyword);
-	Task<IEnumerable<CardKeyword>> CreateCardKeywords(IEnumerable<CardKeyword> existingKeywords);
-	Task<CardKeyword> UpdateCardKeyword(CardKeyword existingKeyword);
-	Task<IEnumerable<CardKeyword>> UpdateCardKeywords(IEnumerable<CardKeyword> existingKeywords);
-	Task<CardKeyword> UpdateCardKeywordIfChanged(CardKeyword existingKeyword);
-	Task<IEnumerable<CardKeyword>> UpdateCardKeywordsIfChanged(IEnumerable<CardKeyword> existingKeywords);
+	/// <summary>
+	/// Returns the <see cref="CardKeyword"/> from the db with the specified <paramref name="cardKeywordId"/>.<br/>
+	/// Throws an <see cref="InvalidOperationException"/> if none, or one or more <see cref="CardKeyword"/> entities is found.
+	/// </summary>
+	/// <exception cref="InvalidOperationException">Is thrown if none or more than one entity with that id is found.</exception>
 	Task<CardKeyword> GetCardKeyword(long cardKeywordId);
+
+	/// <summary>
+	/// Adds the provided <paramref name="cardKeyword"/> to the database.
+	/// </summary>
+	/// <returns>The added <see cref="CardKeyword"/> with identity.</returns>
+	Task<CardKeyword> CreateCardKeyword(CardKeyword cardKeyword);
+
+	/// <summary>
+	/// Adds a new <see cref="CardKeyword"/> entry in the database for each <paramref name="cardKeywords"/>.
+	/// </summary>
+	/// <returns>The added <see cref="CardKeyword"/> entities with identity.</returns>
+	Task<IEnumerable<CardKeyword>> CreateCardKeywords(IEnumerable<CardKeyword> cardKeywords);
+
+	/// <summary>
+	/// Updates the existing entity with changes from <paramref name="cardKeywordWithChanges"/>.
+	/// </summary>
+	/// <returns>The updated <see cref="CardKeyword"/> entity.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<CardKeyword> UpdateCardKeyword(CardKeyword cardKeywordWithChanges);
+
+	/// <summary>
+	/// Updates the existing entites with changes from <paramref name="cardKeywordWithChanges"/>.
+	/// </summary>
+	/// <returns>The updated <see cref="CardKeyword"/> entites.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if none or more than one entity with the id property from the input is found.</exception>
+	Task<IEnumerable<CardKeyword>> UpdateCardKeywords(IEnumerable<CardKeyword> cardKeywordWithChanges);
 }

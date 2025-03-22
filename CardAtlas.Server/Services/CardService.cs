@@ -310,14 +310,4 @@ public class CardService : ICardService
 
 		return updatedCardKeywords;
 	}
-
-	public Task<CardKeyword> UpdateCardKeywordIfChanged(CardKeyword existingKeyword)
-	{
-		throw new NotImplementedException();
-	}
-
-	public Task<IEnumerable<CardKeyword>> UpdateCardKeywordsIfChanged(IEnumerable<CardKeyword> existingKeywords)
-	{
-		throw new NotImplementedException();
-	}
 }
