@@ -18,6 +18,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly IArtistService _artistService;
 	private readonly ICardImageService _cardImageService;
 	private readonly ICardService _cardService;
+	private readonly IEqualityComparer<Keyword> _keywordComparer;
 	private readonly IGameService _gameService;
 	private readonly IScryfallApi _scryfallApi;
 	private readonly ISetService _setService;
@@ -26,6 +27,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		IArtistService artistService,
 		ICardImageService cardImageService,
 		ICardService cardService,
+		IEqualityComparer<Keyword> keywordComparer,
 		IGameService gameService,
 		IScryfallApi scryfallApi,
 		ISetService setService)
@@ -33,6 +35,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_artistService = artistService;
 		_cardImageService = cardImageService;
 		_cardService = cardService;
+		_keywordComparer = keywordComparer;
 		_gameService = gameService;
 		_scryfallApi = scryfallApi;
 		_setService = setService;
@@ -473,36 +476,38 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return existingFormats.Union(missingFormats).ToHashSet();
 	}
 
-	private async Task UpsertKeywords(ApiCard apiCard)
+	public async Task<IEnumerable<Keyword>> UpsertKeywords(ApiCard apiCard)
 	{
 		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
-		IEnumerable<Keyword> keywordsOnCard = await GetKeywords(apiCard);
+		IEnumerable<Keyword> keywordsOnApiCard = await GetOrCreateKeywords(apiCard);
+
+		if (!keywordsOnApiCard.Any()) return new List<Keyword>();
+
+		IEnumerable<Keyword> keywordsOnCards = existingCards.First().CardKeywords.Select(keywordRelation => keywordRelation.Keyword);
+		bool hasNewKeywords = keywordsOnApiCard.Except(keywordsOnCards, _keywordComparer).Any();
+		if (!hasNewKeywords) return keywordsOnApiCard;
 
 		foreach (Card card in existingCards)
 		{
-			HashSet<CardKeyword> keywordAssociations = CardMapper.MapCardKeywords(card.Id, keywordsOnCard);
-			await UpsertKeywordAssociation(card, keywordAssociations);
+			await UpsertCardKeywords(card, keywordsOnApiCard);
 		}
+
+		return keywordsOnApiCard;
 	}
 
-	private async Task<IEnumerable<Keyword>> GetKeywords(ApiCard apiCard)
+	/// <summary>
+	/// Creates any new keywords, then returns all <see cref="Keyword"/> entities associated with the <paramref name="apiCard"/>.
+	/// </summary>
+	/// <returns>Any <see cref="Keyword"/> entities associated with the <paramref name="apiCard"/>.</returns>
+	private async Task<IEnumerable<Keyword>> GetOrCreateKeywords(ApiCard apiCard)
 	{
-		IEnumerable<Keyword> existingKeywords = await _cardService.GetKeywords(SourceType.Scryfall);
 		HashSet<Keyword> apiCardKeywords = CardMapper.MapKeywords(apiCard);
-
-		IEnumerable<Keyword> missingKeywords = apiCardKeywords
-			.Where(apiKeyword => !existingKeywords.ExistsWithName(apiKeyword.Name, SourceType.Scryfall));
-
-		if (missingKeywords.Any())
-		{
-			IEnumerable<Keyword> newKeywords = await _cardService.CreateKeywords(missingKeywords);
-			existingKeywords.Union(newKeywords);
-		}
+		IEnumerable<Keyword> allScryfallKeywords = await CreateMissingKeywords(apiCardKeywords);
 
 		var keywordsOnCard = new HashSet<Keyword>();
 		foreach (Keyword apiCardKeyword in apiCardKeywords)
 		{
-			Keyword? existingKeyword = existingKeywords.FirstWithNameOrDefault(apiCardKeyword.Name);
+			Keyword? existingKeyword = allScryfallKeywords.FirstWithNameOrDefault(apiCardKeyword.Name, SourceType.Scryfall);
 
 			if (existingKeyword is not null)
 			{
@@ -513,14 +518,39 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return keywordsOnCard;
 	}
 
+	/// <summary>
+	/// Compares all existing <see cref="Keyword"/> entities to those on the <paramref name="apiCardKeywords"/> and creates the ones missing.
+	/// </summary>
+	/// <returns>All <see cref="Keyword"/> entities with <see cref="SourceType.Scryfall"/> after adding any missing entries.</returns>
+	private async Task<IEnumerable<Keyword>> CreateMissingKeywords(IEnumerable<Keyword> apiCardKeywords)
+	{
+		IEnumerable<Keyword> existingKeywords = await _cardService.GetKeywords(SourceType.Scryfall);
 
-	private async Task UpsertKeywordAssociation(Card card, IEnumerable<CardKeyword> keywordAssociations)
+		IEnumerable<Keyword> missingKeywords = apiCardKeywords
+			.Where(apiKeyword => !existingKeywords.ExistsWithName(apiKeyword.Name, SourceType.Scryfall));
+
+		if (!missingKeywords.Any()) return existingKeywords;
+
+		IEnumerable<Keyword> newKeywords = await _cardService.CreateKeywords(missingKeywords);
+
+		return existingKeywords.Union(newKeywords);
+	}
+
+	/// <summary>
+	/// Creates or updates keyword relations for the <paramref name="card"/> with the procided <see cref="Keyword"/> entities in <paramref name="keywordsOnApiCard"/>.
+	/// </summary>
+	/// <param name="card"></param>
+	/// <param name="keywordsOnApiCard">Entities from this be get a <see cref="CardKeyword"/> relating it to the <paramref name="card"/>.</param>
+	/// <returns>All the created or updated <see cref="CardKeyword"/> entities.</returns>
+	private async Task<IEnumerable<CardKeyword>> UpsertCardKeywords(Card card, IEnumerable<Keyword> keywordsOnApiCard)
 	{
 		HashSet<CardKeyword> cardKeywordsToCreate = new();
 		HashSet<CardKeyword> cardKeywordsToUpdate = new();
-		Dictionary<(long CardId, int KeywordId), CardKeyword> existingCardKeywords = card.Keywords.ToDictionary(keyword => (keyword.CardId, keyword.KeywordId));
+		HashSet<CardKeyword> apiCardKeywords = CardMapper.MapCardKeywords(card.Id, keywordsOnApiCard);
 
-		foreach (CardKeyword cardKeyword in keywordAssociations)
+		Dictionary<(long CardId, int KeywordId), CardKeyword> existingCardKeywords = card.CardKeywords.ToDictionary(keyword => (keyword.CardId, keyword.KeywordId));
+
+		foreach (CardKeyword cardKeyword in apiCardKeywords)
 		{
 			if (existingCardKeywords.TryGetValue((cardKeyword.CardId, cardKeyword.KeywordId), out CardKeyword? existingCardKeyword))
 			{
@@ -533,10 +563,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			}
 		}
 
-		var upsertedCards = await Task.WhenAll(
-			_cardService.CreateCardKeyword(existingKeyword),
-			_cardService.UpdateCardKeywordIfChanged(cardKeyword)
+		IEnumerable<CardKeyword>[] upsertedCards = await Task.WhenAll(
+			_cardService.CreateCardKeywords(cardKeywordsToCreate),
+			_cardService.UpdateCardKeywords(cardKeywordsToUpdate)
 		);
+
+		return upsertedCards.SelectMany(upsertedCardKeywords => upsertedCardKeywords);
 	}
 
 	private async Task UpsertPromoTypes(ApiCard card)

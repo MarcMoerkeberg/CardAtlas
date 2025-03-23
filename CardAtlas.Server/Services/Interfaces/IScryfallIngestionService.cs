@@ -53,4 +53,10 @@ public interface IScryfallIngestionService
 	/// </summary>
 	/// <returns>All created or updated <see cref="CardLegality"/> entities.</returns>
 	Task<IEnumerable<CardLegality>> UpsertLegality(ApiCard apiCard);
+
+	/// <summary>
+	/// Creates or updates the <see cref="Keyword"/> entities and their relation to the <see cref="Card"/> associated with the <paramref name="apiCard"/>.
+	/// </summary>
+	/// <returns>The <see cref="Keyword"/> entities associated with the <see cref="Card"/>.</returns>
+	Task<IEnumerable<Keyword>> UpsertKeywords(ApiCard apiCard);
 }
