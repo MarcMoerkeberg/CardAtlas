@@ -93,7 +93,7 @@ public class Card : INameable
 	public IEnumerable<string> ColorIdentities => ColorIdentity.Split(',');
 
 	[InverseProperty("Card")]
-	public ICollection<CardKeyword> Keywords { get; set; } = new HashSet<CardKeyword>();
+	public ICollection<CardKeyword> CardKeywords { get; set; } = new HashSet<CardKeyword>();
 
 	[InverseProperty("Card")]
 	public ICollection<CardPromoType> PromoTypes { get; set; } = new HashSet<CardPromoType>();

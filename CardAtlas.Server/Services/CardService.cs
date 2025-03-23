@@ -69,6 +69,7 @@ public class CardService : ICardService
 			.Include(card => card.Prices)
 			.Include(card => card.CardPrintFinishes)
 			.Include(card => card.Legalities)
+			.Include(card => card.CardKeywords)
 			.Where(card => card.ScryfallId == scryfallId)
 			.ToListAsync();
 	}
