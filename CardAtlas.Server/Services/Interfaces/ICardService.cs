@@ -185,4 +185,26 @@ public interface ICardService
 	/// <returns>The updated <see cref="CardKeyword"/> entites.</returns>
 	/// <exception cref="InvalidOperationException">Is thrown if none or more than one entity with the id property from the input is found.</exception>
 	Task<IEnumerable<CardKeyword>> UpdateCardKeywords(IEnumerable<CardKeyword> cardKeywordWithChanges);
+
+	/// <summary>
+	/// Return all <see cref="PromoType"/> entities from the database.
+	/// </summary>
+	Task<IEnumerable<PromoType>> GetPromoTypes();
+
+	/// <summary>
+	/// Returns all <see cref="PromoType"/> entities with the <paramref name="source"/> from the database.
+	/// </summary>
+	Task<IEnumerable<PromoType>> GetPromoTypes(SourceType source);
+
+	/// <summary>
+	/// Adds the <paramref name="promoType"/> to the database.
+	/// </summary>
+	/// <returns>The added <see cref="PromoType"/> with identity.</returns>
+	Task<PromoType> CreatePromoType(PromoType promoType);
+
+	/// <summary>
+	/// Adds a new <see cref="PromoType"/> entry in the database for each <paramref name="promoTypes"/>.
+	/// </summary>
+	/// <returns>The added <see cref="PromoType"/> entities with identity.</returns>
+	Task<IEnumerable<PromoType>> CreatePromoTypes(IEnumerable<PromoType> promoTypes);
 }

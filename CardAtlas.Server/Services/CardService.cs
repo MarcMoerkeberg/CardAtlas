@@ -311,4 +311,39 @@ public class CardService : ICardService
 
 		return updatedCardKeywords;
 	}
+
+	public async Task<IEnumerable<PromoType>> GetPromoTypes()
+	{
+		return await _dbContext.PromoTypes.ToListAsync();
+	}
+
+	public async Task<IEnumerable<PromoType>> GetPromoTypes(SourceType source)
+	{
+		return await _dbContext.PromoTypes
+			.Where(promoType => promoType.SourceId == (int)source)
+			.ToListAsync();
+	}
+
+	public async Task<PromoType> CreatePromoType(PromoType promoType)
+	{
+		EntityEntry<PromoType> addedPromoType = await _dbContext.PromoTypes.AddAsync(promoType);
+		await _dbContext.SaveChangesAsync();
+
+		return addedPromoType.Entity;
+	}
+
+	public async Task<IEnumerable<PromoType>> CreatePromoTypes(IEnumerable<PromoType> promoTypes)
+	{
+		List<PromoType> addedPromoTypes = new();
+		if (!promoTypes.Any()) return addedPromoTypes;
+
+		foreach (var promoType in promoTypes)
+		{
+			EntityEntry<PromoType> addedPromoType = await _dbContext.AddAsync(promoType);
+			addedPromoTypes.Add(addedPromoType.Entity);
+		}
+		await _dbContext.SaveChangesAsync();
+
+		return addedPromoTypes;
+	}
 }
