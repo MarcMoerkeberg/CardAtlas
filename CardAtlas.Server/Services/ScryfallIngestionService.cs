@@ -571,8 +571,38 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return upsertedCards.SelectMany(upsertedCardKeywords => upsertedCardKeywords);
 	}
 
-	private async Task UpsertPromoTypes(ApiCard card)
+	private async Task UpsertPromoTypes(ApiCard apiCard)
 	{
-		throw new NotImplementedException();
+		if (apiCard.PromoTypes is not { Length: > 0 }) return;
+
+		IEnumerable<PromoType> existingPromoTypes = await CreateMissingPromoTypes(apiCard);
+
+
+		//Update realtions from the cards to the promotypes.
+	}
+
+	/// <summary>
+	/// Compares all existing <see cref="PromoType"/> entities to those on the <paramref name="apiCard"/> and creates the ones missing.
+	/// </summary>
+	/// <returns>All <see cref="PromoType"/> entities with <see cref="SourceType.Scryfall"/> after adding any missing entries.</returns>
+	private async Task<IEnumerable<PromoType>> CreateMissingPromoTypes(ApiCard apiCard)
+	{
+		if (apiCard.PromoTypes is not { Length: > 0 }) return new List<PromoType>();
+
+		IEnumerable<PromoType> existingPromoTypes = await _cardService.GetPromoTypes(SourceType.Scryfall);
+
+		IEnumerable<PromoType> missingPromoTypes = apiCard.PromoTypes
+			.Where(promoTypeName => !existingPromoTypes.ExistsWithName(promoTypeName, SourceType.Scryfall))
+			.Select(promoTypeName => new PromoType
+			{
+				Name = promoTypeName,
+				SourceId = (int)SourceType.Scryfall
+			});
+
+		if (!missingPromoTypes.Any()) return existingPromoTypes;
+
+		IEnumerable<PromoType> newPromoTypes = await _cardService.CreatePromoTypes(missingPromoTypes);
+
+		return existingPromoTypes.Union(newPromoTypes);
 	}
 }
