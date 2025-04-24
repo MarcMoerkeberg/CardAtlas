@@ -571,14 +571,86 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return upsertedCards.SelectMany(upsertedCardKeywords => upsertedCardKeywords);
 	}
 
-	private async Task UpsertPromoTypes(ApiCard apiCard)
+	/// <summary>
+	/// Creates or updates <see cref="PromoType"/> entities associated with the <paramref name="apiCard"/>.<br/>
+	/// Only updates if the <paramref name="apiCard"/> has new promo types not already associated with the <see cref="Card"/> (may need to be updated).
+	/// </summary>
+	/// <returns>All <see cref="PromoType"/> entities associated with the <paramref name="apiCard"/>.</returns>
+	private async Task<IEnumerable<PromoType>> UpsertPromoTypes(ApiCard apiCard)
 	{
-		if (apiCard.PromoTypes is not { Length: > 0 }) return;
+		if (apiCard.PromoTypes is not { Length: > 0 }) return new List<PromoType>();
+
+		IEnumerable<Card> cards = await _cardService.GetFromScryfallId(apiCard.Id);
+		IEnumerable<PromoType> promotypesOnApiCard = await GetOrCreatePromoTypes(apiCard);
+
+		IEnumerable<PromoType> promotypesOnCards = cards.First().CardPromoTypes.Select(promoTypeRelation => promoTypeRelation.PromoType);
+		bool hasNewPromoTypes = promotypesOnApiCard.Except(promotypesOnCards).Any();
+
+		if (hasNewPromoTypes)
+		{
+			foreach (Card card in cards)
+			{
+				await UpsertPromoTypes(card, promotypesOnApiCard);
+			}
+		}
+
+		return promotypesOnApiCard;
+	}
+
+	/// <summary>
+	/// Creates or updates promo types for the <paramref name="card"/> with the provided <see cref="PromoType"/> entities in <paramref name="promoTypesOnApiCard"/>.
+	/// </summary>
+	/// <returns>All created or updated <see cref="CardPromoType"/> entities.</returns>
+	private async Task<IEnumerable<CardPromoType>> UpsertPromoTypes(Card card, IEnumerable<PromoType> promoTypesOnApiCard)
+	{
+		HashSet<CardPromoType> cardPromoTypesToCreate = new();
+		HashSet<CardPromoType> cardPromoTypesToUpdate = new();
+		HashSet<CardPromoType> apiCardPromoTypes = CardMapper.MapCardPromoTypes(card.Id, promoTypesOnApiCard);
+		Dictionary<(long CardId, int PromoTypeId), CardPromoType> existingCardPromoTypes = card.CardPromoTypes.ToDictionary(promoType => (promoType.CardId, promoType.PromoTypeId));
+
+		foreach (CardPromoType cardPromoType in apiCardPromoTypes)
+		{
+			if (existingCardPromoTypes.TryGetValue((cardPromoType.CardId, cardPromoType.PromoTypeId), out CardPromoType? existingCardPromoType))
+			{
+				cardPromoTypesToUpdate.Add(cardPromoType);
+			}
+			else
+			{
+				cardPromoType.CardId = card.Id;
+				cardPromoTypesToCreate.Add(cardPromoType);
+			}
+		}
+
+		IEnumerable<CardPromoType>[] upsertedCards = await Task.WhenAll(
+			_cardService.CreateCardPromoTypes(cardPromoTypesToCreate),
+			_cardService.UpdateCardPromoTypes(cardPromoTypesToUpdate)
+		);
+
+		return upsertedCards.SelectMany(upsertedCardKeywords => upsertedCardKeywords);
+	}
+
+	/// <summary>
+	/// Creates any new <see cref="PromoType"/> and returns all <see cref="PromoType"/> entities associated with the <paramref name="apiCard"/>.
+	/// </summary>
+	/// <returns>¨Returns all <see cref="CardPromoType"/> entities associated with the <paramref name="apiCard"/>. The list is empty if the card has no promotypes associated.</returns>
+	private async Task<IEnumerable<PromoType>> GetOrCreatePromoTypes(ApiCard apiCard)
+	{
+		if (apiCard.PromoTypes is null) return new List<PromoType>();
 
 		IEnumerable<PromoType> existingPromoTypes = await CreateMissingPromoTypes(apiCard);
+		var promoTypesOnCard = new HashSet<PromoType>();
 
+		foreach (string promoTypeName in apiCard.PromoTypes)
+		{
+			PromoType? existingPromoType = existingPromoTypes.FirstWithNameOrDefault(promoTypeName, SourceType.Scryfall);
 
-		//Update realtions from the cards to the promotypes.
+			if (existingPromoType is not null)
+			{
+				promoTypesOnCard.Add(existingPromoType);
+			}
+		}
+
+		return promoTypesOnCard;
 	}
 
 	/// <summary>

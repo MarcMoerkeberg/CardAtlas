@@ -96,7 +96,7 @@ public class Card : INameable
 	public ICollection<CardKeyword> CardKeywords { get; set; } = new HashSet<CardKeyword>();
 
 	[InverseProperty("Card")]
-	public ICollection<CardPromoType> PromoTypes { get; set; } = new HashSet<CardPromoType>();
+	public ICollection<CardPromoType> CardPromoTypes { get; set; } = new HashSet<CardPromoType>();
 
 	[ForeignKey("FrameLayoutId")]
 	public FrameLayout FrameLayout { get; set; } = null!;

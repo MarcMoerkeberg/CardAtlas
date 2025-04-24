@@ -70,6 +70,7 @@ public class CardService : ICardService
 			.Include(card => card.CardPrintFinishes)
 			.Include(card => card.Legalities)
 			.Include(card => card.CardKeywords)
+			.Include(card => card.CardPromoTypes)
 			.Where(card => card.ScryfallId == scryfallId)
 			.ToListAsync();
 	}
@@ -345,5 +346,42 @@ public class CardService : ICardService
 		await _dbContext.SaveChangesAsync();
 
 		return addedPromoTypes;
+	}
+
+	public async Task<IEnumerable<CardPromoType>> CreateCardPromoTypes(IEnumerable<CardPromoType> cardPromoTypes)
+	{
+		List<CardPromoType> addedCardPromoTypes = new();
+		if (!cardPromoTypes.Any()) return addedCardPromoTypes;
+
+		foreach (var cardPromoType in cardPromoTypes)
+		{
+			EntityEntry<CardPromoType> addedCardPromoType = await _dbContext.CardPromoTypes.AddAsync(cardPromoType);
+			addedCardPromoTypes.Add(addedCardPromoType.Entity);
+		}
+		await _dbContext.SaveChangesAsync();
+
+		return addedCardPromoTypes;
+	}
+	
+	public async Task<CardPromoType> GetCardPromoType(long cardPromoTypeId)
+	{
+		return await _dbContext.CardPromoTypes.SingleAsync(cardPromoType => cardPromoType.Id == cardPromoTypeId);
+	}
+
+	public async Task<IEnumerable<CardPromoType>> UpdateCardPromoTypes(IEnumerable<CardPromoType> cardPromoTypes)
+	{
+		List<CardPromoType> updatedCardPromoTypes = new();
+		if (!cardPromoTypes.Any()) return updatedCardPromoTypes;
+
+		foreach (var cardPromoType in cardPromoTypes)
+		{
+			CardPromoType cardPromoTypeToUpdate = await GetCardPromoType(cardPromoType.Id);
+
+			CardMapper.MergeProperties(cardPromoTypeToUpdate, cardPromoType);
+			updatedCardPromoTypes.Add(cardPromoTypeToUpdate);
+		}
+		await _dbContext.SaveChangesAsync();
+
+		return updatedCardPromoTypes;
 	}
 }

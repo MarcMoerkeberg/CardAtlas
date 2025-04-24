@@ -297,4 +297,40 @@ public static class CardMapper
 		target.CardId = source.CardId;
 		target.KeywordId = source.KeywordId;
 	}
+
+	/// <summary>
+	/// Maps the promo types from <paramref name="promoTypesOnApiCard"/> to a collection of <see cref="CardPromoType"/> associated with the <paramref name="cardId"/>.
+	/// </summary>
+	/// <param name="cardId"></param>
+	/// <param name="promoTypesOnApiCard"></param>
+	/// <returns>A new collection of <see cref="CardPromoType"/> based on the given parameters.</returns>
+	public static HashSet<CardPromoType> MapCardPromoTypes(long cardId, IEnumerable<PromoType> promoTypesOnApiCard)
+	{
+		HashSet<CardPromoType> promoTypes = new();
+
+		foreach (var promoType in promoTypesOnApiCard)
+		{
+			promoTypes.Add(new CardPromoType
+			{
+				CardId = cardId,
+				PromoTypeId = promoType.Id,
+			});
+		}
+
+		return promoTypes;
+	}
+
+	/// <summary>
+	/// Assigns all intrinsic properties from the <paramref name="source"/> onto the <paramref name="target"/>.<br/>
+	/// These properties represent the core data of the <see cref="CardPromoType"/>
+	/// that are directly managed by the CardPromoType entity, excluding any navigational or derived properties.
+	/// </summary>
+	/// <param name="target">The entity being updated.</param>
+	/// <param name="source">The properties of this object will be assigned to <paramref name="target"/>.</param>
+	public static void MergeProperties(CardPromoType target, CardPromoType source)
+	{
+		target.Id = source.Id;
+		target.CardId = source.CardId;
+		target.PromoTypeId = source.PromoTypeId;
+	}
 }

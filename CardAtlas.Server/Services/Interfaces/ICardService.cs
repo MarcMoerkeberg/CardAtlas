@@ -37,7 +37,7 @@ public interface ICardService
 	/// Returns the <see cref="Card"/> entries from the db with the specified <paramref name="scryfallId"/>.<br/>
 	/// Multiple cards may have the same scryfallId, since they are created as seperate card instances if they have multiple <see cref="ScryfallApi.Models.CardFace"/> (such as flip or split cards).
 	/// </summary>
-	/// <returns>The <see cref="Card"/> with the specified <paramref name="scryfallId"/> or null if no match is found.</returns>
+	/// <returns>The <see cref="Card"/> instances with the specified <paramref name="scryfallId"/> or null if no match is found.</returns>
 	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
 	Task<IEnumerable<Card>> GetFromScryfallId(Guid scryfallId);
 
@@ -207,4 +207,24 @@ public interface ICardService
 	/// </summary>
 	/// <returns>The added <see cref="PromoType"/> entities with identity.</returns>
 	Task<IEnumerable<PromoType>> CreatePromoTypes(IEnumerable<PromoType> promoTypes);
+
+	/// <summary>
+	/// Adds the <paramref name="cardPromoTypes"/> to the database.
+	/// </summary>
+	/// <returns>The added <see cref="CardPromoType"/> with identity.</returns>
+	Task<IEnumerable<CardPromoType>> CreateCardPromoTypes(IEnumerable<CardPromoType> cardPromoTypes);
+
+	/// <summary>
+	/// Updates the existing entities with changes from <paramref name="cardPromoTypes"/>.
+	/// </summary>
+	/// <returns>The updated <see cref="CardPromoType"/> entities.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if none or more than one entity with the id property from the input is found.</exception>
+	Task<IEnumerable<CardPromoType>> UpdateCardPromoTypes(IEnumerable<CardPromoType> cardPromoTypes);
+
+	/// <summary>
+	/// Returns the <see cref="CardPromoType"/> from the db with the specified <paramref name="cardPromoTypeId"/>.<br/>
+	/// Throws an <see cref="InvalidOperationException"/> if no, or one or more <see cref="CardPromoType"/> entities is found.
+	/// </summary>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<CardPromoType> GetCardPromoType(long cardPromoTypeId);
 }
