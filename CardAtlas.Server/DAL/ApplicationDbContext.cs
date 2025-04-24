@@ -40,4 +40,5 @@ public class ApplicationDbContext : DbContext
 	public DbSet<GameFormat> GameFormats { get; set; }
 	public DbSet<CardKeyword> CardKeywords { get; set; }
 	public DbSet<PromoType> PromoTypes { get; set; }
+	public DbSet<CardPromoType> CardPromoTypes { get; set; }
 }
