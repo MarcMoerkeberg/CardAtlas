@@ -2,11 +2,11 @@
 using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
-using CardAtlas.Server.Services.Interfaces;
+using CardAtlas.Server.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace CardAtlas.Server.Services;
+namespace CardAtlas.Server.Repositories;
 
 public class CardRepository : ICardRepository
 {

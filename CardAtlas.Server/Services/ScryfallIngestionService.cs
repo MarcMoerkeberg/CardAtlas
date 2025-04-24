@@ -4,6 +4,7 @@ using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Image;
+using CardAtlas.Server.Repositories.Interfaces;
 using CardAtlas.Server.Services.Interfaces;
 using ScryfallApi;
 using ScryfallApi.Models.Types;
