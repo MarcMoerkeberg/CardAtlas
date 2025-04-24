@@ -17,7 +17,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 {
 	private readonly IArtistService _artistService;
 	private readonly ICardImageService _cardImageService;
-	private readonly ICardService _cardService;
+	private readonly ICardRepository _cardService;
 	private readonly IEqualityComparer<Keyword> _keywordComparer;
 	private readonly IGameService _gameService;
 	private readonly IScryfallApi _scryfallApi;
@@ -26,7 +26,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	public ScryfallIngestionService(
 		IArtistService artistService,
 		ICardImageService cardImageService,
-		ICardService cardService,
+		ICardRepository cardService,
 		IEqualityComparer<Keyword> keywordComparer,
 		IGameService gameService,
 		IScryfallApi scryfallApi,

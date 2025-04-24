@@ -3,7 +3,7 @@ using CardAtlas.Server.Models.Data.CardRelations;
 
 namespace CardAtlas.Server.Services.Interfaces;
 
-public interface ICardService
+public interface ICardRepository
 {
 	/// <summary>
 	/// Returns the <see cref="Card"/> from the db with the specified <paramref name="cardId"/>.<br/>

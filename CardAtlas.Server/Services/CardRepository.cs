@@ -8,13 +8,13 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace CardAtlas.Server.Services;
 
-public class CardService : ICardService
+public class CardRepository : ICardRepository
 {
 	private readonly IEqualityComparer<Card> _cardComparer;
 	private readonly IEqualityComparer<CardLegality> _cardLegalityComparer;
 	private readonly IEqualityComparer<CardPrice> _cardPriceComparer;
 	private readonly ApplicationDbContext _dbContext;
-	public CardService(
+	public CardRepository(
 		IEqualityComparer<Card> comparer,
 		IEqualityComparer<CardLegality> cardLegalityComparer,
 		IEqualityComparer<CardPrice> cardPriceComparer,
