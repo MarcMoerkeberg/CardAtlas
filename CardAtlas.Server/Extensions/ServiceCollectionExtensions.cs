@@ -115,42 +115,32 @@ public static class ServiceCollectionExtensions
 	/// </summary>
 	public static void AddDependencyInjection(this IServiceCollection services)
 	{
-		AddServiceDependencies(services);
-		AddMemoryCache(services);
+		AddScopedDependencies(services, "Services");
+		AddScopedDependencies(services, "Repositories");
 		AddScryfallApi(services);
 		AddComparerDependencies(services);
 	}
 
-	/// <summary>
-	/// Adds scoped lifetime dependency injection for all services within CardAtlas.Server.Services namespace.
+	/// Adds scoped lifetime dependency injection for classes that implements one or more interfaces and lives within the CardAtlas.Server namespace.<br/>
+	/// <paramref name="namespaceSuffix"/> is the suffix of the namespace where the classes are located (ex. Services or Repositories).
 	/// </summary>
-	private static void AddServiceDependencies(IServiceCollection services)
+	private static void AddScopedDependencies(IServiceCollection services, string namespaceSuffix)
 	{
-		const string servicesNamespace = "CardAtlas.Server.Services";
-		IEnumerable<Type> servicesWithInterfaces = AssemblyHelper.GetClassesThatImplementInterfaces(servicesNamespace);
+		IEnumerable<Type> classesWithInterfaces = AssemblyHelper.GetClassesThatImplementInterfaces(namespaceSuffix);
 
-		foreach (Type service in servicesWithInterfaces)
+		foreach (Type @class in classesWithInterfaces)
 		{
-			IEnumerable<Type> serviceInterfaces = service.GetInterfaces()
+			IEnumerable<Type> serviceInterfaces = @class.GetInterfaces()
 					.Where(@interface =>
 						!string.IsNullOrEmpty(@interface.Namespace) &&
-						@interface.Namespace.StartsWith(servicesNamespace, StringComparison.Ordinal)
+						@interface.Namespace.StartsWith("CardAtlas.Server", StringComparison.Ordinal)
 					);
 
 			foreach (Type @interface in serviceInterfaces)
 			{
-				services.AddScoped(@interface, service);
+				services.AddScoped(@interface, @class);
 			}
 		}
-	}
-
-	/// <summary>
-	/// <b>WARNING: This method is not implemented!</b><br/><br/>
-	/// Adds memory cache to the application.
-	/// </summary>
-	private static void AddMemoryCache(IServiceCollection services)
-	{
-		//Consider adding a memory cache to the application some time during development.
 	}
 
 	/// <summary>

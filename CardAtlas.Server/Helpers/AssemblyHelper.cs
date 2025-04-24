@@ -6,15 +6,15 @@ namespace CardAtlas.Server.Helpers;
 public static class AssemblyHelper
 {
 	/// <summary>
-	/// Returns all classes in the <paramref name="fullNameSpace"/> namespace, that implement one or more interfaces.
+	/// Returns all classes in the <paramref name="namespaceSuffix"/> namespace, that implements one or more interfaces.
 	/// </summary>
-	/// <exception cref="ArgumentNullException">Thrown when the <paramref name="fullNameSpace"/> is null or empty.</exception>
+	/// <exception cref="ArgumentNullException">Thrown when the <paramref name="namespaceSuffix"/> is null or empty.</exception>
 	/// <exception cref="InvalidOperationException">Thrown when an error occurs while loading types from the assembly.</exception>
-	public static IEnumerable<Type> GetClassesThatImplementInterfaces(string fullNameSpace)
+	public static IEnumerable<Type> GetClassesThatImplementInterfaces(string namespaceSuffix, string namespacePrefix = "EK.Portal.Server")
 	{
-		if (string.IsNullOrWhiteSpace(fullNameSpace))
+		if (string.IsNullOrWhiteSpace(namespaceSuffix))
 		{
-			throw new ArgumentNullException(nameof(fullNameSpace));
+			throw new ArgumentNullException(nameof(namespaceSuffix));
 		}
 
 		try
@@ -26,7 +26,8 @@ public static class AssemblyHelper
 					type.IsClass &&
 					!type.IsAbstract &&
 					!string.IsNullOrEmpty(type.Namespace) &&
-					type.Namespace.StartsWith(fullNameSpace, StringComparison.Ordinal) &&
+					type.Namespace.StartsWith(namespacePrefix, StringComparison.Ordinal) &&
+					type.Namespace.EndsWith(namespaceSuffix, StringComparison.Ordinal) &&
 					type.GetInterfaces().Any()
 				);
 
