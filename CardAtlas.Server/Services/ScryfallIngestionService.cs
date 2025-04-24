@@ -48,17 +48,17 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
 			//TODO: Add memorycache module
-			await UpsertCard(apiCard);
+			IEnumerable<Card> upsertedCards = await UpsertCard(apiCard);
+			await CreateMissingGameFormats(apiCard);
 
 			await Task.WhenAll(
 				UpsertCardImages(apiCard),
-				UpsertCardPrices(apiCard),
-				UpdatePrintFinishes(apiCard),
-				UpdateGameTypes(apiCard),
-				CreateMissingGameFormats(apiCard),
-				UpsertLegality(apiCard),
-				UpsertKeywords(apiCard),
-				UpsertPromoTypes(apiCard)
+				UpsertCardPrices(apiCard, upsertedCards),
+				UpdatePrintFinishes(apiCard, upsertedCards),
+				UpdateGameTypes(apiCard, upsertedCards),
+				UpsertLegality(apiCard, upsertedCards),
+				UpsertKeywords(apiCard, upsertedCards),
+				UpsertPromoTypes(apiCard, upsertedCards)
 			);
 		}
 	}
@@ -297,9 +297,20 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<IEnumerable<CardPrice>> UpsertCardPrices(ApiCard apiCard)
 	{
+		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+
+		return await UpsertCardPrices(apiCard, existingCards);
+	}
+
+	/// <summary>
+	/// Upserts the pricing data from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/>.<br/>
+	/// If <paramref name="apiCard"/> has multiple <see cref="CardFace"/>, each face's corresponding <see cref="Card"/> will updated.
+	/// </summary>
+	/// <returns>All <see cref="CardPrice"/> entries which was created or updated.</returns>
+	public async Task<IEnumerable<CardPrice>> UpsertCardPrices(ApiCard apiCard, IEnumerable<Card> existingCards)
+	{
 		var upsertedCardPrices = new List<CardPrice>();
 
-		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
 		if (!existingCards.Any()) return upsertedCardPrices;
 
 		foreach (Card card in existingCards)
@@ -344,9 +355,22 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<IEnumerable<CardPrintFinish>> UpdatePrintFinishes(ApiCard apiCard)
 	{
+		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+
+		return await UpdatePrintFinishes(apiCard, existingCards);
+	}
+
+	/// <summary>
+	/// Adds any missing <see cref="PrintFinishType"/> from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/> entities.
+	/// </summary>
+	/// <returns>
+	/// All <see cref="CardPrintFinish"/> associated with the <see cref="Card"/> entities found from <paramref name="apiCard"/> after updating.<br/>
+	/// Reponse is empty if no <see cref="Card"/> entities are associated with the <paramref name="apiCard"/>.
+	/// </returns>
+	private async Task<IEnumerable<CardPrintFinish>> UpdatePrintFinishes(ApiCard apiCard, IEnumerable<Card> existingCards)
+	{
 		var printFinishes = new List<CardPrintFinish>();
 
-		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
 		if (!existingCards.Any()) return printFinishes;
 
 		foreach (Card card in existingCards)
@@ -384,9 +408,19 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<IEnumerable<CardGameType>> UpdateGameTypes(ApiCard apiCard)
 	{
+		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+
+		return await UpdateGameTypes(apiCard, existingCards);
+	}
+
+	/// <summary>
+	/// Adds any missing <see cref="CardGameType"/> from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/> entities.
+	/// </summary>
+	/// <returns>All <see cref="CardGameType"/> associated with the <see cref="Card"/> entities found from <paramref name="apiCard"/> after updating.</returns>
+	private async Task<IEnumerable<CardGameType>> UpdateGameTypes(ApiCard apiCard, IEnumerable<Card> existingCards)
+	{
 		var gameTypes = new List<CardGameType>();
 
-		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
 		if (!existingCards.Any()) return gameTypes;
 
 		foreach (Card card in existingCards)
@@ -415,9 +449,19 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<IEnumerable<CardLegality>> UpsertLegality(ApiCard apiCard)
 	{
+		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+
+		return await UpsertLegality(apiCard, existingCards);
+	}
+
+	/// <summary>
+	/// Upserts card legality information from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/> entities.
+	/// </summary>
+	/// <returns>All created or updated <see cref="CardLegality"/> entities.</returns>
+	private async Task<IEnumerable<CardLegality>> UpsertLegality(ApiCard apiCard, IEnumerable<Card> existingCards)
+	{
 		var upsertedLegalities = new List<CardLegality>();
 		HashSet<GameFormat> gameFormats = await CreateMissingGameFormats(apiCard);
-		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
 
 		foreach (Card card in existingCards)
 		{
@@ -479,6 +523,16 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	public async Task<IEnumerable<Keyword>> UpsertKeywords(ApiCard apiCard)
 	{
 		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		
+		return await UpsertKeywords(apiCard, existingCards);
+	}
+
+	/// <summary>
+	/// Creates or updates the <see cref="Keyword"/> entities and their relation to the <see cref="Card"/> associated with the <paramref name="apiCard"/>.
+	/// </summary>
+	/// <returns>The <see cref="Keyword"/> entities associated with the <see cref="Card"/>.</returns>
+	private async Task<IEnumerable<Keyword>> UpsertKeywords(ApiCard apiCard, IEnumerable<Card> existingCards)
+	{
 		IEnumerable<Keyword> keywordsOnApiCard = await GetOrCreateKeywords(apiCard);
 
 		if (!keywordsOnApiCard.Any()) return new List<Keyword>();
@@ -571,24 +625,30 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return upsertedCards.SelectMany(upsertedCardKeywords => upsertedCardKeywords);
 	}
 
+	public async Task<IEnumerable<PromoType>> UpsertPromoTypes(ApiCard apiCard)
+	{
+		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		
+		return await UpsertPromoTypes(apiCard, existingCards);
+	}
+
 	/// <summary>
 	/// Creates or updates <see cref="PromoType"/> entities associated with the <paramref name="apiCard"/>.<br/>
 	/// Only updates if the <paramref name="apiCard"/> has new promo types not already associated with the <see cref="Card"/> (may need to be updated).
 	/// </summary>
 	/// <returns>All <see cref="PromoType"/> entities associated with the <paramref name="apiCard"/>.</returns>
-	private async Task<IEnumerable<PromoType>> UpsertPromoTypes(ApiCard apiCard)
+	private async Task<IEnumerable<PromoType>> UpsertPromoTypes(ApiCard apiCard, IEnumerable<Card> existingCards)
 	{
 		if (apiCard.PromoTypes is not { Length: > 0 }) return new List<PromoType>();
 
-		IEnumerable<Card> cards = await _cardService.GetFromScryfallId(apiCard.Id);
 		IEnumerable<PromoType> promotypesOnApiCard = await GetOrCreatePromoTypes(apiCard);
 
-		IEnumerable<PromoType> promotypesOnCards = cards.First().CardPromoTypes.Select(promoTypeRelation => promoTypeRelation.PromoType);
+		IEnumerable<PromoType> promotypesOnCards = existingCards.First().CardPromoTypes.Select(promoTypeRelation => promoTypeRelation.PromoType);
 		bool hasNewPromoTypes = promotypesOnApiCard.Except(promotypesOnCards).Any();
 
 		if (hasNewPromoTypes)
 		{
-			foreach (Card card in cards)
+			foreach (Card card in existingCards)
 			{
 				await UpsertPromoTypes(card, promotypesOnApiCard);
 			}

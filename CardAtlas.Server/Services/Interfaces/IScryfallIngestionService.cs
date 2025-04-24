@@ -59,4 +59,11 @@ public interface IScryfallIngestionService
 	/// </summary>
 	/// <returns>The <see cref="Keyword"/> entities associated with the <see cref="Card"/>.</returns>
 	Task<IEnumerable<Keyword>> UpsertKeywords(ApiCard apiCard);
+
+	/// <summary>
+	/// Creates or updates <see cref="PromoType"/> entities associated with the <paramref name="apiCard"/>.<br/>
+	/// Only updates if the <paramref name="apiCard"/> has new promo types not already associated with the <see cref="Card"/> (may need to be updated).
+	/// </summary>
+	/// <returns>All <see cref="PromoType"/> entities associated with the <paramref name="apiCard"/>.</returns>
+	Task<IEnumerable<PromoType>> UpsertPromoTypes(ApiCard apiCard);
 }
