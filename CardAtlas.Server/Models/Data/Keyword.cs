@@ -1,5 +1,6 @@
 ﻿using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -27,6 +28,7 @@ public class Keyword : INameable, ISourceable
 	public ICollection<CardKeyword> CardKeywords { get; set; } = new HashSet<CardKeyword>();
 
 	[ForeignKey("SourceId")]
+	[DeleteBehavior(DeleteBehavior.Restrict)]
 	public Source Source { get; set; } = null!;
 	public required int SourceId { get; set; }
 	[NotMapped]

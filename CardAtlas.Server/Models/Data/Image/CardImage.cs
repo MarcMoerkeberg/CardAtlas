@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data.Image;
@@ -28,6 +29,7 @@ public class CardImage
 	public ImageStatusType Status => ImageStatus.Type;
 	
 	[ForeignKey("SourceId")]
+	[DeleteBehavior(DeleteBehavior.Restrict)]
 	public Source Source { get; set; } = null!;
 	public required int SourceId { get; set; }
 	[NotMapped]

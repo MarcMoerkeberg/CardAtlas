@@ -1,5 +1,6 @@
 ﻿using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -19,10 +20,11 @@ public class GameFormat : INameable, ISourceable
 	[MaxLength(250)]
 	public string? Description { get; set; }
 
-	[InverseProperty("Format")]
+	[InverseProperty("GameFormat")]
 	public ICollection<CardLegality> CardLegalities { get; set; } = new HashSet<CardLegality>();
 
 	[ForeignKey("SourceId")]
+	[DeleteBehavior(DeleteBehavior.Restrict)]
 	public Source Source { get; set; } = null!;
 	public required int SourceId { get; set; }
 	[NotMapped]

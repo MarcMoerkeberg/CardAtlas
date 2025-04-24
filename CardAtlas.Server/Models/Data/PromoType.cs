@@ -1,5 +1,6 @@
 ﻿using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -16,6 +17,7 @@ public class PromoType : INameable, ISourceable
 	public required string Name { get; set; }
 
 	[ForeignKey("SourceId")]
+	[DeleteBehavior(DeleteBehavior.Restrict)]
 	public Source Source { get; set; } = null!;
 	public required int SourceId { get; set; }
 	[NotMapped]
