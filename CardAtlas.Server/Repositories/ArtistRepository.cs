@@ -1,15 +1,15 @@
 ﻿using CardAtlas.Server.DAL;
 using CardAtlas.Server.Models.Data;
-using CardAtlas.Server.Services.Interfaces;
+using CardAtlas.Server.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace CardAtlas.Server.Services;
+namespace CardAtlas.Server.Repositories;
 
-public class ArtistService : IArtistService
+public class ArtistRepository : IArtistRepository
 {
 	private readonly ApplicationDbContext _dbContext;
-	public ArtistService(ApplicationDbContext context)
+	public ArtistRepository(ApplicationDbContext context)
 	{
 		_dbContext = context;
 	}

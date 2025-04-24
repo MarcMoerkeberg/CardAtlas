@@ -1,17 +1,17 @@
 ﻿using CardAtlas.Server.DAL;
 using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data.Image;
-using CardAtlas.Server.Services.Interfaces;
+using CardAtlas.Server.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace CardAtlas.Server.Services;
+namespace CardAtlas.Server.Repositories;
 
-public class CardImageService : ICardImageService
+public class CardImageRepository : ICardImageRepository
 {
 	private readonly IEqualityComparer<CardImage> _cardImageComparer;
 	private readonly ApplicationDbContext _dbContext;
-	public CardImageService(
+	public CardImageRepository(
 		IEqualityComparer<CardImage> cardImageComparer, 
 		ApplicationDbContext dbContext)
 	{

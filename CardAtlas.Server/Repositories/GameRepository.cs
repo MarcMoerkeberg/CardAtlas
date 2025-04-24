@@ -1,16 +1,16 @@
 ﻿using CardAtlas.Server.DAL;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
-using CardAtlas.Server.Services.Interfaces;
+using CardAtlas.Server.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace CardAtlas.Server.Services;
+namespace CardAtlas.Server.Repositories;
 
-public class GameService : IGameService
+public class GameRepository : IGameRepository
 {
 	private readonly ApplicationDbContext _dbContext;
-	public GameService(
+	public GameRepository(
 		ApplicationDbContext dbContext)
 	{
 		_dbContext = dbContext;

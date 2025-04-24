@@ -1,9 +1,9 @@
 ﻿using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
 
-namespace CardAtlas.Server.Services.Interfaces;
+namespace CardAtlas.Server.Repositories.Interfaces;
 
-public interface IGameService
+public interface IGameRepository
 {
 	/// <summary>
 	/// Creates a new <see cref="CardGameType"/> entry in the database for each <paramref name="cardGameTypes"/>.

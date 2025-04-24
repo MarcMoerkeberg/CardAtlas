@@ -1,8 +1,8 @@
 ﻿using CardAtlas.Server.Models.Data.Image;
 
-namespace CardAtlas.Server.Services.Interfaces;
+namespace CardAtlas.Server.Repositories.Interfaces;
 
-public interface ICardImageService
+public interface ICardImageRepository
 {
 	/// <summary>
 	/// Returns the <see cref="CardImage"/> from the db with the specified <paramref name="cardImageId"/>.<br/>

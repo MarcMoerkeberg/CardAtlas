@@ -2,7 +2,6 @@
 using Asp.Versioning.ApiExplorer;
 using CardAtlas.Server.DAL;
 using CardAtlas.Server.Exceptions;
-using CardAtlas.Server.Guards;
 using CardAtlas.Server.Helpers;
 using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Resources;
@@ -33,7 +32,7 @@ public static class ServiceCollectionExtensions
 
 			if (appSettings is null) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
 			if (string.IsNullOrEmpty(appSettings.AppName)) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
-			if (!appSettings.HasValidConnectionStrings()) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
+			if (appSettings.ConnectionStrings is null) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
 
 			_appSettings = appSettings;
 		}

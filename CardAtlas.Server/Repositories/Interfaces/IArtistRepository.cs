@@ -1,8 +1,8 @@
 ﻿using CardAtlas.Server.Models.Data;
 
-namespace CardAtlas.Server.Services.Interfaces
+namespace CardAtlas.Server.Repositories.Interfaces
 {
-	public interface IArtistService
+	public interface IArtistRepository
 	{
 		/// <summary>
 		/// Adds the provided <paramref name="artist"/> to the database.

@@ -16,22 +16,22 @@ namespace CardAtlas.Server.Services;
 
 public class ScryfallIngestionService : IScryfallIngestionService
 {
-	private readonly IArtistService _artistService;
-	private readonly ICardImageService _cardImageService;
+	private readonly IArtistRepository _artistService;
+	private readonly ICardImageRepository _cardImageService;
 	private readonly ICardRepository _cardService;
 	private readonly IEqualityComparer<Keyword> _keywordComparer;
-	private readonly IGameService _gameService;
+	private readonly IGameRepository _gameService;
 	private readonly IScryfallApi _scryfallApi;
-	private readonly ISetService _setService;
+	private readonly ISetRepository _setService;
 
 	public ScryfallIngestionService(
-		IArtistService artistService,
-		ICardImageService cardImageService,
+		IArtistRepository artistService,
+		ICardImageRepository cardImageService,
 		ICardRepository cardService,
 		IEqualityComparer<Keyword> keywordComparer,
-		IGameService gameService,
+		IGameRepository gameService,
 		IScryfallApi scryfallApi,
-		ISetService setService)
+		ISetRepository setService)
 	{
 		_artistService = artistService;
 		_cardImageService = cardImageService;

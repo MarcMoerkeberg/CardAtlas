@@ -1,8 +1,8 @@
 ﻿using CardAtlas.Server.Models.Data;
 
-namespace CardAtlas.Server.Services.Interfaces;
+namespace CardAtlas.Server.Repositories.Interfaces;
 
-public interface ISetService
+public interface ISetRepository
 {
 	/// <summary>
 	/// Returns the <see cref="Set"/> from the db with the specified <paramref name="scryfallId"/>.
