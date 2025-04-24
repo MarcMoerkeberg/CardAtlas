@@ -16,51 +16,54 @@ namespace CardAtlas.Server.Services;
 
 public class ScryfallIngestionService : IScryfallIngestionService
 {
-	private readonly IArtistRepository _artistService;
-	private readonly ICardImageRepository _cardImageService;
-	private readonly ICardRepository _cardService;
+	private readonly IArtistRepository _artistRepository;
+	private readonly ICardImageRepository _cardImageRepository;
+	private readonly ICardRepository _cardRepository;
 	private readonly IEqualityComparer<Keyword> _keywordComparer;
-	private readonly IGameRepository _gameService;
+	private readonly IGameRepository _gameRepository;
 	private readonly IScryfallApi _scryfallApi;
-	private readonly ISetRepository _setService;
+	private readonly ISetRepository _setRepository;
 
 	public ScryfallIngestionService(
-		IArtistRepository artistService,
-		ICardImageRepository cardImageService,
-		ICardRepository cardService,
+		IArtistRepository artistRepository,
+		ICardImageRepository cardImageRepository,
+		ICardRepository cardRepository,
 		IEqualityComparer<Keyword> keywordComparer,
-		IGameRepository gameService,
+		IGameRepository gameRepository,
 		IScryfallApi scryfallApi,
-		ISetRepository setService)
+		ISetRepository setRepository)
 	{
-		_artistService = artistService;
-		_cardImageService = cardImageService;
-		_cardService = cardService;
+		_artistRepository = artistRepository;
+		_cardImageRepository = cardImageRepository;
+		_cardRepository = cardRepository;
 		_keywordComparer = keywordComparer;
-		_gameService = gameService;
+		_gameRepository = gameRepository;
 		_scryfallApi = scryfallApi;
-		_setService = setService;
+		_setRepository = setRepository;
 	}
 
 	public async Task UpsertCardCollection()
 	{
 		await UpsertSets();
-
+		int numberOfUpsertedCards = 0;
 		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
-			IEnumerable<Card> upsertedCards = await UpsertCard(apiCard);
+			await UpsertCard(apiCard);
 			await CreateMissingGameFormats(apiCard);
+			IEnumerable<Card> upsertedCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
 
 			//TODO: Add caching for some entities, to remove unnecessary database calls.
 			await Task.WhenAll(
 				UpsertCardImages(apiCard, upsertedCards),
 				UpsertCardPrices(apiCard, upsertedCards),
-				UpdatePrintFinishes(apiCard, upsertedCards),
 				UpdateGameTypes(apiCard, upsertedCards),
+				UpdatePrintFinishes(apiCard, upsertedCards),
 				UpsertLegality(apiCard, upsertedCards),
 				UpsertKeywords(apiCard, upsertedCards),
 				UpsertPromoTypes(apiCard, upsertedCards)
 			);
+
+			numberOfUpsertedCards++;
 		}
 	}
 
@@ -72,16 +75,16 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		foreach (ApiSet apiSet in apiSets)
 		{
 			Set mappedSet = SetMapper.MapSet(apiSet);
-			Set? existingSet = await _setService.GetFromScryfallId(apiSet.Id);
+			Set? existingSet = await _setRepository.GetFromScryfallId(apiSet.Id);
 
 			if (existingSet is null)
 			{
-				await _setService.Create(mappedSet);
+				await _setRepository.Create(mappedSet);
 			}
 			else
 			{
 				mappedSet.Id = existingSet.Id;
-				await _setService.UpdateIfChanged(mappedSet);
+				await _setRepository.UpdateIfChanged(mappedSet);
 			}
 
 			rowsAffected++;
@@ -119,12 +122,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 			if (existingCard is null)
 			{
-				cards.Add(await _cardService.Create(mappedCard));
+				cards.Add(await _cardRepository.Create(mappedCard));
 			}
 			else
 			{
 				mappedCard.Id = existingCard.Id;
-				cards.Add(await _cardService.UpdateIfChanged(mappedCard));
+				cards.Add(await _cardRepository.UpdateIfChanged(mappedCard));
 			}
 
 			if (isFirstCardFace)
@@ -151,12 +154,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		if (existingCard is null)
 		{
-			return await _cardService.Create(mappedCard);
+			return await _cardRepository.Create(mappedCard);
 		}
 		else
 		{
 			mappedCard.Id = existingCard.Id;
-			return await _cardService.UpdateIfChanged(mappedCard);
+			return await _cardRepository.UpdateIfChanged(mappedCard);
 		}
 	}
 
@@ -167,13 +170,13 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>The existing or newly created <see cref="Set"/>.</returns>
 	private async Task<Set> GetOrCreateSet(Guid scryfallSetId)
 	{
-		Set? persistedSet = await _setService.GetFromScryfallId(scryfallSetId);
+		Set? persistedSet = await _setRepository.GetFromScryfallId(scryfallSetId);
 		if (persistedSet is not null) return persistedSet;
 
 		ApiSet apiSet = await _scryfallApi.GetSet(scryfallSetId);
 		Set newSet = SetMapper.MapSet(apiSet);
 
-		return await _setService.Create(newSet);
+		return await _setRepository.Create(newSet);
 	}
 
 	/// <summary>
@@ -190,8 +193,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			: ArtistMapper.MapArtist(apiCard);
 
 		return artistFromCard.ScryfallId.HasValue
-			? await _artistService.GetFromScryfallId(artistFromCard.ScryfallId.Value) ?? await _artistService.Create(artistFromCard)
-			: await _artistService.Get(Artist.DefaultArtistId);
+			? await _artistRepository.GetFromScryfallId(artistFromCard.ScryfallId.Value) ?? await _artistRepository.Create(artistFromCard)
+			: await _artistRepository.Get(Artist.DefaultArtistId);
 	}
 
 	/// <summary>
@@ -201,7 +204,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>The first <see cref="Card"/> with matching scryfall id. Returns null if no match is found.</returns>
 	private async Task<Card?> GetExistingCard(ApiCard apiCard)
 	{
-		IEnumerable<Card> existingCard = await _cardService.GetFromScryfallId(apiCard.Id);
+		IEnumerable<Card> existingCard = await _cardRepository.GetFromScryfallId(apiCard.Id);
 
 		return existingCard.FirstOrDefault();
 	}
@@ -213,7 +216,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>The first <see cref="Card"/> that matches the <paramref name="cardFace"/>. Returns null if no match is found.</returns>
 	private async Task<Card?> GetExistingCard(ApiCard apiCard, CardFace cardFace)
 	{
-		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		IEnumerable<Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
 
 		return existingCards.Any()
 			? existingCards.FirstWithNameOrDefault(cardFace.Name)
@@ -222,7 +225,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<IEnumerable<CardImage>> UpsertCardImages(ApiCard apiCard)
 	{
-		IEnumerable< Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		IEnumerable< Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
 		
 		return await UpsertCardImages(apiCard, existingCards);
 	}
@@ -259,7 +262,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		IEnumerable<CardImage> existingImages = imageryOwner.Images.Any()
 			? imageryOwner.Images
-			: await _cardImageService.GetFromCardId(imageryOwner.Id);
+			: await _cardImageRepository.GetFromCardId(imageryOwner.Id);
 
 		foreach (CardImage imageToUpsert in imagesToUpsert)
 		{
@@ -267,12 +270,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 			if (existingCardImage is null)
 			{
-				upsertedCardImages.Add(await _cardImageService.Create(imageToUpsert));
+				upsertedCardImages.Add(await _cardImageRepository.Create(imageToUpsert));
 			}
 			else
 			{
 				imageToUpsert.Id = existingCardImage.Id;
-				upsertedCardImages.Add(await _cardImageService.UpdateIfChanged(imageToUpsert));
+				upsertedCardImages.Add(await _cardImageRepository.UpdateIfChanged(imageToUpsert));
 			}
 		}
 
@@ -281,7 +284,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<IEnumerable<CardPrice>> UpsertCardPrices(ApiCard apiCard)
 	{
-		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		IEnumerable<Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
 
 		return await UpsertCardPrices(apiCard, existingCards);
 	}
@@ -316,7 +319,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		IEnumerable<CardPrice> existingPrices = cardWithPrices.Prices.Any()
 			? cardWithPrices.Prices
-			: await _cardService.GetPrices(cardWithPrices.Id);
+			: await _cardRepository.GetPrices(cardWithPrices.Id);
 
 		foreach (CardPrice priceToUpsert in pricesToUpsert)
 		{
@@ -324,12 +327,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 			if (existingCardPrice is null)
 			{
-				upsertedCardPrices.Add(await _cardService.CreatePrice(priceToUpsert));
+				upsertedCardPrices.Add(await _cardRepository.CreatePrice(priceToUpsert));
 			}
 			else
 			{
 				priceToUpsert.Id = existingCardPrice.Id;
-				upsertedCardPrices.Add(await _cardService.UpdatePriceIfChanged(priceToUpsert));
+				upsertedCardPrices.Add(await _cardRepository.UpdatePriceIfChanged(priceToUpsert));
 			}
 		}
 
@@ -338,7 +341,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<IEnumerable<CardPrintFinish>> UpdatePrintFinishes(ApiCard apiCard)
 	{
-		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		IEnumerable<Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
 
 		return await UpdatePrintFinishes(apiCard, existingCards);
 	}
@@ -382,7 +385,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		if (!missingFinishes.Any()) return card.CardPrintFinishes;
 
-		var newPrintFinishes = await _cardService.CreateCardPrintFinishes(missingFinishes);
+		var newPrintFinishes = await _cardRepository.CreateCardPrintFinishes(missingFinishes);
 
 		return card.CardPrintFinishes
 			.Union(newPrintFinishes);
@@ -390,7 +393,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<IEnumerable<CardGameType>> UpdateGameTypes(ApiCard apiCard)
 	{
-		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		IEnumerable<Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
 
 		return await UpdateGameTypes(apiCard, existingCards);
 	}
@@ -423,7 +426,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		if (!missingGameTypes.Any()) return card.GameTypes;
 
-		var newGameTypes = await _gameService.CreateCardGameTypes(missingGameTypes);
+		var newGameTypes = await _gameRepository.CreateCardGameTypes(missingGameTypes);
 
 		return card.GameTypes
 			.Union(newGameTypes);
@@ -431,7 +434,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<IEnumerable<CardLegality>> UpsertLegality(ApiCard apiCard)
 	{
-		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		IEnumerable<Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
 
 		return await UpsertLegality(apiCard, existingCards);
 	}
@@ -478,8 +481,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		IEnumerable<CardLegality>[] upsertedLegalitiesArray = await Task.WhenAll(
-			_cardService.UpdateCardLegalitiesIfChanged(legalitiesToUpdate),
-			_cardService.CreateCardLegalities(legalitiesToCreate)
+			_cardRepository.UpdateCardLegalitiesIfChanged(legalitiesToUpdate),
+			_cardRepository.CreateCardLegalities(legalitiesToCreate)
 		);
 
 		return upsertedLegalitiesArray.SelectMany(upsertedLegalities => upsertedLegalities);
@@ -491,12 +494,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>All <see cref="GameFormat"/> entities with <see cref="SourceType.Scryfall"/> as their source.</returns>
 	private async Task<HashSet<GameFormat>> CreateMissingGameFormats(ApiCard apiCard)
 	{
-		HashSet<GameFormat> existingFormats = await _gameService.GetFormats(SourceType.Scryfall);
+		HashSet<GameFormat> existingFormats = await _gameRepository.GetFormats(SourceType.Scryfall);
 		HashSet<GameFormat> missingFormats = GameHelpers.GetMissingGameFormats(apiCard, existingFormats);
 
 		if (missingFormats.Any())
 		{
-			await _gameService.CreateFormats(missingFormats);
+			await _gameRepository.CreateFormats(missingFormats);
 		}
 
 		return existingFormats.Union(missingFormats).ToHashSet();
@@ -504,7 +507,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<IEnumerable<Keyword>> UpsertKeywords(ApiCard apiCard)
 	{
-		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		IEnumerable<Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
 		
 		return await UpsertKeywords(apiCard, existingCards);
 	}
@@ -560,14 +563,14 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>All <see cref="Keyword"/> entities with <see cref="SourceType.Scryfall"/> after adding any missing entries.</returns>
 	private async Task<IEnumerable<Keyword>> CreateMissingKeywords(IEnumerable<Keyword> apiCardKeywords)
 	{
-		IEnumerable<Keyword> existingKeywords = await _cardService.GetKeywords(SourceType.Scryfall);
+		IEnumerable<Keyword> existingKeywords = await _cardRepository.GetKeywords(SourceType.Scryfall);
 
 		IEnumerable<Keyword> missingKeywords = apiCardKeywords
 			.Where(apiKeyword => !existingKeywords.ExistsWithName(apiKeyword.Name, SourceType.Scryfall));
 
 		if (!missingKeywords.Any()) return existingKeywords;
 
-		IEnumerable<Keyword> newKeywords = await _cardService.CreateKeywords(missingKeywords);
+		IEnumerable<Keyword> newKeywords = await _cardRepository.CreateKeywords(missingKeywords);
 
 		return existingKeywords.Union(newKeywords);
 	}
@@ -600,8 +603,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		IEnumerable<CardKeyword>[] upsertedCards = await Task.WhenAll(
-			_cardService.CreateCardKeywords(cardKeywordsToCreate),
-			_cardService.UpdateCardKeywords(cardKeywordsToUpdate)
+			_cardRepository.CreateCardKeywords(cardKeywordsToCreate),
+			_cardRepository.UpdateCardKeywords(cardKeywordsToUpdate)
 		);
 
 		return upsertedCards.SelectMany(upsertedCardKeywords => upsertedCardKeywords);
@@ -609,7 +612,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<IEnumerable<PromoType>> UpsertPromoTypes(ApiCard apiCard)
 	{
-		IEnumerable<Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		IEnumerable<Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
 		
 		return await UpsertPromoTypes(apiCard, existingCards);
 	}
@@ -664,8 +667,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		IEnumerable<CardPromoType>[] upsertedCards = await Task.WhenAll(
-			_cardService.CreateCardPromoTypes(cardPromoTypesToCreate),
-			_cardService.UpdateCardPromoTypes(cardPromoTypesToUpdate)
+			_cardRepository.CreateCardPromoTypes(cardPromoTypesToCreate),
+			_cardRepository.UpdateCardPromoTypes(cardPromoTypesToUpdate)
 		);
 
 		return upsertedCards.SelectMany(upsertedCardKeywords => upsertedCardKeywords);
@@ -703,7 +706,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		if (apiCard.PromoTypes is not { Length: > 0 }) return new List<PromoType>();
 
-		IEnumerable<PromoType> existingPromoTypes = await _cardService.GetPromoTypes(SourceType.Scryfall);
+		IEnumerable<PromoType> existingPromoTypes = await _cardRepository.GetPromoTypes(SourceType.Scryfall);
 
 		IEnumerable<PromoType> missingPromoTypes = apiCard.PromoTypes
 			.Where(promoTypeName => !existingPromoTypes.ExistsWithName(promoTypeName, SourceType.Scryfall))
@@ -715,7 +718,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		if (!missingPromoTypes.Any()) return existingPromoTypes;
 
-		IEnumerable<PromoType> newPromoTypes = await _cardService.CreatePromoTypes(missingPromoTypes);
+		IEnumerable<PromoType> newPromoTypes = await _cardRepository.CreatePromoTypes(missingPromoTypes);
 
 		return existingPromoTypes.Union(newPromoTypes);
 	}

@@ -273,7 +273,7 @@ namespace CardAtlas.Server.Migrations
                     MtgoCode = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: true),
                     ArenaCode = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: true),
                     ParentSetCode = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: true),
-                    Block = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: true),
+                    Block = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     BlockCode = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: true),
                     SetTypeId = table.Column<int>(type: "int", nullable: false),
                     NumberOfCardsInSet = table.Column<int>(type: "int", nullable: false),

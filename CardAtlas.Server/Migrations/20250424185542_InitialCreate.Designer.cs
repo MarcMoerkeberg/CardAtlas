@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CardAtlas.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250424183713_InitialCreate")]
+    [Migration("20250424185542_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -1000,8 +1000,8 @@ namespace CardAtlas.Server.Migrations
                         .HasColumnType("nvarchar(6)");
 
                     b.Property<string>("Block")
-                        .HasMaxLength(6)
-                        .HasColumnType("nvarchar(6)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("BlockCode")
                         .HasMaxLength(6)

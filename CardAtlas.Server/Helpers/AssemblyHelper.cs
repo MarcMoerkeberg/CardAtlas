@@ -10,7 +10,7 @@ public static class AssemblyHelper
 	/// </summary>
 	/// <exception cref="ArgumentNullException">Thrown when the <paramref name="namespaceSuffix"/> is null or empty.</exception>
 	/// <exception cref="InvalidOperationException">Thrown when an error occurs while loading types from the assembly.</exception>
-	public static IEnumerable<Type> GetClassesThatImplementInterfaces(string namespaceSuffix, string namespacePrefix = "EK.Portal.Server")
+	public static IEnumerable<Type> GetClassesThatImplementInterfaces(string namespaceSuffix, string namespacePrefix = "CardAtlas.Server")
 	{
 		if (string.IsNullOrWhiteSpace(namespaceSuffix))
 		{

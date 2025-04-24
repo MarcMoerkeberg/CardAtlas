@@ -31,8 +31,8 @@ public class Set
 	[MaxLength(6)]
 	public string? ParentSetCode { get; set; }
 
-	[MinLength(3)]
-	[MaxLength(6)]
+	[MinLength(1)]
+	[MaxLength(50)]
 	public string? Block { get; set; }
 
 	[MinLength(3)]
