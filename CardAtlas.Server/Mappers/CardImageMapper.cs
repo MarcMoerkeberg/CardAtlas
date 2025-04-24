@@ -11,11 +11,11 @@ public class CardImageMapper
 {
 	/// <summary>
 	/// Maps the card images from the Scryfall API to the database model.<br/>
-	/// Uses the <paramref name="cardFace"/> if provided, otherwise uses the data from <paramref name="apiCard"/>.
+	/// Uses the data from the <paramref name="cardFace"/> if it's not null, otherwise it uses <paramref name="apiCard"/>.
 	/// </summary>
 	/// <param name="cardId">The id of the <see cref="Card"/> that owns these images.</param>
 	/// <returns>A new list of <see cref="CardImage"/>. May be empty if <paramref name="apiCard"/> has no imagery data.</returns>
-	public static IEnumerable<CardImage> MapCardImages(long cardId, ApiCard apiCard, CardFace? cardFace = null)
+	public static IEnumerable<CardImage> MapCardImages(long cardId, ApiCard apiCard, CardFace? cardFace)
 	{
 		var cardImages = new List<CardImage>();
 		ImageUris? imageUris = cardFace is null 

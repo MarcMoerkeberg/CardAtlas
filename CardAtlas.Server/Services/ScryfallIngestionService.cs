@@ -47,12 +47,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
-			//TODO: Add memorycache module
 			IEnumerable<Card> upsertedCards = await UpsertCard(apiCard);
 			await CreateMissingGameFormats(apiCard);
 
+			//TODO: Add caching for some entities, to remove unnecessary database calls.
 			await Task.WhenAll(
-				UpsertCardImages(apiCard),
+				UpsertCardImages(apiCard, upsertedCards),
 				UpsertCardPrices(apiCard, upsertedCards),
 				UpdatePrintFinishes(apiCard, upsertedCards),
 				UpdateGameTypes(apiCard, upsertedCards),
@@ -221,46 +221,29 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<IEnumerable<CardImage>> UpsertCardImages(ApiCard apiCard)
 	{
-		return apiCard.CardFaces is { Length: > 1 }
-			? await UpsertMultipleCardImagery(apiCard, apiCard.CardFaces)
-			: await UpsertSingleCardImagery(apiCard);
+		IEnumerable< Card> existingCards = await _cardService.GetFromScryfallId(apiCard.Id);
+		
+		return await UpsertCardImages(apiCard, existingCards);
 	}
 
 	/// <summary>
-	/// Creates or updates card imagery data from <paramref name="apiCard"/> to the database.<br/>
-	/// Should be called when <paramref name="apiCard"/> has multiple <see cref="CardFace"/>.
+	/// Upserts the imagery from <paramref name="apiCard"/> to <paramref name="existingCards"/>.
 	/// </summary>
-	/// <returns>All created or updated <see cref="CardImage"/> objects.</returns>
-	private async Task<IEnumerable<CardImage>> UpsertMultipleCardImagery(ApiCard apiCard, IEnumerable<CardFace> cardFaces)
+	/// <returns>All <see cref="CardImage"/> entries which was created or updated.</returns>
+	private async Task<IEnumerable<CardImage>> UpsertCardImages(ApiCard apiCard, IEnumerable<Card> existingCards)
 	{
-		var upsertedCardImages = new List<CardImage>();
+		List<CardImage> upsertedCardImages = new();
 
-		foreach (CardFace cardFace in cardFaces)
+		foreach (Card existingCard in existingCards)
 		{
-			Card? cardImageryOwner = await GetExistingCard(apiCard, cardFace);
-			if (cardImageryOwner is null) continue;
+			CardFace? cardFace = apiCard.CardFaces?.FirstOrDefault(cardFace => string.Equals(cardFace.Name,apiCard.Name, StringComparison.Ordinal));
+			IEnumerable<CardImage> apiCardImages = CardImageMapper.MapCardImages(existingCard.Id, apiCard, cardFace);
 
-			IEnumerable<CardImage> apiCardImages = CardImageMapper.MapCardImages(cardImageryOwner.Id, apiCard, cardFace);
-
-			upsertedCardImages.AddRange(await UpsertCardImages(cardImageryOwner, apiCardImages));
+			IEnumerable<CardImage> upsertedImages = await UpsertCardImages(existingCard, apiCardImages);
+			upsertedCardImages.AddRange(upsertedImages);
 		}
 
 		return upsertedCardImages;
-	}
-
-	/// <summary>
-	/// Creates or updates card imagery data from <paramref name="apiCard"/> to the database.<br/>
-	/// Should not be called when <paramref name="apiCard"/> has multiple <see cref="CardFace"/>.
-	/// </summary>
-	/// <returns>All created or updated <see cref="CardImage"/> objects.</returns>
-	private async Task<IEnumerable<CardImage>> UpsertSingleCardImagery(ApiCard apiCard)
-	{
-		Card? cardImageryOwner = await GetExistingCard(apiCard);
-		if (cardImageryOwner is null) return new List<CardImage>();
-
-		IEnumerable<CardImage> imagesToUpsert = CardImageMapper.MapCardImages(cardImageryOwner.Id, apiCard);
-
-		return await UpsertCardImages(cardImageryOwner, imagesToUpsert);
 	}
 
 	/// <summary>
@@ -303,8 +286,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	/// <summary>
-	/// Upserts the pricing data from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/>.<br/>
-	/// If <paramref name="apiCard"/> has multiple <see cref="CardFace"/>, each face's corresponding <see cref="Card"/> will updated.
+	/// Creates or updates the pricing data on the <paramref name="existingCards"/> from <paramref name="apiCard"/>.
 	/// </summary>
 	/// <returns>All <see cref="CardPrice"/> entries which was created or updated.</returns>
 	public async Task<IEnumerable<CardPrice>> UpsertCardPrices(ApiCard apiCard, IEnumerable<Card> existingCards)
@@ -361,11 +343,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	/// <summary>
-	/// Adds any missing <see cref="PrintFinishType"/> from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/> entities.
+	/// Adds any missing <see cref="PrintFinishType"/> from <paramref name="apiCard"/> to the <paramref name="existingCards"/>.
 	/// </summary>
 	/// <returns>
-	/// All <see cref="CardPrintFinish"/> associated with the <see cref="Card"/> entities found from <paramref name="apiCard"/> after updating.<br/>
-	/// Reponse is empty if no <see cref="Card"/> entities are associated with the <paramref name="apiCard"/>.
+	/// All <see cref="CardPrintFinish"/> associated with the <paramref name="existingCards"/>.
 	/// </returns>
 	private async Task<IEnumerable<CardPrintFinish>> UpdatePrintFinishes(ApiCard apiCard, IEnumerable<Card> existingCards)
 	{
@@ -455,7 +436,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	/// <summary>
-	/// Upserts card legality information from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/> entities.
+	/// Creates or updates legality information from <paramref name="apiCard"/> associating it with the <paramref name="existingCards"/>.
 	/// </summary>
 	/// <returns>All created or updated <see cref="CardLegality"/> entities.</returns>
 	private async Task<IEnumerable<CardLegality>> UpsertLegality(ApiCard apiCard, IEnumerable<Card> existingCards)
@@ -528,7 +509,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	/// <summary>
-	/// Creates or updates the <see cref="Keyword"/> entities and their relation to the <see cref="Card"/> associated with the <paramref name="apiCard"/>.
+	/// Creates or updates the <see cref="Keyword"/> entities from <paramref name="apiCard"/> and their relation to the <paramref name="existingCards"/>.
 	/// </summary>
 	/// <returns>The <see cref="Keyword"/> entities associated with the <see cref="Card"/>.</returns>
 	private async Task<IEnumerable<Keyword>> UpsertKeywords(ApiCard apiCard, IEnumerable<Card> existingCards)
