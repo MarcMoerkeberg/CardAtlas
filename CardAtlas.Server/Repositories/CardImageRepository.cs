@@ -34,7 +34,9 @@ public class CardImageRepository : ICardImageRepository
 	{
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		return await dbContext.CardImages.SingleAsync(cardImage => cardImage.Id == cardImageId);
+		return await dbContext.CardImages
+			.AsNoTracking()
+			.SingleAsync(cardImage => cardImage.Id == cardImageId);
 	}
 
 	public async Task<IEnumerable<CardImage>> GetFromCardId(long cardId)
@@ -42,6 +44,7 @@ public class CardImageRepository : ICardImageRepository
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.CardImages
+			.AsNoTracking()
 			.Include(ci => ci.ImageType)
 			.Include(ci => ci.ImageFormat)
 			.Include(ci => ci.ImageStatus)

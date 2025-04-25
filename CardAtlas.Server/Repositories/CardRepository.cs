@@ -29,7 +29,9 @@ public class CardRepository : ICardRepository
 	public async Task<Card> Get(long cardId)
 	{
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
-		return await dbContext.Cards.SingleAsync(card => card.Id == cardId);
+		return await dbContext.Cards
+			.AsNoTracking()
+			.SingleAsync(card => card.Id == cardId);
 	}
 
 	public async Task<Card> Create(Card card)
@@ -74,6 +76,7 @@ public class CardRepository : ICardRepository
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.Cards
+			.AsNoTracking()
 			.Include(card => card.Images)
 			.Include(card => card.Set)
 			.Include(card => card.Prices)
@@ -89,7 +92,9 @@ public class CardRepository : ICardRepository
 	{
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		return await dbContext.CardPrices.SingleAsync(price => price.Id == priceId);
+		return await dbContext.CardPrices
+			.AsNoTracking()
+			.SingleAsync(price => price.Id == priceId);
 	}
 
 	public async Task<IEnumerable<CardPrice>> GetPrices(long cardId)
@@ -97,6 +102,7 @@ public class CardRepository : ICardRepository
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.CardPrices
+			.AsNoTracking()
 			.Where(price => price.CardId == cardId)
 			.ToListAsync();
 	}
@@ -159,7 +165,9 @@ public class CardRepository : ICardRepository
 	{
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		return await dbContext.CardLegalities.SingleAsync(cardLegality => cardLegality.Id == cardLegalityId);
+		return await dbContext.CardLegalities
+			.AsNoTracking()
+			.SingleAsync(cardLegality => cardLegality.Id == cardLegalityId);
 	}
 
 	public async Task<CardLegality> CreateCardLegality(CardLegality legality)
@@ -241,7 +249,7 @@ public class CardRepository : ICardRepository
 	{
 		var updatedCardLegalities = new List<CardLegality>();
 		if (!legalitiesWithChanges.Any()) return updatedCardLegalities;
-		
+
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		foreach (var legalityWithChanges in legalitiesWithChanges)
@@ -265,7 +273,9 @@ public class CardRepository : ICardRepository
 	{
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		return await dbContext.Keywords.ToListAsync();
+		return await dbContext.Keywords
+			.AsNoTracking()
+			.ToListAsync();
 	}
 
 	public async Task<IEnumerable<Keyword>> GetKeywords(SourceType source)
@@ -273,6 +283,7 @@ public class CardRepository : ICardRepository
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.Keywords
+			.AsNoTracking()
 			.Where(keyword => keyword.SourceId == (int)source)
 			.ToListAsync();
 	}
@@ -308,7 +319,9 @@ public class CardRepository : ICardRepository
 	{
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		return await dbContext.CardKeywords.SingleAsync(cardKeyword => cardKeyword.Id == cardKeywordId);
+		return await dbContext.CardKeywords
+			.AsNoTracking()
+			.SingleAsync(cardKeyword => cardKeyword.Id == cardKeywordId);
 	}
 
 	public async Task<CardKeyword> CreateCardKeyword(CardKeyword cardKeyword)
@@ -374,7 +387,9 @@ public class CardRepository : ICardRepository
 	{
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		return await dbContext.PromoTypes.ToListAsync();
+		return await dbContext.PromoTypes
+			.AsNoTracking()
+			.ToListAsync();
 	}
 
 	public async Task<IEnumerable<PromoType>> GetPromoTypes(SourceType source)
@@ -382,6 +397,7 @@ public class CardRepository : ICardRepository
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.PromoTypes
+			.AsNoTracking()
 			.Where(promoType => promoType.SourceId == (int)source)
 			.ToListAsync();
 	}
@@ -429,12 +445,14 @@ public class CardRepository : ICardRepository
 
 		return addedCardPromoTypes;
 	}
-	
+
 	public async Task<CardPromoType> GetCardPromoType(long cardPromoTypeId)
 	{
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		return await dbContext.CardPromoTypes.SingleAsync(cardPromoType => cardPromoType.Id == cardPromoTypeId);
+		return await dbContext.CardPromoTypes
+			.AsNoTracking()
+			.SingleAsync(cardPromoType => cardPromoType.Id == cardPromoTypeId);
 	}
 
 	public async Task<IEnumerable<CardPromoType>> UpdateCardPromoTypes(IEnumerable<CardPromoType> cardPromoTypes)

@@ -29,6 +29,7 @@ public class SetRepository : ISetRepository
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.Sets
+			.AsNoTracking()
 			.SingleOrDefaultAsync(set => set.ScryfallId == scryfallId);
 	}
 
@@ -46,7 +47,9 @@ public class SetRepository : ISetRepository
 	{
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		return await dbContext.Sets.SingleAsync(set => set.Id == setId);
+		return await dbContext.Sets
+			.AsNoTracking()
+			.SingleAsync(set => set.Id == setId);
 	}
 
 	public async Task<Set> Update(Set setWithChanges)

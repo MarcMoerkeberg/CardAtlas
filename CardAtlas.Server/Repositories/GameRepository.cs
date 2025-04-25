@@ -66,7 +66,9 @@ public class GameRepository : IGameRepository
 	{
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		return await dbContext.GameFormats.ToHashSetAsync();
+		return await dbContext.GameFormats
+			.AsNoTracking()
+			.ToHashSetAsync();
 	}
 
 	public async Task<HashSet<GameFormat>> GetFormats(SourceType source)
@@ -74,6 +76,7 @@ public class GameRepository : IGameRepository
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.GameFormats
+			.AsNoTracking()
 			.Where(format => format.SourceId == (int)source)
 			.ToHashSetAsync();
 	}
@@ -83,6 +86,7 @@ public class GameRepository : IGameRepository
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.GameFormats
+			.AsNoTracking()
 			.SingleAsync(gameFormat => gameFormat.Id == formatId);
 	}
 }

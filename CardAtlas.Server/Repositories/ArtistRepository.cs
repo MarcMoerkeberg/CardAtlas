@@ -25,6 +25,7 @@ public class ArtistRepository : IArtistRepository
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.Artists
+			.AsNoTracking()
 			.SingleOrDefaultAsync(artist => artist.ScryfallId == scryfallId);
 	}
 
@@ -42,6 +43,8 @@ public class ArtistRepository : IArtistRepository
 	{
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		return await dbContext.Artists.SingleAsync(artist => artist.Id == artistId);
+		return await dbContext.Artists
+			.AsNoTracking()
+			.SingleAsync(artist => artist.Id == artistId);
 	}
 }

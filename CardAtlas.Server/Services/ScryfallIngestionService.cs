@@ -45,7 +45,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	public async Task UpsertCardCollection()
 	{
 		await UpsertSets();
-		int numberOfUpsertedCards = 0;
+
 		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
 			IEnumerable<Card> upsertedCards = await UpsertCard(apiCard);
@@ -61,8 +61,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 				UpsertKeywords(apiCard, upsertedCards),
 				UpsertPromoTypes(apiCard, upsertedCards)
 			);
-
-			numberOfUpsertedCards++;
 		}
 	}
 
