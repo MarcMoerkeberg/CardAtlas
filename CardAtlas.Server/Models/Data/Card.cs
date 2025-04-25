@@ -24,7 +24,7 @@ public class Card : INameable
 
 	[MinLength(1)]
 	[MaxLength(60)]
-	public required string TypeLine { get; set; }
+	public string? TypeLine { get; set; }
 
 	[MinLength(1)]
 	[MaxLength(500)]
@@ -50,7 +50,7 @@ public class Card : INameable
 	public string? Loyalty { get; set; }
 
 	[MinLength(1)]
-	[MaxLength(6)]
+	[MaxLength(10)]
 	public required string CollectorNumber { get; set; }
 
 	public required DateOnly ReleaseDate { get; set; }

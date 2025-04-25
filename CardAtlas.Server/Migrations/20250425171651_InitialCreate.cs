@@ -309,14 +309,14 @@ namespace CardAtlas.Server.Migrations
                     ScryfallId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     OracleText = table.Column<string>(type: "nvarchar(800)", maxLength: 800, nullable: true),
-                    TypeLine = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
+                    TypeLine = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: true),
                     FlavorText = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     ManaCost = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     ConvertedManaCost = table.Column<decimal>(type: "decimal(8,1)", precision: 8, scale: 1, nullable: true),
                     Power = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: true),
                     Toughness = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: true),
                     Loyalty = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: true),
-                    CollectorNumber = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: false),
+                    CollectorNumber = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
                     ReleaseDate = table.Column<DateOnly>(type: "date", nullable: false),
                     IsOnReservedList = table.Column<bool>(type: "bit", nullable: false),
                     CanBeFoundInBoosters = table.Column<bool>(type: "bit", nullable: false),
@@ -696,6 +696,18 @@ namespace CardAtlas.Server.Migrations
                     { 15, "ar", "Arabic", null },
                     { 16, "sa", "Sanskrit", null },
                     { 17, "ph", "Phyrexian", "ph" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Legalities",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { -1, "NotImplemented" },
+                    { 1, "Legal" },
+                    { 2, "NotLegal" },
+                    { 3, "Restricted" },
+                    { 4, "Banned" }
                 });
 
             migrationBuilder.InsertData(

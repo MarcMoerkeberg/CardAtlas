@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CardAtlas.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250424185542_InitialCreate")]
+    [Migration("20250425171651_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -69,8 +69,8 @@ namespace CardAtlas.Server.Migrations
 
                     b.Property<string>("CollectorNumber")
                         .IsRequired()
-                        .HasMaxLength(6)
-                        .HasColumnType("nvarchar(6)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("ColorIdentity")
                         .IsRequired()
@@ -156,7 +156,6 @@ namespace CardAtlas.Server.Migrations
                         .HasColumnType("nvarchar(3)");
 
                     b.Property<string>("TypeLine")
-                        .IsRequired()
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
 
@@ -867,6 +866,33 @@ namespace CardAtlas.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Legalities");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Legal"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "NotLegal"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Restricted"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Banned"
+                        },
+                        new
+                        {
+                            Id = -1,
+                            Name = "NotImplemented"
+                        });
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.PrintFinish", b =>

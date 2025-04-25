@@ -136,7 +136,7 @@ public class Card
 	public string? Toughness { get; set; }
 
 	[JsonPropertyName("type_line")]
-	public required string TypeLine { get; set; }
+	public string? TypeLine { get; set; }
 
 
 	//Print properties
