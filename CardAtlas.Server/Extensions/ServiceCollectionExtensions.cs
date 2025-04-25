@@ -46,18 +46,17 @@ public static class ServiceCollectionExtensions
 	public static void AddDatabaseContext(this IServiceCollection services)
 	{
 		AppSettings appSettings = GetAppSettings(services);
+		Action<DbContextOptionsBuilder> dbContextOptions = options =>
+		options.UseSqlServer(appSettings.ConnectionStrings.Database, sqlServerOptions =>
+			sqlServerOptions.EnableRetryOnFailure(
+				maxRetryCount: 5,
+				maxRetryDelay: TimeSpan.FromSeconds(20),
+				errorNumbersToAdd: null
+			)
+		);
 
-		services.AddDbContext<ApplicationDbContext>(options =>
-		{
-			options.UseSqlServer(appSettings.ConnectionStrings.Database, sqlServerOptions =>
-			{
-				sqlServerOptions.EnableRetryOnFailure(
-					maxRetryCount: 5,
-					maxRetryDelay: TimeSpan.FromSeconds(20),
-					errorNumbersToAdd: null
-				);
-			});
-		});
+		services.AddDbContextFactory<ApplicationDbContext>(dbContextOptions, lifetime: ServiceLifetime.Scoped);
+		services.AddDbContext<ApplicationDbContext>(dbContextOptions);
 	}
 
 	/// <summary>
