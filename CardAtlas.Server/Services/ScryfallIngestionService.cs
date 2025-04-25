@@ -48,9 +48,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		int numberOfUpsertedCards = 0;
 		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
-			await UpsertCard(apiCard);
+			IEnumerable<Card> upsertedCards = await UpsertCard(apiCard);
 			await CreateMissingGameFormats(apiCard);
-			IEnumerable<Card> upsertedCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
 
 			//TODO: Add caching for some entities, to remove unnecessary database calls.
 			await Task.WhenAll(
@@ -225,8 +224,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<IEnumerable<CardImage>> UpsertCardImages(ApiCard apiCard)
 	{
-		IEnumerable< Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
-		
+		IEnumerable<Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
+
 		return await UpsertCardImages(apiCard, existingCards);
 	}
 
@@ -240,7 +239,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		foreach (Card existingCard in existingCards)
 		{
-			CardFace? cardFace = apiCard.CardFaces?.FirstOrDefault(cardFace => string.Equals(cardFace.Name,apiCard.Name, StringComparison.Ordinal));
+			CardFace? cardFace = apiCard.CardFaces?.FirstOrDefault(cardFace => string.Equals(cardFace.Name, apiCard.Name, StringComparison.Ordinal));
 			IEnumerable<CardImage> apiCardImages = CardImageMapper.MapCardImages(existingCard.Id, apiCard, cardFace);
 
 			IEnumerable<CardImage> upsertedImages = await UpsertCardImages(existingCard, apiCardImages);
@@ -508,7 +507,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	public async Task<IEnumerable<Keyword>> UpsertKeywords(ApiCard apiCard)
 	{
 		IEnumerable<Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
-		
+
 		return await UpsertKeywords(apiCard, existingCards);
 	}
 
@@ -613,7 +612,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	public async Task<IEnumerable<PromoType>> UpsertPromoTypes(ApiCard apiCard)
 	{
 		IEnumerable<Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
-		
+
 		return await UpsertPromoTypes(apiCard, existingCards);
 	}
 
