@@ -9,32 +9,37 @@ namespace CardAtlas.Server.Repositories;
 
 public class GameRepository : IGameRepository
 {
-	private readonly ApplicationDbContext _dbContext;
-	public GameRepository(
-		ApplicationDbContext dbContext)
+	private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
+
+	public GameRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
 	{
-		_dbContext = dbContext;
+		_dbContextFactory = dbContextFactory;
 	}
 
 	public async Task<IEnumerable<CardGameType>> CreateCardGameTypes(IEnumerable<CardGameType> cardGameTypes)
 	{
 		var addedCardGameTypes = new List<CardGameType>();
+		if (!cardGameTypes.Any()) return addedCardGameTypes;
+
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		foreach (CardGameType cardGameType in cardGameTypes)
 		{
-			EntityEntry<CardGameType> addedCardPrintFinish = await _dbContext.CardGameTypes.AddAsync(cardGameType);
+			EntityEntry<CardGameType> addedCardPrintFinish = await dbContext.CardGameTypes.AddAsync(cardGameType);
 			addedCardGameTypes.Add(addedCardPrintFinish.Entity);
 		}
 
-		await _dbContext.SaveChangesAsync();
+		await dbContext.SaveChangesAsync();
 
 		return addedCardGameTypes;
 	}
 
 	public async Task<GameFormat> CreateFormat(GameFormat format)
 	{
-		EntityEntry<GameFormat> addedGameType = await _dbContext.GameFormats.AddAsync(format);
-		await _dbContext.SaveChangesAsync();
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		EntityEntry<GameFormat> addedGameType = await dbContext.GameFormats.AddAsync(format);
+		await dbContext.SaveChangesAsync();
 
 		return addedGameType.Entity;
 	}
@@ -42,32 +47,42 @@ public class GameRepository : IGameRepository
 	public async Task<IEnumerable<GameFormat>> CreateFormats(IEnumerable<GameFormat> formats)
 	{
 		var addedFormats = new List<GameFormat>();
+		if (!formats.Any()) return addedFormats;
+
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
 		foreach (var format in formats)
 		{
-			EntityEntry<GameFormat> addedGameType = await _dbContext.GameFormats.AddAsync(format);
+			EntityEntry<GameFormat> addedGameType = await dbContext.GameFormats.AddAsync(format);
 			addedFormats.Add(addedGameType.Entity);
 		}
 
-		await _dbContext.SaveChangesAsync();
+		await dbContext.SaveChangesAsync();
 
 		return addedFormats;
 	}
 
 	public async Task<IEnumerable<GameFormat>> GetFormats()
 	{
-		return await _dbContext.GameFormats.ToHashSetAsync();
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.GameFormats.ToHashSetAsync();
 	}
 
 	public async Task<HashSet<GameFormat>> GetFormats(SourceType source)
 	{
-		return await _dbContext.GameFormats
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.GameFormats
 			.Where(format => format.SourceId == (int)source)
 			.ToHashSetAsync();
 	}
 
 	public async Task<GameFormat> GetFormat(int formatId)
 	{
-		return await _dbContext.GameFormats
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.GameFormats
 			.SingleAsync(gameFormat => gameFormat.Id == formatId);
 	}
 }

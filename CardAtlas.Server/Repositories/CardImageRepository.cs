@@ -10,31 +10,38 @@ namespace CardAtlas.Server.Repositories;
 public class CardImageRepository : ICardImageRepository
 {
 	private readonly IEqualityComparer<CardImage> _cardImageComparer;
-	private readonly ApplicationDbContext _dbContext;
+	private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
+
 	public CardImageRepository(
-		IEqualityComparer<CardImage> cardImageComparer, 
-		ApplicationDbContext dbContext)
+		IEqualityComparer<CardImage> cardImageComparer,
+		IDbContextFactory<ApplicationDbContext> dbContextFactory)
 	{
 		_cardImageComparer = cardImageComparer;
-		_dbContext = dbContext;
+		_dbContextFactory = dbContextFactory;
 	}
 
 	public async Task<CardImage> Create(CardImage cardImage)
 	{
-		EntityEntry<CardImage> addedCardImage = await _dbContext.CardImages.AddAsync(cardImage);
-		await _dbContext.SaveChangesAsync();
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		EntityEntry<CardImage> addedCardImage = await dbContext.CardImages.AddAsync(cardImage);
+		await dbContext.SaveChangesAsync();
 
 		return addedCardImage.Entity;
 	}
 
 	public async Task<CardImage> Get(long cardImageId)
 	{
-		return await _dbContext.CardImages.SingleAsync(cardImage => cardImage.Id == cardImageId);
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardImages.SingleAsync(cardImage => cardImage.Id == cardImageId);
 	}
 
 	public async Task<IEnumerable<CardImage>> GetFromCardId(long cardId)
 	{
-		return await _dbContext.CardImages
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardImages
 			.Include(ci => ci.ImageType)
 			.Include(ci => ci.ImageFormat)
 			.Include(ci => ci.ImageStatus)
@@ -45,21 +52,24 @@ public class CardImageRepository : ICardImageRepository
 
 	public async Task<CardImage> Update(CardImage cardImageWithChanges)
 	{
-		CardImage imageToUpdate = await Get(cardImageWithChanges.Id);
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		CardImage imageToUpdate = await dbContext.CardImages.SingleAsync(cardImage => cardImage.Id == cardImageWithChanges.Id);
 		CardImageMapper.MergeProperties(imageToUpdate, cardImageWithChanges);
 
-		await _dbContext.SaveChangesAsync();
+		await dbContext.SaveChangesAsync();
 		return imageToUpdate;
 	}
 
 	public async Task<CardImage> UpdateIfChanged(CardImage cardImageWithChanges)
 	{
-		CardImage imageToUpdate = await Get(cardImageWithChanges.Id);
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		CardImage imageToUpdate = await dbContext.CardImages.SingleAsync(cardImage => cardImage.Id == cardImageWithChanges.Id);
 
 		if (!_cardImageComparer.Equals(imageToUpdate, cardImageWithChanges))
 		{
 			CardImageMapper.MergeProperties(imageToUpdate, cardImageWithChanges);
-			await _dbContext.SaveChangesAsync();
+			await dbContext.SaveChangesAsync();
 		}
 
 		return imageToUpdate;

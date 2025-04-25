@@ -8,10 +8,11 @@ namespace CardAtlas.Server.Repositories;
 
 public class ArtistRepository : IArtistRepository
 {
-	private readonly ApplicationDbContext _dbContext;
-	public ArtistRepository(ApplicationDbContext context)
+	private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
+
+	public ArtistRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
 	{
-		_dbContext = context;
+		_dbContextFactory = dbContextFactory;
 	}
 
 	public async Task<Artist?> GetFromScryfallId(Guid scryfallId)
@@ -21,20 +22,26 @@ public class ArtistRepository : IArtistRepository
 			return null;
 		}
 
-		return await _dbContext.Artists
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.Artists
 			.SingleOrDefaultAsync(artist => artist.ScryfallId == scryfallId);
 	}
 
 	public async Task<Artist> Create(Artist artist)
 	{
-		EntityEntry<Artist> addedArtist = await _dbContext.Artists.AddAsync(artist);
-		await _dbContext.SaveChangesAsync();
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		EntityEntry<Artist> addedArtist = await dbContext.Artists.AddAsync(artist);
+		await dbContext.SaveChangesAsync();
 
 		return addedArtist.Entity;
 	}
 
 	public async Task<Artist> Get(int artistId)
 	{
-		return await _dbContext.Artists.SingleAsync(artist => artist.Id == artistId);
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.Artists.SingleAsync(artist => artist.Id == artistId);
 	}
 }

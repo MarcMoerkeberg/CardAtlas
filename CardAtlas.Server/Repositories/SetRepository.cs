@@ -9,13 +9,13 @@ namespace CardAtlas.Server.Repositories;
 
 public class SetRepository : ISetRepository
 {
-	private readonly ApplicationDbContext _dbContext;
+	private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 	private readonly IEqualityComparer<Set> _setComparer;
 	public SetRepository(
-		ApplicationDbContext context,
+		IDbContextFactory<ApplicationDbContext> dbContextFactory,
 		IEqualityComparer<Set> equalityComparer)
 	{
-		_dbContext = context;
+		_dbContextFactory = dbContextFactory;
 		_setComparer = equalityComparer;
 	}
 
@@ -26,41 +26,51 @@ public class SetRepository : ISetRepository
 			return null;
 		}
 
-		return await _dbContext.Sets
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.Sets
 			.SingleOrDefaultAsync(set => set.ScryfallId == scryfallId);
 	}
 
 	public async Task<Set> Create(Set set)
 	{
-		EntityEntry<Set> savedSet = await _dbContext.Sets.AddAsync(set);
-		await _dbContext.SaveChangesAsync();
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		EntityEntry<Set> savedSet = await dbContext.Sets.AddAsync(set);
+		await dbContext.SaveChangesAsync();
 
 		return savedSet.Entity;
 	}
 
 	public async Task<Set> Get(int setId)
 	{
-		return await _dbContext.Sets.SingleAsync(set => set.Id == setId);
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.Sets.SingleAsync(set => set.Id == setId);
 	}
 
 	public async Task<Set> Update(Set setWithChanges)
 	{
-		Set setToUpdate = await Get(setWithChanges.Id);
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		Set setToUpdate = await dbContext.Sets.SingleAsync(set => set.Id == setWithChanges.Id);
 		SetMapper.MergeProperties(setToUpdate, setWithChanges);
 
-		await _dbContext.SaveChangesAsync();
+		await dbContext.SaveChangesAsync();
 
 		return setToUpdate;
 	}
 
 	public async Task<Set> UpdateIfChanged(Set setWithChanges)
 	{
-		Set existingSet = await Get(setWithChanges.Id);
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		Set existingSet = await dbContext.Sets.SingleAsync(set => set.Id == setWithChanges.Id);
 
 		if (!_setComparer.Equals(existingSet, setWithChanges))
 		{
 			SetMapper.MergeProperties(existingSet, setWithChanges);
-			await _dbContext.SaveChangesAsync();
+			await dbContext.SaveChangesAsync();
 		}
 
 		return existingSet;
