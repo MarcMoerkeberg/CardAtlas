@@ -52,7 +52,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
-			//TODO: Add cache for bulk upserting data: Start with low hanging fruit such as sets, artists, gameformats etc.
+			//TODO: Add images and price objects directly to Card entities before batching.
 			IEnumerable<Card> upsertedCards = await UpsertCard(apiCard);
 			await CreateMissingGameFormats(apiCard);
 
