@@ -27,7 +27,7 @@ public class SetRepository : ISetRepository
 			return null;
 		}
 
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.Sets
 			.AsNoTracking()
@@ -38,7 +38,7 @@ public class SetRepository : ISetRepository
 	{
 		if (!scryfallIds.Any()) return Enumerable.Empty<Set>();
 
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.Sets
 			.AsNoTracking()
@@ -48,7 +48,7 @@ public class SetRepository : ISetRepository
 
 	public async Task<Set> Create(Set set)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		EntityEntry<Set> savedSet = await dbContext.Sets.AddAsync(set);
 		await dbContext.SaveChangesAsync();
@@ -58,7 +58,7 @@ public class SetRepository : ISetRepository
 
 	public async Task<IEnumerable<Set>> Create(IEnumerable<Set> sets)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		await dbContext.Sets.AddRangeAsync(sets);
 		await dbContext.SaveChangesAsync();
@@ -68,7 +68,7 @@ public class SetRepository : ISetRepository
 
 	public async Task<Set> Get(int setId)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.Sets
 			.AsNoTracking()
@@ -77,7 +77,7 @@ public class SetRepository : ISetRepository
 
 	public async Task<Set> Update(Set setWithChanges)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		Set setToUpdate = await dbContext.Sets.SingleAsync(set => set.Id == setWithChanges.Id);
 		SetMapper.MergeProperties(setToUpdate, setWithChanges);
@@ -89,7 +89,7 @@ public class SetRepository : ISetRepository
 
 	public async Task<IEnumerable<Set>> Update(IEnumerable<Set> setsWithChanges)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		dbContext.Sets.UpdateRange(setsWithChanges);
 		await dbContext.SaveChangesAsync();
@@ -99,7 +99,7 @@ public class SetRepository : ISetRepository
 
 	public async Task<Set> UpdateIfChanged(Set setWithChanges)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		Set existingSet = await dbContext.Sets.SingleAsync(set => set.Id == setWithChanges.Id);
 

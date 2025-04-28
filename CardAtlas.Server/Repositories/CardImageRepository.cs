@@ -22,7 +22,7 @@ public class CardImageRepository : ICardImageRepository
 
 	public async Task<CardImage> Create(CardImage cardImage)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		EntityEntry<CardImage> addedCardImage = await dbContext.CardImages.AddAsync(cardImage);
 		await dbContext.SaveChangesAsync();
@@ -32,7 +32,7 @@ public class CardImageRepository : ICardImageRepository
 
 	public async Task<CardImage> Get(long cardImageId)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.CardImages
 			.AsNoTracking()
@@ -41,7 +41,7 @@ public class CardImageRepository : ICardImageRepository
 
 	public async Task<IEnumerable<CardImage>> GetFromCardId(long cardId)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.CardImages
 			.AsNoTracking()
@@ -55,7 +55,7 @@ public class CardImageRepository : ICardImageRepository
 
 	public async Task<CardImage> Update(CardImage cardImageWithChanges)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		CardImage imageToUpdate = await dbContext.CardImages.SingleAsync(cardImage => cardImage.Id == cardImageWithChanges.Id);
 		CardImageMapper.MergeProperties(imageToUpdate, cardImageWithChanges);
@@ -66,7 +66,7 @@ public class CardImageRepository : ICardImageRepository
 
 	public async Task<CardImage> UpdateIfChanged(CardImage cardImageWithChanges)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 		CardImage imageToUpdate = await dbContext.CardImages.SingleAsync(cardImage => cardImage.Id == cardImageWithChanges.Id);
 
 		if (!_cardImageComparer.Equals(imageToUpdate, cardImageWithChanges))

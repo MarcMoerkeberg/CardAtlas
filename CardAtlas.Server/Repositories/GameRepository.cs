@@ -21,7 +21,7 @@ public class GameRepository : IGameRepository
 		var addedCardGameTypes = new List<CardGameType>();
 		if (!cardGameTypes.Any()) return addedCardGameTypes;
 
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		foreach (CardGameType cardGameType in cardGameTypes)
 		{
@@ -36,7 +36,7 @@ public class GameRepository : IGameRepository
 
 	public async Task<GameFormat> CreateFormat(GameFormat format)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		EntityEntry<GameFormat> addedGameType = await dbContext.GameFormats.AddAsync(format);
 		await dbContext.SaveChangesAsync();
@@ -49,7 +49,7 @@ public class GameRepository : IGameRepository
 		var addedFormats = new List<GameFormat>();
 		if (!formats.Any()) return addedFormats;
 
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		foreach (var format in formats)
 		{
@@ -64,7 +64,7 @@ public class GameRepository : IGameRepository
 
 	public async Task<IEnumerable<GameFormat>> GetFormats()
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.GameFormats
 			.AsNoTracking()
@@ -73,7 +73,7 @@ public class GameRepository : IGameRepository
 
 	public async Task<HashSet<GameFormat>> GetFormats(SourceType source)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.GameFormats
 			.AsNoTracking()
@@ -83,7 +83,7 @@ public class GameRepository : IGameRepository
 
 	public async Task<GameFormat> GetFormat(int formatId)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.GameFormats
 			.AsNoTracking()

@@ -22,7 +22,7 @@ public class ArtistRepository : IArtistRepository
 			return null;
 		}
 
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.Artists
 			.AsNoTracking()
@@ -31,7 +31,7 @@ public class ArtistRepository : IArtistRepository
 
 	public async Task<Artist> Create(Artist artist)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		EntityEntry<Artist> addedArtist = await dbContext.Artists.AddAsync(artist);
 		await dbContext.SaveChangesAsync();
@@ -41,7 +41,7 @@ public class ArtistRepository : IArtistRepository
 
 	public async Task<Artist> Get(int artistId)
 	{
-		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.Artists
 			.AsNoTracking()
