@@ -58,5 +58,10 @@ public interface ISetRepository
 	/// </summary>
 	/// <returns>The updated <see cref="Set"/> entities.</returns>
 	Task<IEnumerable<Set>> Update(IEnumerable<Set> setsWithChanges);
+
+	/// <summary>
+	/// Creates and updates <see cref="Set"/> entities, based on the provided <paramref name="upsertionData"/>.
+	/// </summary>
+	/// <returns>The number of affected effected entities.</returns>
 	Task<int> Upsert(UpsertContainer<Set> upsertionData);
 }

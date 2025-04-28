@@ -71,21 +71,23 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<int> UpsertSets()
 	{
+		UpsertContainer<Set> upsertionData = new();
 		IEnumerable<ApiSet> apiSets = await _scryfallApi.GetSets();
 		IEnumerable<Set> existingSets = await _setRepository.GetFromScryfallIds(apiSets.Select(set => set.Id));
-		Dictionary<Guid, Set> existingSetsByScryfallId = existingSets.ToDictionary(set => set.ScryfallId ?? Guid.Empty);
-		UpsertContainer<Set> upsertionData = new();
+		Dictionary<Guid, Set> existingSetsByScryfallId = existingSets
+			.Where(set => set.ScryfallId.HasValue)
+			.ToDictionary(set => set.ScryfallId!.Value);
 
 		foreach (ApiSet apiSet in apiSets)
 		{
 			Set mappedSet = SetMapper.MapSet(apiSet);
 
-			if(existingSetsByScryfallId.TryGetValue(apiSet.Id, out Set? existingSetById))
+			if (existingSetsByScryfallId.TryGetValue(apiSet.Id, out Set? existingSet))
 			{
-				mappedSet.Id = existingSetById.Id;
-				if (_setComparer.Equals(existingSetById, mappedSet)) continue;
+				mappedSet.Id = existingSet.Id;
+				if (_setComparer.Equals(existingSet, mappedSet)) continue;
 
-				SetMapper.MergeProperties(existingSetById, mappedSet);
+				SetMapper.MergeProperties(existingSet, mappedSet);
 				upsertionData.ToUpdate.Add(mappedSet);
 			}
 			else

@@ -1,6 +1,7 @@
 ﻿using CardAtlas.Server.DAL;
 using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -32,10 +33,10 @@ public class SetRepository : ISetRepository
 			.AsNoTracking()
 			.SingleOrDefaultAsync(set => set.ScryfallId == scryfallId);
 	}
-	
+
 	public async Task<IEnumerable<Set>> GetFromScryfallIds(IEnumerable<Guid> scryfallIds)
 	{
-		if(!scryfallIds.Any()) return Enumerable.Empty<Set>();
+		if (!scryfallIds.Any()) return Enumerable.Empty<Set>();
 
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -85,7 +86,7 @@ public class SetRepository : ISetRepository
 
 		return setToUpdate;
 	}
-	
+
 	public async Task<IEnumerable<Set>> Update(IEnumerable<Set> setsWithChanges)
 	{
 		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
@@ -109,5 +110,17 @@ public class SetRepository : ISetRepository
 		}
 
 		return existingSet;
+	}
+
+	public async Task<int> Upsert(UpsertContainer<Set> upsertionData)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		if (upsertionData.ToInsert is { Count: > 0 }) dbContext.Sets.AddRange(upsertionData.ToInsert);
+		if (upsertionData.ToUpdate is { Count: > 0 }) dbContext.Sets.UpdateRange(upsertionData.ToUpdate);
+
+		int numberOfAffectedRows = await dbContext.SaveChangesAsync();
+
+		return numberOfAffectedRows;
 	}
 }
