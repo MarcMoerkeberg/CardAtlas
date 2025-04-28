@@ -32,6 +32,18 @@ public class SetRepository : ISetRepository
 			.AsNoTracking()
 			.SingleOrDefaultAsync(set => set.ScryfallId == scryfallId);
 	}
+	
+	public async Task<IEnumerable<Set>> GetFromScryfallIds(IEnumerable<Guid> scryfallIds)
+	{
+		if(!scryfallIds.Any()) return Enumerable.Empty<Set>();
+
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.Sets
+			.AsNoTracking()
+			.Where(set => set.ScryfallId.HasValue && scryfallIds.Contains(set.ScryfallId.Value))
+			.ToListAsync();
+	}
 
 	public async Task<Set> Create(Set set)
 	{
@@ -41,6 +53,16 @@ public class SetRepository : ISetRepository
 		await dbContext.SaveChangesAsync();
 
 		return savedSet.Entity;
+	}
+
+	public async Task<IEnumerable<Set>> Create(IEnumerable<Set> sets)
+	{
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		await dbContext.Sets.AddRangeAsync(sets);
+		await dbContext.SaveChangesAsync();
+
+		return sets;
 	}
 
 	public async Task<Set> Get(int setId)
@@ -62,6 +84,16 @@ public class SetRepository : ISetRepository
 		await dbContext.SaveChangesAsync();
 
 		return setToUpdate;
+	}
+	
+	public async Task<IEnumerable<Set>> Update(IEnumerable<Set> setsWithChanges)
+	{
+		ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		dbContext.Sets.UpdateRange(setsWithChanges);
+		await dbContext.SaveChangesAsync();
+
+		return setsWithChanges.Where(set => set.Id != 0);
 	}
 
 	public async Task<Set> UpdateIfChanged(Set setWithChanges)

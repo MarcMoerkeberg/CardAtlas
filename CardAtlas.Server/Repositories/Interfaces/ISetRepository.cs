@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Internal;
 
 namespace CardAtlas.Server.Repositories.Interfaces;
 
@@ -38,4 +39,24 @@ public interface ISetRepository
 	/// <returns>The updated <see cref="Set"/>.</returns>
 	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
 	Task<Set> UpdateIfChanged(Set setWithChanges);
+
+	/// <summary>
+	/// Returns the <see cref="Set"/> entities from the db with the which has a matching in <paramref name="scryfallIds"/>.
+	/// </summary>
+	/// <returns>The <see cref="Set"/> entities which has a match in <paramref name="scryfallIds"/> or empty if no matches is found or inpput is empty.</returns>
+	Task<IEnumerable<Set>> GetFromScryfallIds(IEnumerable<Guid> scryfallIds);
+
+	/// <summary>
+	/// Adds the provided <paramref name="sets"/> to the database.
+	/// </summary>
+	/// <returns>The added <see cref="Set"/> entities with identity.</returns>
+	Task<IEnumerable<Set>> Create(IEnumerable<Set> sets);
+
+	/// <summary>
+	/// Updates existing entities with changes from <paramref name="setsWithChanges"/>.<br/>
+	/// Only updates the entities with an Id.
+	/// </summary>
+	/// <returns>The updated <see cref="Set"/> entities.</returns>
+	Task<IEnumerable<Set>> Update(IEnumerable<Set> setsWithChanges);
+	Task<int> Upsert(UpsertContainer<Set> upsertionData);
 }

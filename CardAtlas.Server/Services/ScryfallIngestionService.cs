@@ -4,6 +4,7 @@ using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Image;
+using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Repositories.Interfaces;
 using CardAtlas.Server.Services.Interfaces;
 using ScryfallApi;
@@ -21,6 +22,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly ICardRepository _cardRepository;
 	private readonly IEqualityComparer<Keyword> _keywordComparer;
 	private readonly IGameRepository _gameRepository;
+	private readonly IEqualityComparer<Set> _setComparer;
 	private readonly IScryfallApi _scryfallApi;
 	private readonly ISetRepository _setRepository;
 
@@ -30,6 +32,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		ICardRepository cardRepository,
 		IEqualityComparer<Keyword> keywordComparer,
 		IGameRepository gameRepository,
+		IEqualityComparer<Set> setComparer,
 		IScryfallApi scryfallApi,
 		ISetRepository setRepository)
 	{
@@ -38,6 +41,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_cardRepository = cardRepository;
 		_keywordComparer = keywordComparer;
 		_gameRepository = gameRepository;
+		_setComparer = setComparer;
 		_scryfallApi = scryfallApi;
 		_setRepository = setRepository;
 	}
@@ -48,6 +52,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
+			//TODO: Add cache for bulk upserting data: Start with low hanging fruit such as sets, artists, gameformats etc.
 			IEnumerable<Card> upsertedCards = await UpsertCard(apiCard);
 			await CreateMissingGameFormats(apiCard);
 
@@ -66,28 +71,32 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	public async Task<int> UpsertSets()
 	{
-		int rowsAffected = 0;
 		IEnumerable<ApiSet> apiSets = await _scryfallApi.GetSets();
+		IEnumerable<Set> existingSets = await _setRepository.GetFromScryfallIds(apiSets.Select(set => set.Id));
+		Dictionary<Guid, Set> existingSetsByScryfallId = existingSets.ToDictionary(set => set.ScryfallId ?? Guid.Empty);
+		UpsertContainer<Set> upsertionData = new();
 
 		foreach (ApiSet apiSet in apiSets)
 		{
 			Set mappedSet = SetMapper.MapSet(apiSet);
-			Set? existingSet = await _setRepository.GetFromScryfallId(apiSet.Id);
 
-			if (existingSet is null)
+			if(existingSetsByScryfallId.TryGetValue(apiSet.Id, out Set? existingSetById))
 			{
-				await _setRepository.Create(mappedSet);
+				mappedSet.Id = existingSetById.Id;
+				if (_setComparer.Equals(existingSetById, mappedSet)) continue;
+
+				SetMapper.MergeProperties(existingSetById, mappedSet);
+				upsertionData.ToUpdate.Add(mappedSet);
 			}
 			else
 			{
-				mappedSet.Id = existingSet.Id;
-				await _setRepository.UpdateIfChanged(mappedSet);
+				upsertionData.ToInsert.Add(mappedSet);
 			}
-
-			rowsAffected++;
 		}
 
-		return rowsAffected;
+		int affectedNumberOfRows = await _setRepository.Upsert(upsertionData);
+
+		return affectedNumberOfRows;
 	}
 
 	public async Task<IEnumerable<Card>> UpsertCard(ApiCard apiCard)
