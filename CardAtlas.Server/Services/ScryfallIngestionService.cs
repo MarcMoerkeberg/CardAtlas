@@ -26,6 +26,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly IScryfallApi _scryfallApi;
 	private readonly ISetRepository _setRepository;
 
+	private UpsertContainer<Artist> _artistContainer = new();
+
+	private Dictionary<Guid, List<CardImage>> _imageBatch = new();
+
 	public ScryfallIngestionService(
 		IArtistRepository artistRepository,
 		ICardImageRepository cardImageRepository,
@@ -56,9 +60,13 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			IEnumerable<Card> upsertedCards = await UpsertCard(apiCard);
 			await CreateMissingGameFormats(apiCard);
 
-			//TODO: Add caching for some entities, to remove unnecessary database calls.
+			//Batch all entities
+			BatchCardImages(apiCard);
+
+			//When batched entities hits 1000 upsert all entities and then flush batch data
+
+			//When loop ends remember to upsert the remaining batched data
 			await Task.WhenAll(
-				UpsertCardImages(apiCard, upsertedCards),
 				UpsertCardPrices(apiCard, upsertedCards),
 				UpdateGameTypes(apiCard, upsertedCards),
 				UpdatePrintFinishes(apiCard, upsertedCards),
@@ -231,31 +239,20 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			: null;
 	}
 
-	public async Task<IEnumerable<CardImage>> UpsertCardImages(ApiCard apiCard)
-	{
-		IEnumerable<Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
-
-		return await UpsertCardImages(apiCard, existingCards);
-	}
-
 	/// <summary>
-	/// Upserts the imagery from <paramref name="apiCard"/> to <paramref name="existingCards"/>.
+	/// Maps and transforms image data from the <paramref name="apiCard"/> into <see cref="CardImage"/>, before adding it to the <see cref="_imageBatch"/>.<br/>
+	/// The batching data should be proccessed afterwards.
 	/// </summary>
-	/// <returns>All <see cref="CardImage"/> entries which was created or updated.</returns>
-	private async Task<IEnumerable<CardImage>> UpsertCardImages(ApiCard apiCard, IEnumerable<Card> existingCards)
+	/// <returns>The mapped images.</returns>
+	private IReadOnlyList<CardImage> BatchCardImages(ApiCard apiCard)
 	{
-		List<CardImage> upsertedCardImages = new();
+		List<CardImage> apiCardImages = apiCard.CardFaces is { Length: > 0 }
+			? apiCard.CardFaces.SelectMany(cardFace => CardImageMapper.MapCardImages(apiCard, cardFace)).ToList()
+			: CardImageMapper.MapCardImages(apiCard);
 
-		foreach (Card existingCard in existingCards)
-		{
-			CardFace? cardFace = apiCard.CardFaces?.FirstOrDefault(cardFace => string.Equals(cardFace.Name, apiCard.Name, StringComparison.Ordinal));
-			IEnumerable<CardImage> apiCardImages = CardImageMapper.MapCardImages(existingCard.Id, apiCard, cardFace);
+		_imageBatch[apiCard.Id] = apiCardImages;
 
-			IEnumerable<CardImage> upsertedImages = await UpsertCardImages(existingCard, apiCardImages);
-			upsertedCardImages.AddRange(upsertedImages);
-		}
-
-		return upsertedCardImages;
+		return apiCardImages;
 	}
 
 	/// <summary>
@@ -729,5 +726,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		IEnumerable<PromoType> newPromoTypes = await _cardRepository.CreatePromoTypes(missingPromoTypes);
 
 		return existingPromoTypes.Union(newPromoTypes);
+	}
+
+	public Task<IEnumerable<CardImage>> UpsertCardImages(ApiCard apiCard)
+	{
+		throw new NotImplementedException();
 	}
 }
