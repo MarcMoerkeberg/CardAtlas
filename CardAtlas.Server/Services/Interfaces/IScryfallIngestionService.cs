@@ -43,10 +43,10 @@ public interface IScryfallIngestionService
 	Task<IEnumerable<CardPrintFinish>> UpdatePrintFinishes(ApiCard apiCard);
 
 	/// <summary>
-	/// Adds any missing <see cref="CardGameType"/> from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/> entities.
+	/// Adds any missing <see cref="CardGameTypeAvailability"/> from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/> entities.
 	/// </summary>
-	/// <returns>All <see cref="CardGameType"/> associated with the <see cref="Card"/> entities found from <paramref name="apiCard"/> after updating.</returns>
-	Task<IEnumerable<CardGameType>> UpdateGameTypes(ApiCard apiCard);
+	/// <returns>All <see cref="CardGameTypeAvailability"/> associated with the <see cref="Card"/> entities found from <paramref name="apiCard"/> after updating.</returns>
+	Task<IEnumerable<CardGameTypeAvailability>> UpdateGameTypes(ApiCard apiCard);
 
 	/// <summary>
 	/// Upserts card legality information from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/> entities.

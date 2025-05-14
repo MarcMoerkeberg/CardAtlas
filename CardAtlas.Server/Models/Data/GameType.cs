@@ -5,7 +5,7 @@ namespace CardAtlas.Server.Models.Data;
 
 public class GameType : TypeEntity<GameKind>
 {
-	public ICollection<CardGameType> CardGameTypes { get; set; } = new HashSet<CardGameType>();
+	public ICollection<CardGameTypeAvailability> CardGameTypes { get; set; } = new HashSet<CardGameTypeAvailability>();
 }
 
 public enum GameKind

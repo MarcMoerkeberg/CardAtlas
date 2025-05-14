@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data.CardRelations;
 
-public class CardGameType
+public class CardGameTypeAvailability
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]

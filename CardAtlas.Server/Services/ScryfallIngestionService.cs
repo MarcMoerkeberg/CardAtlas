@@ -396,7 +396,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			.Union(newPrintFinishes);
 	}
 
-	public async Task<IEnumerable<CardGameType>> UpdateGameTypes(ApiCard apiCard)
+	public async Task<IEnumerable<CardGameTypeAvailability>> UpdateGameTypes(ApiCard apiCard)
 	{
 		IEnumerable<Card> existingCards = await _cardRepository.GetFromScryfallId(apiCard.Id);
 
@@ -404,12 +404,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	/// <summary>
-	/// Adds any missing <see cref="CardGameType"/> from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/> entities.
+	/// Adds any missing <see cref="CardGameTypeAvailability"/> from <paramref name="apiCard"/> to it's corresponding <see cref="Card"/> entities.
 	/// </summary>
-	/// <returns>All <see cref="CardGameType"/> associated with the <see cref="Card"/> entities found from <paramref name="apiCard"/> after updating.</returns>
-	private async Task<IEnumerable<CardGameType>> UpdateGameTypes(ApiCard apiCard, IEnumerable<Card> existingCards)
+	/// <returns>All <see cref="CardGameTypeAvailability"/> associated with the <see cref="Card"/> entities found from <paramref name="apiCard"/> after updating.</returns>
+	private async Task<IEnumerable<CardGameTypeAvailability>> UpdateGameTypes(ApiCard apiCard, IEnumerable<Card> existingCards)
 	{
-		var gameTypes = new List<CardGameType>();
+		var gameTypes = new List<CardGameTypeAvailability>();
 
 		if (!existingCards.Any()) return gameTypes;
 
@@ -422,18 +422,18 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	/// <summary>
-	/// Creates <see cref="CardGameType"/> entities from <paramref name="apiCard"/> that are missing on <paramref name="card"/>.
+	/// Creates <see cref="CardGameTypeAvailability"/> entities from <paramref name="apiCard"/> that are missing on <paramref name="card"/>.
 	/// </summary>
-	/// <returns>All <see cref="CardGameType"/> associated with <paramref name="card"/> (including newly created ones).</returns>
-	private async Task<IEnumerable<CardGameType>> CreateMissingGameTypes(Card card, ApiCard apiCard)
+	/// <returns>All <see cref="CardGameTypeAvailability"/> associated with <paramref name="card"/> (including newly created ones).</returns>
+	private async Task<IEnumerable<CardGameTypeAvailability>> CreateMissingGameTypes(Card card, ApiCard apiCard)
 	{
-		IEnumerable<CardGameType> missingGameTypes = GameHelpers.GetMissingGameTypes(card, apiCard);
+		IEnumerable<CardGameTypeAvailability> missingGameTypes = GameHelpers.GetMissingGameTypes(card, apiCard);
 
-		if (!missingGameTypes.Any()) return card.GameTypes;
+		if (!missingGameTypes.Any()) return card.GameTypeAvailability;
 
 		var newGameTypes = await _gameRepository.CreateCardGameTypes(missingGameTypes);
 
-		return card.GameTypes
+		return card.GameTypeAvailability
 			.Union(newGameTypes);
 	}
 

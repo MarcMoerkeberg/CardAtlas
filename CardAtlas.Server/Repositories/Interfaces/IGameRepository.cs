@@ -6,10 +6,10 @@ namespace CardAtlas.Server.Repositories.Interfaces;
 public interface IGameRepository
 {
 	/// <summary>
-	/// Creates a new <see cref="CardGameType"/> entry in the database for each <paramref name="cardGameTypes"/>.
+	/// Creates a new <see cref="CardGameTypeAvailability"/> entry in the database for each <paramref name="cardGameTypes"/>.
 	/// </summary>
-	/// <returns>The added <see cref="CardGameType"/> entities with identity.</returns>
-	Task<IEnumerable<CardGameType>> CreateCardGameTypes(IEnumerable<CardGameType> cardGameTypes);
+	/// <returns>The added <see cref="CardGameTypeAvailability"/> entities with identity.</returns>
+	Task<IEnumerable<CardGameTypeAvailability>> CreateCardGameTypes(IEnumerable<CardGameTypeAvailability> cardGameTypes);
 
 	/// <summary>
 	/// Creates the provided <paramref name="format"/> to the database.
