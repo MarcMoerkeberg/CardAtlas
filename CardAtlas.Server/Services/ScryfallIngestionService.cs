@@ -29,6 +29,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private UpsertContainer<Artist> _artistContainer = new();
 
 	private Dictionary<Guid, List<CardImage>> _imageBatch = new();
+	private Dictionary<Guid, List<CardPrice>> _cardPriceBatch = new();
 
 	public ScryfallIngestionService(
 		IArtistRepository artistRepository,
@@ -62,6 +63,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 			//Batch all entities
 			BatchCardImages(apiCard);
+			BatchCardPrices(apiCard);
 
 			//When batched entities hits 1000 upsert all entities and then flush batch data
 
@@ -253,6 +255,18 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_imageBatch[apiCard.Id] = apiCardImages;
 
 		return apiCardImages;
+	}
+
+	private IReadOnlyList<CardPrice> BatchCardPrices(ApiCard apiCard)
+	{
+		List<CardPrice> pricesToUpsert = CardPriceMapper.MapCardPrices(apiCard);
+		
+		if (pricesToUpsert.Count > 0)
+		{
+			_cardPriceBatch[apiCard.Id] = pricesToUpsert;
+		}
+
+		return pricesToUpsert;
 	}
 
 	/// <summary>

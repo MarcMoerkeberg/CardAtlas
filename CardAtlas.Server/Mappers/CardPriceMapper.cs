@@ -10,7 +10,7 @@ public static class CardPriceMapper
 	/// Returns a new list of <see cref="CardPrice"/> objects populted with data from <paramref name="apiCard"/><br/>
 	/// The list may be empty or missing some <see cref="VendorType"/> if <paramref name="apiCard"/> does not have sufficient data (eg. no prices).
 	/// </summary>
-	public static IEnumerable<CardPrice> MapCardPrices(long cardId, ApiCard apiCard) 
+	public static List<CardPrice> MapCardPrices(ApiCard apiCard) 
 	{
 		var cardPrices = new List<CardPrice>();
 
@@ -35,7 +35,7 @@ public static class CardPriceMapper
 				PurchaseUri = purchaseUri,
 				VendorId = (int)vendor,
 				CurrencyId = (int)GetCurrencyTypeFromVendor(vendor),
-				CardId = cardId,
+				CardId = 0,
 			});
 		}
 
