@@ -1,5 +1,4 @@
-﻿using CardAtlas.Server.Helpers;
-using CardAtlas.Server.Models.Data;
+﻿using CardAtlas.Server.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,15 +8,12 @@ public class ArtistConfiguration : IEntityTypeConfiguration<Artist>
 {
 	public void Configure(EntityTypeBuilder<Artist> builder)
 	{
-		IEnumerable<Currency> seedData = EntityConfigurationHelper.GetEnumSeedData<Currency, CurrencyType>();
-
-		builder.HasData(
-			new Artist
-			{
-				Id = -1,
-				ScryfallId = null,
-				Name = "Unknown - Default artist"
-			}
-		);
+		Artist defaultArtist = new Artist
+		{
+			Id = Artist.DefaultArtistId,
+			ScryfallId = null,
+			Name = "Unknown - Default artist"
+		};
+		builder.HasData(defaultArtist);
 	}
 }
