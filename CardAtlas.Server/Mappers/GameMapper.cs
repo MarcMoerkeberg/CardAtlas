@@ -1,4 +1,5 @@
-﻿using CardAtlas.Server.Models.Data;
+﻿using CardAtlas.Server.Extensions;
+using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
 using ApiCard = ScryfallApi.Models.Card;
 
@@ -20,9 +21,9 @@ public static class GameMapper
 
 		return gameTypes;
 	}
-	
+
 	/// <summary>
-	/// Maps the print availability from <paramref name="apiCard"/> to a collection of <see cref="GameKind"/>
+	/// Maps the print availability from <paramref name="apiCard"/> to a collection of <see cref="CardGameTypeAvailability"/>
 	/// </summary>
 	public static List<CardGameTypeAvailability> MapGameTypeAvailability(ApiCard apiCard)
 	{
@@ -33,7 +34,7 @@ public static class GameMapper
 			gameTypeAvailability.Add(MapCardGameTypeAvailability(GameKind.Paper));
 		}
 
-		if (apiCard.PrintAvailability.Arena) 
+		if (apiCard.PrintAvailability.Arena)
 		{
 			gameTypeAvailability.Add(MapCardGameTypeAvailability(GameKind.Arena));
 
@@ -54,5 +55,21 @@ public static class GameMapper
 			CardId = default,
 			GameTypeId = (int)gameKind
 		};
+	}
+
+	/// <summary>
+	/// Creates a new list populated with <see cref="GameFormat"/> entities from the available data on the <paramref name="apiCard"/>.
+	/// </summary>
+	public static IEnumerable<GameFormat> MapGameFormat(ApiCard apiCard)
+	{
+		if (apiCard.ScryfallLegalities is not { Count: > 0 }) return Enumerable.Empty<GameFormat>();
+
+		return apiCard.ScryfallLegalities.Keys
+			.Select(format => new GameFormat
+			{
+				Name = format.CapitalizeFirstLetter(),
+				SourceId = (int)SourceType.Scryfall,
+			})
+			.ToList();
 	}
 }

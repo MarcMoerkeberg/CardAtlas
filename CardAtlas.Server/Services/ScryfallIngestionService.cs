@@ -32,6 +32,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private Dictionary<Guid, List<CardPrice>> _cardPriceBatch = new();
 	private Dictionary<Guid, List<CardGameTypeAvailability>> _cardAvailabilityBatch = new();
 	private Dictionary<Guid, List<CardPrintFinish>> _printFinishBatch = new();
+	private HashSet<GameFormat> _gameFormatsBatch = new();
+	private Dictionary<Guid, List<CardLegality>> _cardLegalitiesBatch = new();
 
 	public ScryfallIngestionService(
 		IArtistRepository artistRepository,
@@ -68,6 +70,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			BatchCardPrices(apiCard);
 			BatchCardGameTypeAvailability(apiCard);
 			BatchPrintFinishes(apiCard);
+			BatchGameFormatsAndCardLegalities(apiCard);
 
 			//When batched entities hits 1000 upsert all entities and then flush batch data
 
@@ -293,6 +296,21 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return apiPrintFinishes;
 	}
 
+	private IReadOnlyList<CardLegality> BatchGameFormatsAndCardLegalities(ApiCard apiCard)
+	{
+		IEnumerable<GameFormat> formatsOnCard = GameMapper.MapGameFormat(apiCard);
+		_gameFormatsBatch.UnionWith(formatsOnCard);
+
+		List<CardLegality> cardLegalities = CardMapper.MapCardLegalities(apiCard, _gameFormatsBatch);
+
+		if (cardLegalities.Any())
+		{
+			_cardLegalitiesBatch[apiCard.Id] = cardLegalities;
+		}
+
+		return cardLegalities;
+	}
+
 	/// <summary>
 	/// Creates or updates card <paramref name="imagesToUpsert"/>.<br/>
 	/// When updating an existing card image, the existing image is found by type and source.
@@ -493,8 +511,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		foreach (Card card in existingCards)
 		{
-			HashSet<CardLegality> legalitiesToUpsert = CardMapper.MapCardLegalities(card.Id, apiCard, gameFormats);
-			upsertedLegalities.AddRange(await UpsertLegalities(card, legalitiesToUpsert));
+			List<CardLegality> legalitiesToUpsert = CardMapper.MapCardLegalities(apiCard, gameFormats);
+			upsertedLegalities.AddRange(await UpsertLegalities(card, legalitiesToUpsert.ToHashSet()));
 		}
 
 		return upsertedLegalities;

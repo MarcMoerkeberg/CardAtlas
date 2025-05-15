@@ -197,7 +197,7 @@ public static class CardMapper
 
 		return printFinishes;
 	}
-	
+
 	public static List<CardPrintFinish> MapCardPrintFinishes(ApiCard apiCard)
 	{
 		var printFinishes = new List<CardPrintFinish>();
@@ -216,7 +216,7 @@ public static class CardMapper
 
 		return printFinishes;
 	}
-	
+
 	private static CardPrintFinish MapCardPrintFinish(PrintFinishType printFinishType)
 	{
 		return new CardPrintFinish
@@ -227,14 +227,14 @@ public static class CardMapper
 	}
 
 	/// <summary>
-	/// Maps the legalities from <paramref name="apiCard"/> to <see cref="CardLegality"/> objects associating the <see cref="Card"/> with <paramref name="cardId"/>.<br/>
-	/// Should have all relevant <see cref="GameFormat"/> entities loaded in <paramref name="gameFormats"/> to properly map the legalities.
+	/// Maps the legalities from <paramref name="apiCard"/> to <see cref="CardLegality"/> entities.<br/>
+	/// Should have all relevant <see cref="GameFormat"/> entities in <paramref name="gameFormats"/> to map the legalities.
 	/// </summary>
 	/// <returns>A new <see cref="CardLegality"/> object for each format that exists in <paramref name="gameFormats"/> and <paramref name="apiCard"/>.</returns>
-	public static HashSet<CardLegality> MapCardLegalities(long cardId, ApiCard apiCard, HashSet<GameFormat> gameFormats)
+	public static List<CardLegality> MapCardLegalities(ApiCard apiCard, IEnumerable<GameFormat> gameFormats)
 	{
-		var legalities = new HashSet<CardLegality>();
-		if (apiCard.ScryfallLegalities is { Count: 0 } || gameFormats is { Count: 0 }) return legalities;
+		var legalities = new List<CardLegality>();
+		if (apiCard.ScryfallLegalities is { Count: 0 } || !gameFormats.Any()) return legalities;
 
 		foreach (var (key, value) in apiCard.ScryfallLegalities)
 		{
@@ -243,7 +243,7 @@ public static class CardMapper
 
 			legalities.Add(new CardLegality
 			{
-				CardId = cardId,
+				CardId = 0,
 				GameFormatId = gameFormat.Id,
 				LegalityId = (int)GetLegalityType(value),
 			});
