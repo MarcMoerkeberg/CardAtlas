@@ -75,6 +75,17 @@ public class SetRepository : ISetRepository
 			.SingleAsync(set => set.Id == setId);
 	}
 
+	public async Task<IEnumerable<Set>> Get(SourceType source)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.Sets
+			.Include(set => set.Source)
+			.AsNoTracking()
+			.Where(set => set.SourceType == source)
+			.ToListAsync();
+	}
+
 	public async Task<Set> Update(Set setWithChanges)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();

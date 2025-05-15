@@ -33,6 +33,11 @@ public interface ISetRepository
 	Task<Set> Get(int setId);
 
 	/// <summary>
+	/// Returns the <see cref="Set"/> entities from the db with the specified <paramref name="source"/>.<br/>
+	/// </summary>
+	Task<Set> Get(SourceType source);
+
+	/// <summary>
 	/// Updates existing entity with changes from <paramref name="setWithChanges"/>.<br/>
 	/// Does not update the if there are no changes.
 	/// </summary>
