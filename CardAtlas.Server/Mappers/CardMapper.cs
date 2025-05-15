@@ -282,8 +282,6 @@ public static class CardMapper
 	/// <summary>
 	/// Returns a new list of <see cref="Keyword"/> entities populated with data from the <paramref name="apiCard"/>.
 	/// </summary>
-	/// <param name="apiCard"></param>
-	/// <returns></returns>
 	public static IEnumerable<Keyword> MapKeywords(ApiCard apiCard)
 	{
 		if (apiCard.Keywords is not { Length: > 0 }) return Enumerable.Empty<Keyword>();
@@ -337,25 +335,44 @@ public static class CardMapper
 	}
 
 	/// <summary>
-	/// Maps the promo types from <paramref name="promoTypesOnApiCard"/> to a collection of <see cref="CardPromoType"/> associated with the <paramref name="cardId"/>.
+	/// Returns a new list of <see cref="PromoType"/> entities populated with data from the <paramref name="apiCard"/>.
 	/// </summary>
-	/// <param name="cardId"></param>
-	/// <param name="promoTypesOnApiCard"></param>
-	/// <returns>A new collection of <see cref="CardPromoType"/> based on the given parameters.</returns>
-	public static HashSet<CardPromoType> MapCardPromoTypes(long cardId, IEnumerable<PromoType> promoTypesOnApiCard)
+	public static IEnumerable<PromoType> MapPromoTypes(ApiCard apiCard)
 	{
-		HashSet<CardPromoType> promoTypes = new();
+		if (apiCard.PromoTypes is not { Length: > 0 }) return Enumerable.Empty<PromoType>();
 
-		foreach (var promoType in promoTypesOnApiCard)
-		{
-			promoTypes.Add(new CardPromoType
+		return apiCard.PromoTypes
+			.Select(promoType => new PromoType
 			{
-				CardId = cardId,
+				Name = promoType,
+				SourceId = (int)SourceType.Scryfall,
+			})
+			.ToList();
+	}
+
+	/// <summary>
+	/// Maps the promo types from the <paramref name="apiCard"/> to a new list of <see cref="CardPromoType"/> entities <br/>.
+	/// Should have all relevant <see cref="PromoType"/> entities in <paramref name="promoTypes"/> to map the relations correctly.
+	/// </summary>
+	/// <returns>A new <see cref="CardPromoType"/> object for each promo type on the <paramref name="apiCard"/> that matches an entry in <paramref name="promoTypes"/>.</returns>
+	public static List<CardPromoType> MapCardPromoTypes(ApiCard apiCard, IEnumerable<PromoType> promoTypes)
+	{
+		List<CardPromoType> cardPromoTypes = new();
+		if (apiCard.PromoTypes is not { Length: > 0 } || !promoTypes.Any()) return cardPromoTypes;
+
+		foreach (string apiCardPromoTypeName in apiCard.PromoTypes)
+		{
+			PromoType? promoType = promoTypes.FirstWithNameOrDefault(apiCardPromoTypeName);
+			if (promoType is null) continue;
+
+			cardPromoTypes.Add(new CardPromoType
+			{
+				CardId = 0,
 				PromoTypeId = promoType.Id,
 			});
 		}
 
-		return promoTypes;
+		return cardPromoTypes;
 	}
 
 	/// <summary>

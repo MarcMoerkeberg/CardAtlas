@@ -36,6 +36,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private Dictionary<Guid, List<CardLegality>> _cardLegalitiesBatch = new();
 	private HashSet<Keyword> _keywordsBatch = new();
 	private Dictionary<Guid, List<CardKeyword>> _cardKeywordsBatch = new();
+	private HashSet<PromoType> _promoTypesBatch = new();
+	private Dictionary<Guid, List<CardPromoType>> _cardPromotypesBatch = new();
 
 	public ScryfallIngestionService(
 		IArtistRepository artistRepository,
@@ -72,16 +74,13 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			BatchCardPrices(apiCard);
 			BatchCardGameTypeAvailability(apiCard);
 			BatchPrintFinishes(apiCard);
-			BatchGameFormatsAndCardLegalities(apiCard);
+			BatchGameFormatsAndLegalities(apiCard);
+			BatchKeywordsAndCardRelations(apiCard);
+			BatchPromoTypesAndCardRelations(apiCard);
 
 			//When batched entities hits 1000 upsert all entities and then flush batch data
 
 			//When loop ends remember to upsert the remaining batched data
-			await Task.WhenAll(
-				UpsertLegality(apiCard, upsertedCards),
-				UpsertKeywords(apiCard, upsertedCards),
-				UpsertPromoTypes(apiCard, upsertedCards)
-			);
 		}
 	}
 
@@ -298,14 +297,14 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return apiPrintFinishes;
 	}
 
-	private IReadOnlyList<CardLegality> BatchGameFormatsAndCardLegalities(ApiCard apiCard)
+	private IReadOnlyList<CardLegality> BatchGameFormatsAndLegalities(ApiCard apiCard)
 	{
 		IEnumerable<GameFormat> formatsOnCard = GameMapper.MapGameFormat(apiCard);
 		_gameFormatsBatch.UnionWith(formatsOnCard);
 
 		List<CardLegality> cardLegalities = CardMapper.MapCardLegalities(apiCard, _gameFormatsBatch);
 
-		if (cardLegalities.Any())
+		if (cardLegalities.Count > 0)
 		{
 			_cardLegalitiesBatch[apiCard.Id] = cardLegalities;
 		}
@@ -315,12 +314,14 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	private IReadOnlyList<CardKeyword> BatchKeywordsAndCardRelations(ApiCard apiCard)
 	{
+		if (apiCard.Keywords is not { Length: > 0 }) return new List<CardKeyword>();
+
 		IEnumerable<Keyword> apiCardKeywords = CardMapper.MapKeywords(apiCard);
 		_keywordsBatch.UnionWith(apiCardKeywords);
 
 		List<CardKeyword> keywordsOnCard = CardMapper.MapCardKeywords(apiCard, _keywordsBatch);
 
-		if (_keywordsBatch.Any())
+		if (keywordsOnCard.Count > 0)
 		{
 			_cardKeywordsBatch[apiCard.Id] = keywordsOnCard;
 		}
@@ -328,8 +329,22 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return keywordsOnCard;
 	}
 
+	private IReadOnlyList<CardPromoType> BatchPromoTypesAndCardRelations(ApiCard apiCard)
+	{
+		if (apiCard.PromoTypes is not { Length: > 0 }) return new List<CardPromoType>();
 
+		IEnumerable<PromoType> apiCardPromoTypes = CardMapper.MapPromoTypes(apiCard);
+		_promoTypesBatch.UnionWith(apiCardPromoTypes);
 
+		List<CardPromoType> promoTypesOnCard = CardMapper.MapCardPromoTypes(apiCard, apiCardPromoTypes);
+
+		if (promoTypesOnCard.Count > 0)
+		{
+			_cardPromotypesBatch[apiCard.Id] = promoTypesOnCard;
+		}
+
+		return promoTypesOnCard;
+	}
 
 	/// <summary>
 	/// Creates or updates card <paramref name="imagesToUpsert"/>.<br/>
@@ -731,7 +746,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		HashSet<CardPromoType> cardPromoTypesToCreate = new();
 		HashSet<CardPromoType> cardPromoTypesToUpdate = new();
-		HashSet<CardPromoType> apiCardPromoTypes = CardMapper.MapCardPromoTypes(card.Id, promoTypesOnApiCard);
+		HashSet<CardPromoType> apiCardPromoTypes = new();//CardMapper.MapCardPromoTypes(promoTypesOnApiCard);
 		Dictionary<(long CardId, int PromoTypeId), CardPromoType> existingCardPromoTypes = card.CardPromoTypes.ToDictionary(promoType => (promoType.CardId, promoType.PromoTypeId));
 
 		foreach (CardPromoType cardPromoType in apiCardPromoTypes)
