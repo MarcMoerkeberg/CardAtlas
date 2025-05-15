@@ -30,6 +30,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	private Dictionary<Guid, List<CardImage>> _imageBatch = new();
 	private Dictionary<Guid, List<CardPrice>> _cardPriceBatch = new();
+	private Dictionary<Guid, List<CardGameTypeAvailability>> _cardAvailabilityBatch = new();
+	private Dictionary<Guid, List<CardPrintFinish>> _printFinishBatch = new();
 
 	public ScryfallIngestionService(
 		IArtistRepository artistRepository,
@@ -64,14 +66,13 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			//Batch all entities
 			BatchCardImages(apiCard);
 			BatchCardPrices(apiCard);
+			BatchCardGameTypeAvailability(apiCard);
+			BatchPrintFinishes(apiCard);
 
 			//When batched entities hits 1000 upsert all entities and then flush batch data
 
 			//When loop ends remember to upsert the remaining batched data
 			await Task.WhenAll(
-				UpsertCardPrices(apiCard, upsertedCards),
-				UpdateGameTypes(apiCard, upsertedCards),
-				UpdatePrintFinishes(apiCard, upsertedCards),
 				UpsertLegality(apiCard, upsertedCards),
 				UpsertKeywords(apiCard, upsertedCards),
 				UpsertPromoTypes(apiCard, upsertedCards)
@@ -268,6 +269,29 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		return pricesToUpsert;
 	}
+	private IReadOnlyList<CardGameTypeAvailability> BatchCardGameTypeAvailability(ApiCard apiCard)
+	{
+		List<CardGameTypeAvailability> availabilityToUpsert = GameMapper.MapGameTypeAvailability(apiCard);
+
+		if (availabilityToUpsert.Count > 0)
+		{
+			_cardAvailabilityBatch[apiCard.Id] = availabilityToUpsert;
+		}
+
+		return availabilityToUpsert;
+	}
+
+	private IReadOnlyList<CardPrintFinish> BatchPrintFinishes(ApiCard apiCard)
+	{
+		List<CardPrintFinish> apiPrintFinishes = CardMapper.MapCardPrintFinishes(apiCard);
+
+		if (apiPrintFinishes.Count > 0) 
+		{
+			_printFinishBatch[apiCard.Id] = apiPrintFinishes;
+		}
+		
+		return apiPrintFinishes;
+	}
 
 	/// <summary>
 	/// Creates or updates card <paramref name="imagesToUpsert"/>.<br/>
@@ -333,7 +357,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private async Task<IEnumerable<CardPrice>> UpsertCardPrices(Card cardWithPrices, ApiCard apiCard)
 	{
 		var upsertedCardPrices = new List<CardPrice>();
-		IEnumerable<CardPrice> pricesToUpsert = CardPriceMapper.MapCardPrices(cardWithPrices.Id, apiCard);
+		IEnumerable<CardPrice> pricesToUpsert = CardPriceMapper.MapCardPrices(apiCard);
 		if (!pricesToUpsert.Any()) return upsertedCardPrices;
 
 		IEnumerable<CardPrice> existingPrices = cardWithPrices.Prices.Any()

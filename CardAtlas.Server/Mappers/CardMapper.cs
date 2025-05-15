@@ -197,6 +197,34 @@ public static class CardMapper
 
 		return printFinishes;
 	}
+	
+	public static List<CardPrintFinish> MapCardPrintFinishes(ApiCard apiCard)
+	{
+		var printFinishes = new List<CardPrintFinish>();
+		if (apiCard.ComesInFinishes is null) return printFinishes;
+
+		foreach (ScryfallPrintFinish finish in apiCard.ComesInFinishes)
+		{
+			printFinishes.Add(finish switch
+			{
+				ScryfallPrintFinish.Foil => MapCardPrintFinish(PrintFinishType.Foil),
+				ScryfallPrintFinish.Nonfoil => MapCardPrintFinish(PrintFinishType.NonFoil),
+				ScryfallPrintFinish.Etched => MapCardPrintFinish(PrintFinishType.Etched),
+				_ => MapCardPrintFinish(PrintFinishType.NotImplemented),
+			});
+		}
+
+		return printFinishes;
+	}
+	
+	private static CardPrintFinish MapCardPrintFinish(PrintFinishType printFinishType)
+	{
+		return new CardPrintFinish
+		{
+			PrintFinishId = (int)printFinishType,
+			CardId = 0,
+		};
+	}
 
 	/// <summary>
 	/// Maps the legalities from <paramref name="apiCard"/> to <see cref="CardLegality"/> objects associating the <see cref="Card"/> with <paramref name="cardId"/>.<br/>
