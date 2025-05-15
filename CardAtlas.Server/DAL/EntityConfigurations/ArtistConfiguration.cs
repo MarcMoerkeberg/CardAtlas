@@ -10,10 +10,10 @@ public class ArtistConfiguration : IEntityTypeConfiguration<Artist>
 	{
 		Artist defaultArtist = new Artist
 		{
-			Id = Artist.DefaultArtistId,
-			ScryfallId = null,
+			Id = Artist.DefaultId,
 			Name = "Unknown - Default artist"
 		};
+
 		builder.HasData(defaultArtist);
 	}
 }

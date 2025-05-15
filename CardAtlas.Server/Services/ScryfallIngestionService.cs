@@ -26,9 +26,13 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly IScryfallApi _scryfallApi;
 	private readonly ISetRepository _setRepository;
 
-	private UpsertContainer<Artist> _artistContainer = new();
+	private IEnumerable<Set> _sets = Enumerable.Empty<Set>();
 
-	private Dictionary<Guid, List<CardImage>> _imageBatch = new();
+	//Batching data
+	private HashSet<Card> _cardBatch = new();
+	private Dictionary<string, List<CardImage>> _imageBatch = new();
+	private Dictionary<string, Artist> _cardArtistBatch = new();
+	private HashSet<Artist> _artistBatch = new();
 	private Dictionary<Guid, List<CardPrice>> _cardPriceBatch = new();
 	private Dictionary<Guid, List<CardGameTypeAvailability>> _cardAvailabilityBatch = new();
 	private Dictionary<Guid, List<CardPrintFinish>> _printFinishBatch = new();
@@ -62,6 +66,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	public async Task UpsertCardCollection()
 	{
 		await UpsertSets();
+		_sets = await _setRepository.Get(SourceType.Scryfall);
 
 		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 		{
@@ -70,6 +75,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			await CreateMissingGameFormats(apiCard);
 
 			//Batch all entities
+			BatchCards(apiCard);
+			BatchArtistsAndCardRelations(apiCard);
 			BatchCardImages(apiCard);
 			BatchCardPrices(apiCard);
 			BatchCardGameTypeAvailability(apiCard);
@@ -140,7 +147,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			Artist artist = await GetOrCreateArtist(apiCard, cardFace);
 			Card? existingCard = await GetExistingCard(apiCard, cardFace);
 
-			Card mappedCard = CardMapper.MapCard(apiCard, set, artist, cardFace);
+			Card mappedCard = CardMapper.MapCard(apiCard, set, cardFace);
 			mappedCard.ParentCardId = parentId;
 
 			if (existingCard is null)
@@ -172,7 +179,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		Set set = await GetOrCreateSet(apiCard.SetId);
 		Artist artist = await GetOrCreateArtist(apiCard);
-		Card mappedCard = CardMapper.MapCard(apiCard, set, artist);
+		Card mappedCard = CardMapper.MapCard(apiCard, set);
 		Card? existingCard = await GetExistingCard(apiCard);
 
 		if (existingCard is null)
@@ -217,7 +224,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		return artistFromCard.ScryfallId.HasValue
 			? await _artistRepository.GetFromScryfallId(artistFromCard.ScryfallId.Value) ?? await _artistRepository.Create(artistFromCard)
-			: await _artistRepository.Get(Artist.DefaultArtistId);
+			: await _artistRepository.Get(Artist.DefaultId);
 	}
 
 	/// <summary>
@@ -246,6 +253,56 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			: null;
 	}
 
+	private IReadOnlyList<Card> BatchCards(ApiCard apiCard)
+	{
+		Set set = _sets.Single(set => set.ScryfallId == apiCard.SetId);
+
+		List<Card> mappedCards = apiCard.CardFaces is not { Length: > 0 }
+			? new List<Card> { CardMapper.MapCard(apiCard, set) }
+			: apiCard.CardFaces.Select(cardFace => CardMapper.MapCard(apiCard, set, cardFace: cardFace)).ToList();
+
+		if (mappedCards.Count > 0)
+		{
+			Card parentCard = mappedCards.First();
+
+			foreach (Card childCard in mappedCards.Skip(1))
+			{
+				childCard.ParentCard = parentCard;
+			}
+		}
+
+		_cardBatch.UnionWith(mappedCards);
+		return mappedCards;
+	}
+
+
+	private IEnumerable<Artist> BatchArtistsAndCardRelations(ApiCard apiCard)
+	{
+		List<Artist> artists = new();
+
+		if (apiCard.CardFaces is { Length: > 0 })
+		{
+			foreach (CardFace cardFace in apiCard.CardFaces)
+			{
+				Artist artist = ArtistMapper.MapArtist(cardFace);
+
+				_cardArtistBatch[$"{apiCard.Id}_{cardFace.Name}"] = artist;
+				_artistBatch.Add(artist);
+				artists.Add(artist);
+			}
+		}
+		else
+		{
+			Artist artist = ArtistMapper.MapArtist(apiCard);
+
+			_cardArtistBatch[$"{apiCard.Id}_{apiCard.Name}"] = artist;
+			_artistBatch.Add(artist);
+			artists.Add(artist);
+		}
+
+		return artists;
+	}
+
 	/// <summary>
 	/// Maps and transforms image data from the <paramref name="apiCard"/> into <see cref="CardImage"/>, before adding it to the <see cref="_imageBatch"/>.<br/>
 	/// The batching data should be proccessed afterwards.
@@ -253,13 +310,27 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>The mapped images.</returns>
 	private IReadOnlyList<CardImage> BatchCardImages(ApiCard apiCard)
 	{
-		List<CardImage> apiCardImages = apiCard.CardFaces is { Length: > 0 }
-			? apiCard.CardFaces.SelectMany(cardFace => CardImageMapper.MapCardImages(apiCard, cardFace)).ToList()
-			: CardImageMapper.MapCardImages(apiCard);
+		List<CardImage> cardImages = new();
 
-		_imageBatch[apiCard.Id] = apiCardImages;
+		if (apiCard.CardFaces is { Length: > 0 })
+		{
+			foreach (CardFace cardFace in apiCard.CardFaces)
+			{
+				var apiCardImages = CardImageMapper.MapCardImages(apiCard, cardFace);
 
-		return apiCardImages;
+				_imageBatch[$"{apiCard.Id}_{cardFace.Name}"] = apiCardImages;
+				cardImages.AddRange(apiCardImages);
+			}
+		}
+		else
+		{
+			var apiCardImages = CardImageMapper.MapCardImages(apiCard);
+
+			_imageBatch[$"{apiCard.Id}_{apiCard.Name}"] = apiCardImages;
+			cardImages.AddRange(apiCardImages);
+		}
+
+		return cardImages;
 	}
 
 	private IReadOnlyList<CardPrice> BatchCardPrices(ApiCard apiCard)

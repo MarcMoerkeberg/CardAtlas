@@ -14,19 +14,19 @@ public class Set
 	[MinLength(1)]
 	[MaxLength(100)]
 	public required string Name { get; set; }
-	
+
 	[MinLength(3)]
 	[MaxLength(6)]
-	public required string Code { get; set; }	
-	
+	public required string Code { get; set; }
+
 	[MinLength(3)]
 	[MaxLength(6)]
 	public string? MtgoCode { get; set; }
-	
+
 	[MinLength(3)]
 	[MaxLength(6)]
 	public string? ArenaCode { get; set; }
-	
+
 	[MinLength(3)]
 	[MaxLength(6)]
 	public string? ParentSetCode { get; set; }
@@ -42,7 +42,7 @@ public class Set
 	[ForeignKey("SetTypeId")]
 	public SetType SetType { get; set; } = null!;
 	public required int SetTypeId { get; set; }
-	
+
 	[InverseProperty("Set")]
 	public ICollection<Card> Cards { get; set; } = new HashSet<Card>();
 
@@ -58,6 +58,9 @@ public class Set
 	public required int SourceId { get; set; }
 	[NotMapped]
 	public SourceType SourceType => Source.Type;
+
+	[NotMapped]
+	public const int DefaultId = -1;
 
 	//TODO: Add nullable userId to this entity, so users can create their own formats.
 }

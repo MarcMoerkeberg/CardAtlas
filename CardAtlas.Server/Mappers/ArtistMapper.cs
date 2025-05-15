@@ -8,7 +8,7 @@ public static class ArtistMapper
 {
 	/// <summary>
 	/// Maps the artist properties on <paramref name="apiCard"/> to a new <see cref="Artist"/>.<br/>
-	/// Parameters may be null if no artist data is available.
+	/// Properties may be null if no artist data is available.
 	/// </summary>
 	public static Artist MapArtist(ApiCard apiCard)
 	{
@@ -21,14 +21,14 @@ public static class ArtistMapper
 
 	/// <summary>
 	/// Maps the artist properties on <paramref name="cardFace"/> to a new <see cref="Artist"/>.<br/>
-	/// Parameters may be null or empty if no artist data is available.
+	/// Properties may be null or empty if no artist data is available.
 	/// </summary>
 	public static Artist MapArtist(CardFace cardFace)
 	{
 		return new Artist
 		{
 			ScryfallId = cardFace.ArtistId,
-			Name = cardFace.Artist ?? string.Empty,
+			Name = cardFace.Artist ?? "Unknown",
 		};
 	}
 }

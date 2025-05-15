@@ -26,7 +26,7 @@ public static class CardDataHelper
 		IsDigitalOnly = false,
 		IsFullArt = false,
 		IsOversized = false,
-		ArtistId = Artist.DefaultArtistId,
+		ArtistId = Artist.DefaultId,
 		SetId = 1,
 		ColorIdentity = "W",
 		FrameLayoutId = (int)FrameType.NotImplemented,

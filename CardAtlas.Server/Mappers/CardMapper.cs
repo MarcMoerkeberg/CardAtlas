@@ -17,7 +17,7 @@ public static class CardMapper
 	/// </summary>
 	/// <param name="cardFace">Prioritizes data from this if provided.</param>
 	/// <returns>A new instance of <see cref="Card"/> populated with data from parameters.</returns>
-	public static Card MapCard(ApiCard apiCard, Set set, Artist artist, CardFace? cardFace = null)
+	public static Card MapCard(ApiCard apiCard, Set? set = null, Artist? artist = null, CardFace? cardFace = null)
 	{
 		return new Card
 		{
@@ -77,8 +77,8 @@ public static class CardMapper
 			FrameLayoutId = (int)GetFrameLayoutType(apiCard),
 			LanguageId = (int)GetLanguageType(apiCard),
 
-			SetId = set.Id,
-			ArtistId = artist.Id,
+			SetId = set is null ? Set.DefaultId : set.Id,
+			ArtistId = artist is null ? Artist.DefaultId : artist.Id,
 		};
 	}
 
