@@ -34,6 +34,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private Dictionary<Guid, List<CardPrintFinish>> _printFinishBatch = new();
 	private HashSet<GameFormat> _gameFormatsBatch = new();
 	private Dictionary<Guid, List<CardLegality>> _cardLegalitiesBatch = new();
+	private HashSet<Keyword> _keywordsBatch = new();
+	private Dictionary<Guid, List<CardKeyword>> _cardKeywordsBatch = new();
 
 	public ScryfallIngestionService(
 		IArtistRepository artistRepository,
@@ -310,6 +312,24 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		return cardLegalities;
 	}
+
+	private IReadOnlyList<CardKeyword> BatchKeywordsAndCardRelations(ApiCard apiCard)
+	{
+		IEnumerable<Keyword> apiCardKeywords = CardMapper.MapKeywords(apiCard);
+		_keywordsBatch.UnionWith(apiCardKeywords);
+
+		List<CardKeyword> keywordsOnCard = CardMapper.MapCardKeywords(apiCard, _keywordsBatch);
+
+		if (_keywordsBatch.Any())
+		{
+			_cardKeywordsBatch[apiCard.Id] = keywordsOnCard;
+		}
+
+		return keywordsOnCard;
+	}
+
+
+
 
 	/// <summary>
 	/// Creates or updates card <paramref name="imagesToUpsert"/>.<br/>
@@ -601,7 +621,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>Any <see cref="Keyword"/> entities associated with the <paramref name="apiCard"/>.</returns>
 	private async Task<IEnumerable<Keyword>> GetOrCreateKeywords(ApiCard apiCard)
 	{
-		HashSet<Keyword> apiCardKeywords = CardMapper.MapKeywords(apiCard);
+		IEnumerable<Keyword> apiCardKeywords = CardMapper.MapKeywords(apiCard);
 		IEnumerable<Keyword> allScryfallKeywords = await CreateMissingKeywords(apiCardKeywords);
 
 		var keywordsOnCard = new HashSet<Keyword>();
@@ -646,7 +666,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		HashSet<CardKeyword> cardKeywordsToCreate = new();
 		HashSet<CardKeyword> cardKeywordsToUpdate = new();
-		HashSet<CardKeyword> apiCardKeywords = CardMapper.MapCardKeywords(card.Id, keywordsOnApiCard);
+		HashSet<CardKeyword> apiCardKeywords = new();//CardMapper.MapCardKeywords(keywordsOnApiCard);
 
 		Dictionary<(long CardId, int KeywordId), CardKeyword> existingCardKeywords = card.CardKeywords.ToDictionary(keyword => (keyword.CardId, keyword.KeywordId));
 

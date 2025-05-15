@@ -279,37 +279,47 @@ public static class CardMapper
 		target.LegalityId = source.LegalityId;
 	}
 
-	public static HashSet<Keyword> MapKeywords(ApiCard apiCard)
+	/// <summary>
+	/// Returns a new list of <see cref="Keyword"/> entities populated with data from the <paramref name="apiCard"/>.
+	/// </summary>
+	/// <param name="apiCard"></param>
+	/// <returns></returns>
+	public static IEnumerable<Keyword> MapKeywords(ApiCard apiCard)
 	{
-		var keywords = new HashSet<Keyword>();
-		if (apiCard.Keywords is { Length: 0 }) return keywords;
+		if (apiCard.Keywords is not { Length: > 0 }) return Enumerable.Empty<Keyword>();
 
-		foreach (var keyword in apiCard.Keywords)
-		{
-			keywords.Add(new Keyword
+		return apiCard.Keywords
+			.Select(keyword => new Keyword
 			{
 				Name = keyword,
 				SourceId = (int)SourceType.Scryfall,
-			});
-		}
-
-		return keywords;
+			})
+			.ToList();
 	}
 
-	public static HashSet<CardKeyword> MapCardKeywords(long cardId, IEnumerable<Keyword> keywordsOnCard)
+	/// <summary>
+	/// Maps the keywords from the <paramref name="apiCard"/> to <see cref="CardKeyword"/> entities.<br/>
+	/// Should have all relevant <see cref="Keyword"/> entities in <paramref name="keywords"/> to map the relations correctly.
+	/// </summary>
+	/// <returns>A new <see cref="CardKeyword"/> object for each keyword on the <paramref name="apiCard"/> that matches an entry in <paramref name="keywords"/>.</returns>
+	public static List<CardKeyword> MapCardKeywords(ApiCard apiCard, IEnumerable<Keyword> keywords)
 	{
-		HashSet<CardKeyword> keywords = new();
+		List<CardKeyword> cardKeywords = new();
+		if (apiCard.Keywords is not { Length: > 0 } || !keywords.Any()) return cardKeywords;
 
-		foreach (var keyword in keywordsOnCard)
+		foreach (string apiCardKeywordName in apiCard.Keywords)
 		{
-			keywords.Add(new CardKeyword
+			Keyword? keyword = keywords.FirstWithNameOrDefault(apiCardKeywordName);
+			if (keyword is null) continue;
+
+			cardKeywords.Add(new CardKeyword
 			{
-				CardId = cardId,
+				CardId = 0,
 				KeywordId = keyword.Id,
 			});
 		}
 
-		return keywords;
+		return cardKeywords;
 	}
 
 	/// <summary>
