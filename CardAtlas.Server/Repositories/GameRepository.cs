@@ -1,6 +1,7 @@
 ﻿using CardAtlas.Server.DAL;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
+using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -88,5 +89,17 @@ public class GameRepository : IGameRepository
 		return await dbContext.GameFormats
 			.AsNoTracking()
 			.SingleAsync(gameFormat => gameFormat.Id == formatId);
+	}
+
+	public async Task<int> UpsertGameFormat(UpsertContainer<GameFormat> upsertionData)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		if (upsertionData.ToInsert is { Count: > 0 }) dbContext.GameFormats.AddRange(upsertionData.ToInsert);
+		if (upsertionData.ToUpdate is { Count: > 0 }) dbContext.GameFormats.UpdateRange(upsertionData.ToUpdate);
+
+		int numberOfAffectedRows = await dbContext.SaveChangesAsync();
+
+		return numberOfAffectedRows;
 	}
 }

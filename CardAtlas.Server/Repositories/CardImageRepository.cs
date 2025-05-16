@@ -1,6 +1,8 @@
 ﻿using CardAtlas.Server.DAL;
 using CardAtlas.Server.Mappers;
+using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.Image;
+using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -37,6 +39,18 @@ public class CardImageRepository : ICardImageRepository
 		return await dbContext.CardImages
 			.AsNoTracking()
 			.SingleAsync(cardImage => cardImage.Id == cardImageId);
+	}
+
+	public async Task<IEnumerable<CardImage>> Get(SourceType source)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardImages
+			.Include(cardImage => cardImage.SourceType)
+			.Include(cardImage => cardImage.ImageType)
+			.AsNoTracking()
+			.Where(cardImage => cardImage.SourceType == SourceType.Scryfall)
+			.ToListAsync();
 	}
 
 	public async Task<IEnumerable<CardImage>> GetFromCardId(long cardId)
@@ -76,5 +90,17 @@ public class CardImageRepository : ICardImageRepository
 		}
 
 		return imageToUpdate;
+	}
+
+	public async Task<int> Upsert(UpsertContainer<CardImage> upsertionData)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		if (upsertionData.ToInsert is { Count: > 0 }) dbContext.CardImages.AddRange(upsertionData.ToInsert);
+		if (upsertionData.ToUpdate is { Count: > 0 }) dbContext.CardImages.UpdateRange(upsertionData.ToUpdate);
+
+		int numberOfAffectedRows = await dbContext.SaveChangesAsync();
+
+		return numberOfAffectedRows;
 	}
 }

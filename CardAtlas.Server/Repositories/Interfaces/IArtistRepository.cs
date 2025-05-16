@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Internal;
 
 namespace CardAtlas.Server.Repositories.Interfaces
 {
@@ -22,6 +23,18 @@ namespace CardAtlas.Server.Repositories.Interfaces
 		/// </summary>
 		/// <returns>The <see cref="Artist"/> with the specified <paramref name="scryfallId"/> or null if no match is found.</returns>
 		/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-		Task<Artist?> GetFromScryfallId(Guid scryfallId);
+		Task<Artist?> Get(Guid scryfallId);
+
+		/// <summary>
+		/// Returns the <see cref="Artist"/> entities from the db with the specified <paramref name="scryfallIds"/>.
+		/// </summary>
+		/// <returns>A list of <see cref="Artist"/> entities with the specified <paramref name="scryfallIds"/>.</returns>
+		Task<IEnumerable<Artist>> Get(IEnumerable<Guid> scryfallIds);
+
+		/// <summary>
+		/// Creates and updates <see cref="Artist"/> entities, based on the provided <paramref name="upsertionData"/>.
+		/// </summary>
+		/// <returns>The number of affected effected entities.</returns>
+		Task<int> Upsert(UpsertContainer<Artist> upsertionData);
 	}
 }

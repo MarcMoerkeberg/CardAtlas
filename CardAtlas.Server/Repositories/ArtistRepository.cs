@@ -1,5 +1,6 @@
 ﻿using CardAtlas.Server.DAL;
 using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -15,7 +16,7 @@ public class ArtistRepository : IArtistRepository
 		_dbContextFactory = dbContextFactory;
 	}
 
-	public async Task<Artist?> GetFromScryfallId(Guid scryfallId)
+	public async Task<Artist?> Get(Guid scryfallId)
 	{
 		if (scryfallId == Guid.Empty)
 		{
@@ -46,5 +47,28 @@ public class ArtistRepository : IArtistRepository
 		return await dbContext.Artists
 			.AsNoTracking()
 			.SingleAsync(artist => artist.Id == artistId);
+	}
+
+	public async Task<IEnumerable<Artist>> Get(IEnumerable<Guid> scryfallIds)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.Artists
+			.AsNoTracking()
+			.Where(artist => artist.ScryfallId.HasValue &&
+				scryfallIds.Contains(artist.ScryfallId.Value))
+			.ToListAsync();
+	}
+
+	public async Task<int> Upsert(UpsertContainer<Artist> upsertionData)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		if (upsertionData.ToInsert is { Count: > 0 }) dbContext.Artists.AddRange(upsertionData.ToInsert);
+		if (upsertionData.ToUpdate is { Count: > 0 }) dbContext.Artists.UpdateRange(upsertionData.ToUpdate);
+
+		int numberOfAffectedRows = await dbContext.SaveChangesAsync();
+
+		return numberOfAffectedRows;
 	}
 }

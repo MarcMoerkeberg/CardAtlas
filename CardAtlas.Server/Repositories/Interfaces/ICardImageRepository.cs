@@ -1,4 +1,6 @@
-﻿using CardAtlas.Server.Models.Data.Image;
+﻿using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.Image;
+using CardAtlas.Server.Models.Internal;
 
 namespace CardAtlas.Server.Repositories.Interfaces;
 
@@ -37,4 +39,16 @@ public interface ICardImageRepository
 	/// </summary>
 	/// <returns>All <see cref="CardImage"/> entries which references <paramref name="cardId"/>. Enumerable is empty if no matches is found.</returns>
 	public Task<IEnumerable<CardImage>> GetFromCardId(long cardId);
+
+	/// <summary>
+	/// Returns all <see cref="CardImage"/> entities from the db with the specified <paramref name="source"/>.
+	/// </summary>
+	/// <returns>All <see cref="CardImage"/> entities with the specified <paramref name="source"/>. Enumerable is empty if no matches is found.</returns>
+	public Task<IEnumerable<CardImage>> Get(SourceType source);
+
+	/// <summary>
+	/// Creates and updates <see cref="CardImage"/> entities, based on the provided <paramref name="upsertionData"/>.
+	/// </summary>
+	/// <returns>The number of affected effected entities.</returns>
+	public Task<int> Upsert(UpsertContainer<CardImage> upsertionData);
 }

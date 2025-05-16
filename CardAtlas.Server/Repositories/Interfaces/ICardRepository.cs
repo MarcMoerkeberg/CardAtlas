@@ -1,5 +1,6 @@
 ﻿using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
+using CardAtlas.Server.Models.Internal;
 
 namespace CardAtlas.Server.Repositories.Interfaces;
 
@@ -39,7 +40,15 @@ public interface ICardRepository
 	/// </summary>
 	/// <returns>The <see cref="Card"/> instances with the specified <paramref name="scryfallId"/> or null if no match is found.</returns>
 	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-	Task<IEnumerable<Card>> GetFromScryfallId(Guid scryfallId);
+	Task<IEnumerable<Card>> Get(Guid scryfallId);
+
+	/// <summary>
+	/// Returns the <see cref="Card"/> entries from the db with the specified <paramref name="scryfallIds"/>.<br/>
+	/// Multiple cards may have the same scryfallId, since they are created as seperate card instances if they have multiple <see cref="ScryfallApi.Models.CardFace"/> (such as flip or split cards).
+	/// </summary>
+	/// <returns>The <see cref="Card"/> instances with the specified <paramref name="scryfallIds"/> or null if no match is found.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<IEnumerable<Card>> Get(IEnumerable<Guid> scryfallIds);
 
 	/// <summary>
 	/// Returns the <see cref="CardPrice"/> with the specified <paramref name="priceId"/>.
@@ -227,4 +236,10 @@ public interface ICardRepository
 	/// </summary>
 	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
 	Task<CardPromoType> GetCardPromoType(long cardPromoTypeId);
+
+	/// <summary>
+	/// Creates and updates <see cref="Card"/> entities, based on the provided <paramref name="upsertionData"/>.
+	/// </summary>
+	/// <returns>The number of affected effected entities.</returns>
+	Task<int> Upsert(UpsertContainer<Card> upsertionData);
 }

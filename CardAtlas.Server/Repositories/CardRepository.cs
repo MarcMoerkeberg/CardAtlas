@@ -2,6 +2,7 @@
 using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
+using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -71,7 +72,7 @@ public class CardRepository : ICardRepository
 		return existingCard;
 	}
 
-	public async Task<IEnumerable<Card>> GetFromScryfallId(Guid scryfallId)
+	public async Task<IEnumerable<Card>> Get(Guid scryfallId)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -85,6 +86,17 @@ public class CardRepository : ICardRepository
 			.Include(card => card.CardKeywords)
 			.Include(card => card.CardPromoTypes)
 			.Where(card => card.ScryfallId == scryfallId)
+			.ToListAsync();
+	}
+
+	public async Task<IEnumerable<Card>> Get(IEnumerable<Guid> scryfallIds)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.Cards
+			.AsNoTracking()
+			.Where(card => card.ScryfallId.HasValue &&
+				scryfallIds.Contains(card.ScryfallId.Value))
 			.ToListAsync();
 	}
 
@@ -472,5 +484,17 @@ public class CardRepository : ICardRepository
 		await dbContext.SaveChangesAsync();
 
 		return updatedCardPromoTypes;
+	}
+
+	public async Task<int> Upsert(UpsertContainer<Card> upsertionData)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		if (upsertionData.ToInsert is { Count: > 0 }) dbContext.Cards.AddRange(upsertionData.ToInsert);
+		if (upsertionData.ToUpdate is { Count: > 0 }) dbContext.Cards.UpdateRange(upsertionData.ToUpdate);
+
+		int numberOfAffectedRows = await dbContext.SaveChangesAsync();
+
+		return numberOfAffectedRows;
 	}
 }

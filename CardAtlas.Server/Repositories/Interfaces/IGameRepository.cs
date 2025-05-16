@@ -1,5 +1,6 @@
 ﻿using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
+using CardAtlas.Server.Models.Internal;
 
 namespace CardAtlas.Server.Repositories.Interfaces;
 
@@ -41,4 +42,10 @@ public interface IGameRepository
 	/// </summary>
 	/// <exception cref="InvalidOperationException">Thrown if none, or more than one <see cref="GameFormat"/> entities is found.</exception>
 	Task<GameFormat> GetFormat(int formatId);
+
+	/// <summary>
+	/// Creates and updates <see cref="GameFormat"/> entities, based on the provided <paramref name="upsertionData"/>.
+	/// </summary>
+	/// <returns>The number of affected effected entities.</returns>
+	Task<int> UpsertGameFormat(UpsertContainer<GameFormat> upsertionData);
 }
