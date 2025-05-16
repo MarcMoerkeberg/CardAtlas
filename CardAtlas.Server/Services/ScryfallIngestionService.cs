@@ -1,4 +1,5 @@
-﻿using CardAtlas.Server.Mappers;
+﻿using CardAtlas.Server.Extensions;
+using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Image;
@@ -15,12 +16,17 @@ namespace CardAtlas.Server.Services;
 
 public class ScryfallIngestionService : IScryfallIngestionService
 {
+	//Dependencies
 	private readonly IArtistRepository _artistRepository;
 	private readonly ICardImageRepository _cardImageRepository;
 	private readonly ICardRepository _cardRepository;
 	private readonly IEqualityComparer<Keyword> _keywordComparer;
 	private readonly IGameRepository _gameRepository;
 	private readonly IEqualityComparer<Set> _setComparer;
+	private readonly IEqualityComparer<Card> _cardComparer;
+	private readonly IEqualityComparer<Artist> _artistComparer;
+	private readonly IEqualityComparer<GameFormat> _gameFormatComparer;
+	private readonly IEqualityComparer<CardImage> _imageComparer;
 	private readonly IScryfallApi _scryfallApi;
 	private readonly ISetRepository _setRepository;
 
@@ -47,6 +53,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		IEqualityComparer<Keyword> keywordComparer,
 		IGameRepository gameRepository,
 		IEqualityComparer<Set> setComparer,
+		IEqualityComparer<Card> cardComparer,
+		IEqualityComparer<Artist> artistComparer,
+		IEqualityComparer<GameFormat> gameFormatComparer,
+		IEqualityComparer<CardImage> imageComparer,
 		IScryfallApi scryfallApi,
 		ISetRepository setRepository)
 	{
@@ -56,6 +66,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_keywordComparer = keywordComparer;
 		_gameRepository = gameRepository;
 		_setComparer = setComparer;
+		_cardComparer = cardComparer;
+		_artistComparer = artistComparer;
+		_gameFormatComparer = gameFormatComparer;
+		_imageComparer = imageComparer;
 		_scryfallApi = scryfallApi;
 		_setRepository = setRepository;
 	}
@@ -103,12 +117,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 			if (_cardBatch.Count >= 1000)
 			{
-				CommitBatchedData();
+				await PersistBatchedData();
 				ClearBatchedData();
 			}
 		}
 
-		CommitBatchedData();
+		await PersistBatchedData();
 	}
 
 	private async Task UpdateAndCacheSetEntities()
@@ -292,9 +306,170 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return promoTypesOnCard;
 	}
 
-	private void CommitBatchedData()
+	private async Task PersistBatchedData()
 	{
-		throw new NotImplementedException();
+		await UpsertArtists();
+
+		await Task.WhenAll(
+			UpsertCards(),
+			UpsertGameFormats()
+		//keywords, promotypes
+		);
+
+		IEnumerable<Card> updatedCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
+		Dictionary<Guid, Card> cardLookup = updatedCards.ToDictionary(card => card.ScryfallId!.Value);
+
+		await Task.WhenAll(
+			UpsertImages()
+		//BatchCardPrices(apiCard);
+		//BatchCardGameTypeAvailability(apiCard);
+		//PrintFinishes(apiCard);
+		//Legalities(apiCard);
+		//KeywordRelations(apiCard);
+		//PromoTypeRelations(apiCard);
+		);
+	}
+
+
+
+	private async Task<int> UpsertArtists()
+	{
+		UpsertContainer<Artist> upsertionData = new();
+		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Select(artist => artist.ScryfallId!.Value));
+		Dictionary<Guid, Artist> artistLookup = existingArtists.ToDictionary(artist => artist.ScryfallId!.Value);
+
+		foreach (Artist batchedArtist in _artistBatch)
+		{
+			if (artistLookup.TryGetValue(batchedArtist.ScryfallId!.Value, out Artist? existingArtist))
+			{
+				batchedArtist.Id = existingArtist.Id;
+
+				if (_artistComparer.Equals(existingArtist, batchedArtist)) continue;
+
+				upsertionData.ToUpdate.Add(batchedArtist);
+			}
+			else
+			{
+				upsertionData.ToInsert.Add(batchedArtist);
+			}
+		}
+
+		int numberOfAffectedRows = await _artistRepository.Upsert(upsertionData);
+		await AssignArtistIdsOnBatchedCards();
+
+		return numberOfAffectedRows;
+	}
+
+	private async Task AssignArtistIdsOnBatchedCards()
+	{
+		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Select(artist => artist.ScryfallId!.Value));
+		Dictionary<Guid, Artist> artistLookup = existingArtists.ToDictionary(artist => artist.ScryfallId!.Value);
+
+		foreach (Card batchedCard in _cardBatch)
+		{
+			if (_cardArtistBatch.TryGetValue($"{batchedCard.ScryfallId}_{batchedCard.Name}", out Artist? batchedArtist) &&
+				artistLookup.TryGetValue(batchedArtist.ScryfallId!.Value, out Artist? existingArtist))
+			{
+				batchedCard.ArtistId = batchedArtist.Id;
+			}
+		}
+	}
+
+	private async Task<int> UpsertCards()
+	{
+		IEnumerable<Card> existingCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
+		UpsertContainer<Card> upsertionData = new();
+		Dictionary<Guid, Card> cardLookup = existingCards.ToDictionary(card => card.ScryfallId!.Value);
+
+		foreach (Card batchedCard in _cardBatch)
+		{
+			if (cardLookup.TryGetValue(batchedCard.ScryfallId!.Value, out Card? existingCard))
+			{
+				batchedCard.ArtistId = existingCard.ArtistId;
+				batchedCard.ParentCardId = existingCard.ParentCardId;
+				batchedCard.Id = existingCard.Id;
+
+				if (_cardComparer.Equals(existingCard, batchedCard)) continue;
+
+				upsertionData.ToUpdate.Add(batchedCard);
+			}
+			else
+			{
+				upsertionData.ToInsert.Add(batchedCard);
+			}
+		}
+
+		int affectedtedNumberOfRows = await _cardRepository.Upsert(upsertionData);
+		await AssignCardIdToBatchedImages();
+
+		return affectedtedNumberOfRows;
+	}
+
+	private async Task<int> UpsertGameFormats()
+	{
+		UpsertContainer<GameFormat> upsertionData = new();
+		IEnumerable<GameFormat> existingFormats = await _gameRepository.GetFormats(SourceType.Scryfall);
+
+		foreach (GameFormat batchedFormat in _gameFormatsBatch)
+		{
+			GameFormat? existingFormat = existingFormats.FirstWithNameOrDefault(batchedFormat.Name, SourceType.Scryfall);
+
+			if (existingFormat is null)
+			{
+				upsertionData.ToInsert.Add(batchedFormat);
+			}
+			else
+			{
+				batchedFormat.Id = existingFormat.Id;
+				if (_gameFormatComparer.Equals(existingFormat, batchedFormat)) continue;
+
+				upsertionData.ToUpdate.Add(batchedFormat);
+			}
+		}
+
+		return await _gameRepository.UpsertGameFormat(upsertionData);
+	}
+
+	private async Task<int> UpsertImages()
+	{
+		UpsertContainer<CardImage> upsertionData = new();
+		IEnumerable<CardImage> existingImages = await _cardImageRepository.Get(SourceType.Scryfall);
+
+		foreach (CardImage batchedImage in _imageBatch.Values.SelectMany(x => x))
+		{
+			if (batchedImage.CardId == default(int)) continue;
+			CardImage? existingImage = existingImages.SingleOrDefault(cardImage => cardImage.CardId == batchedImage.CardId && cardImage.Type == (ImageTypeKind)batchedImage.ImageTypeId);
+
+			if (existingImage is null)
+			{
+				upsertionData.ToInsert.Add(batchedImage);
+			}
+			else
+			{
+				batchedImage.Id = existingImage.Id;
+				if (_imageComparer.Equals(existingImage, batchedImage)) continue;
+
+				upsertionData.ToUpdate.Add(batchedImage);
+			}
+		}
+
+		return await _cardImageRepository.Upsert(upsertionData);
+	}
+
+	private async Task AssignCardIdToBatchedImages()
+	{
+		IEnumerable<Card> updatedCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
+
+		foreach (Card card in updatedCards)
+		{
+			if (_imageBatch.TryGetValue($"{card.ScryfallId}_{card.Name}", out List<CardImage>? matchingImages))
+			{
+				foreach (CardImage image in matchingImages)
+				{
+					image.CardId = card.Id;
+				}
+			}
+		}
 	}
 
 	private void ClearBatchedData()
