@@ -24,9 +24,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly IScryfallApi _scryfallApi;
 	private readonly ISetRepository _setRepository;
 
-	private IEnumerable<Set> _sets = Enumerable.Empty<Set>();
-
 	//Batching data
+	private Dictionary<Guid, Set> _setLookup = new();
 	private HashSet<Card> _cardBatch = new();
 	private Dictionary<string, List<CardImage>> _imageBatch = new();
 	private Dictionary<string, Artist> _cardArtistBatch = new();
@@ -61,30 +60,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_setRepository = setRepository;
 	}
 
-	public async Task UpsertCardCollection()
-	{
-		await UpsertSets();
-		_sets = await _setRepository.Get(SourceType.Scryfall);
-
-		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
-		{
-			//Batch all entities
-			BatchCards(apiCard);
-			BatchArtistsAndCardRelations(apiCard);
-			BatchCardImages(apiCard);
-			BatchCardPrices(apiCard);
-			BatchCardGameTypeAvailability(apiCard);
-			BatchPrintFinishes(apiCard);
-			BatchGameFormatsAndLegalities(apiCard);
-			BatchKeywordsAndCardRelations(apiCard);
-			BatchPromoTypesAndCardRelations(apiCard);
-
-			//When batched entities hits 1000 upsert all entities and then flush batch data
-
-			//When loop ends remember to upsert the remaining batched data
-		}
-	}
-
 	public async Task<int> UpsertSets()
 	{
 		UpsertContainer<Set> upsertionData = new();
@@ -117,9 +92,50 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return affectedNumberOfRows;
 	}
 
+	public async Task UpsertCardCollection()
+	{
+		//TODO: Add logging (maybe a db table entry for history) in controller to see that this method was called.
+		await UpdateAndCacheSetEntities();
+
+		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
+		{
+			BatchCardData(apiCard);
+
+			if (_cardBatch.Count >= 1000)
+			{
+				CommitBatchedData();
+				ClearBatchedData();
+			}
+		}
+
+		CommitBatchedData();
+	}
+
+	private async Task UpdateAndCacheSetEntities()
+	{
+		await UpsertSets();
+		IEnumerable<Set> allScryfallSets = await _setRepository.Get(SourceType.Scryfall);
+		_setLookup = allScryfallSets
+			.Where(set => set.ScryfallId.HasValue)
+			.ToDictionary(set => set.ScryfallId!.Value);
+	}
+
+	private void BatchCardData(ApiCard apiCard)
+	{
+		BatchCards(apiCard);
+		BatchArtistsAndCardRelations(apiCard);
+		BatchCardImages(apiCard);
+		BatchCardPrices(apiCard);
+		BatchCardGameTypeAvailability(apiCard);
+		BatchPrintFinishes(apiCard);
+		BatchGameFormatsAndLegalities(apiCard);
+		BatchKeywordsAndCardRelations(apiCard);
+		BatchPromoTypesAndCardRelations(apiCard);
+	}
+
 	private IReadOnlyList<Card> BatchCards(ApiCard apiCard)
 	{
-		Set set = _sets.Single(set => set.ScryfallId == apiCard.SetId);
+		Set set = _setLookup[apiCard.SetId];
 
 		List<Card> mappedCards = apiCard.CardFaces is not { Length: > 0 }
 			? new List<Card> { CardMapper.MapCard(apiCard, set) }
@@ -140,7 +156,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 
-	private IEnumerable<Artist> BatchArtistsAndCardRelations(ApiCard apiCard)
+	private IReadOnlyList<Artist> BatchArtistsAndCardRelations(ApiCard apiCard)
 	{
 		List<Artist> artists = new();
 
@@ -274,5 +290,27 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		return promoTypesOnCard;
+	}
+
+	private void CommitBatchedData()
+	{
+		throw new NotImplementedException();
+	}
+
+	private void ClearBatchedData()
+	{
+		_cardBatch.Clear();
+		_imageBatch.Clear();
+		_cardArtistBatch.Clear();
+		_artistBatch.Clear();
+		_cardPriceBatch.Clear();
+		_cardAvailabilityBatch.Clear();
+		_printFinishBatch.Clear();
+		_gameFormatsBatch.Clear();
+		_cardLegalitiesBatch.Clear();
+		_keywordsBatch.Clear();
+		_cardKeywordsBatch.Clear();
+		_promoTypesBatch.Clear();
+		_cardPromotypesBatch.Clear();
 	}
 }
