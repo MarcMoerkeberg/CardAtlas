@@ -31,7 +31,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private Dictionary<string, Artist> _cardArtistBatch = new();
 	private HashSet<Artist> _artistBatch = new();
 	private Dictionary<Guid, List<CardPrice>> _cardPriceBatch = new();
-	private Dictionary<Guid, List<CardGameTypeAvailability>> _cardAvailabilityBatch = new();
+	private Dictionary<Guid, List<CardGameType>> _cardAvailabilityBatch = new();
 	private Dictionary<Guid, List<CardPrintFinish>> _printFinishBatch = new();
 	private HashSet<GameFormat> _gameFormatsBatch = new();
 	private Dictionary<Guid, List<CardLegality>> _cardLegalitiesBatch = new();
@@ -219,9 +219,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		return pricesToUpsert;
 	}
-	private IReadOnlyList<CardGameTypeAvailability> BatchCardGameTypeAvailability(ApiCard apiCard)
+	private IReadOnlyList<CardGameType> BatchCardGameTypeAvailability(ApiCard apiCard)
 	{
-		List<CardGameTypeAvailability> availabilityToUpsert = GameMapper.MapGameTypeAvailability(apiCard);
+		List<CardGameType> availabilityToUpsert = GameMapper.MapGameTypeAvailability(apiCard);
 
 		if (availabilityToUpsert.Count > 0)
 		{

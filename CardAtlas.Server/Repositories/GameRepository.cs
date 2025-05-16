@@ -16,16 +16,16 @@ public class GameRepository : IGameRepository
 		_dbContextFactory = dbContextFactory;
 	}
 
-	public async Task<IEnumerable<CardGameTypeAvailability>> CreateCardGameTypes(IEnumerable<CardGameTypeAvailability> cardGameTypes)
+	public async Task<IEnumerable<CardGameType>> CreateCardGameTypes(IEnumerable<CardGameType> cardGameTypes)
 	{
-		var addedCardGameTypes = new List<CardGameTypeAvailability>();
+		var addedCardGameTypes = new List<CardGameType>();
 		if (!cardGameTypes.Any()) return addedCardGameTypes;
 
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		foreach (CardGameTypeAvailability cardGameType in cardGameTypes)
+		foreach (CardGameType cardGameType in cardGameTypes)
 		{
-			EntityEntry<CardGameTypeAvailability> addedCardPrintFinish = await dbContext.CardGameTypes.AddAsync(cardGameType);
+			EntityEntry<CardGameType> addedCardPrintFinish = await dbContext.CardGameTypes.AddAsync(cardGameType);
 			addedCardGameTypes.Add(addedCardPrintFinish.Entity);
 		}
 

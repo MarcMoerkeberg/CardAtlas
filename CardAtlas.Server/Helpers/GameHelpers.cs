@@ -12,14 +12,14 @@ public static class GameHelpers
 	/// Gets all the missing game types from comparing <paramref name="apiCard"/> to the <paramref name="card"/>.
 	/// </summary>
 	/// <param name="card">Should have the associated <see cref="Card.GameTypeAvailability"/> materialized when calling this method.</param>
-	/// <returns>A new <see cref="CardGameTypeAvailability"/> for each gametype missing from the <paramref name="card"/> when compared to the <paramref name="apiCard"/>.</returns>
-	public static IEnumerable<CardGameTypeAvailability> GetMissingGameTypes(Card card, ApiCard apiCard)
+	/// <returns>A new <see cref="CardGameType"/> for each gametype missing from the <paramref name="card"/> when compared to the <paramref name="apiCard"/>.</returns>
+	public static IEnumerable<CardGameType> GetMissingGameTypes(Card card, ApiCard apiCard)
 	{
 		IEnumerable<GameKind> apiGameTypes = GameMapper.MapGameTypes(apiCard);
-		IEnumerable<CardGameTypeAvailability> missingGameTypes = apiGameTypes
+		IEnumerable<CardGameType> missingGameTypes = apiGameTypes
 			.Where(apiGameKind => !card.PrintedInGameTypes.Contains(apiGameKind))
 			.Select(apiGameKind =>
-				new CardGameTypeAvailability
+				new CardGameType
 				{
 					CardId = card.Id,
 					GameTypeId = (int)apiGameKind

@@ -113,7 +113,7 @@ public class Card : INameable
 	public IEnumerable<PrintFinishType> PrintFinishes => _printFinishes ??= CardPrintFinishes.Any(finish => finish.PrintFinish is not null) ? CardPrintFinishes.Select(finish => finish.PrintFinish.Type) : [];
 
 	[InverseProperty("Card")]
-	public ICollection<CardGameTypeAvailability> GameTypeAvailability { get; set; } = new HashSet<CardGameTypeAvailability>();
+	public ICollection<CardGameType> GameTypeAvailability { get; set; } = new HashSet<CardGameType>();
 	[NotMapped]
 	private IEnumerable<GameKind>? _existsInGameTypes { get; set; }
 	[NotMapped]

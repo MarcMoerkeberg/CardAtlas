@@ -23,11 +23,11 @@ public static class GameMapper
 	}
 
 	/// <summary>
-	/// Maps the print availability from <paramref name="apiCard"/> to a collection of <see cref="CardGameTypeAvailability"/>
+	/// Maps the print availability from <paramref name="apiCard"/> to a collection of <see cref="CardGameType"/>
 	/// </summary>
-	public static List<CardGameTypeAvailability> MapGameTypeAvailability(ApiCard apiCard)
+	public static List<CardGameType> MapGameTypeAvailability(ApiCard apiCard)
 	{
-		var gameTypeAvailability = new List<CardGameTypeAvailability>();
+		var gameTypeAvailability = new List<CardGameType>();
 
 		if (apiCard.PrintAvailability.Paper)
 		{
@@ -48,9 +48,9 @@ public static class GameMapper
 		return gameTypeAvailability;
 	}
 
-	private static CardGameTypeAvailability MapCardGameTypeAvailability(GameKind gameKind)
+	private static CardGameType MapCardGameTypeAvailability(GameKind gameKind)
 	{
-		return new CardGameTypeAvailability
+		return new CardGameType
 		{
 			CardId = default,
 			GameTypeId = (int)gameKind
