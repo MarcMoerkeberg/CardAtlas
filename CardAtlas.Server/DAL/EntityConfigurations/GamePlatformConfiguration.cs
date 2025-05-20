@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace CardAtlas.Server.DAL.EntityConfigurations;
 
-public class GameTypeConfiguration : IEntityTypeConfiguration<GameType>
+public class GamePlatformConfiguration : IEntityTypeConfiguration<GamePlatform>
 {
-	public void Configure(EntityTypeBuilder<GameType> builder)
+	public void Configure(EntityTypeBuilder<GamePlatform> builder)
 	{
-		IEnumerable<GameType> seedData = EntityConfigurationHelper.GetEnumSeedData<GameType, GameKind>();
+		IEnumerable<GamePlatform> seedData = EntityConfigurationHelper.GetEnumSeedData<GamePlatform, PlatformType>();
 
 		builder.HasData(seedData);
 	}

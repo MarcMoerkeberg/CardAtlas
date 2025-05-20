@@ -3,12 +3,12 @@ using CardAtlas.Server.Models.Data.CardRelations;
 
 namespace CardAtlas.Server.Models.Data;
 
-public class GameType : TypeEntity<GameKind>
+public class GamePlatform : TypeEntity<PlatformType>
 {
-	public ICollection<CardGameType> CardGameTypes { get; set; } = new HashSet<CardGameType>();
+	public ICollection<CardGamePlatform> CardGameTypes { get; set; } = new HashSet<CardGamePlatform>();
 }
 
-public enum GameKind
+public enum PlatformType
 {
 	NotImplemented = -1,
 	Paper = 1,

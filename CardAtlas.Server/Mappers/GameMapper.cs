@@ -9,48 +9,48 @@ namespace CardAtlas.Server.Mappers;
 public static class GameMapper
 {
 	/// <summary>
-	/// Maps the print availability from <paramref name="apiCard"/> to a collection of <see cref="GameKind"/>
+	/// Maps the print availability from <paramref name="apiCard"/> to a collection of <see cref="PlatformType"/>
 	/// </summary>
-	public static List<GameKind> MapGameTypes(ApiCard apiCard)
+	public static List<PlatformType> MapGameTypes(ApiCard apiCard)
 	{
-		var gameTypes = new List<GameKind>();
+		var gameTypes = new List<PlatformType>();
 
-		if (apiCard.PrintAvailability.Paper) gameTypes.Add(GameKind.Paper);
-		if (apiCard.PrintAvailability.Arena) gameTypes.Add(GameKind.Arena);
-		if (apiCard.PrintAvailability.Mtgo) gameTypes.Add(GameKind.Mtgo);
+		if (apiCard.PrintAvailability.Paper) gameTypes.Add(PlatformType.Paper);
+		if (apiCard.PrintAvailability.Arena) gameTypes.Add(PlatformType.Arena);
+		if (apiCard.PrintAvailability.Mtgo) gameTypes.Add(PlatformType.Mtgo);
 
 		return gameTypes;
 	}
 
 	/// <summary>
-	/// Maps the print availability from <paramref name="apiCard"/> to a collection of <see cref="CardGameType"/>
+	/// Maps the print availability from <paramref name="apiCard"/> to a collection of <see cref="CardGamePlatform"/>
 	/// </summary>
-	public static List<CardGameType> MapCardGameType(ApiCard apiCard)
+	public static List<CardGamePlatform> MapCardGamePlatform(ApiCard apiCard)
 	{
-		var gameTypeAvailability = new List<CardGameType>();
+		var gameTypeAvailability = new List<CardGamePlatform>();
 
 		if (apiCard.PrintAvailability.Paper)
 		{
-			gameTypeAvailability.Add(MapCardGameTypeAvailability(GameKind.Paper));
+			gameTypeAvailability.Add(MapCardGamePlatform(PlatformType.Paper));
 		}
 
 		if (apiCard.PrintAvailability.Arena)
 		{
-			gameTypeAvailability.Add(MapCardGameTypeAvailability(GameKind.Arena));
+			gameTypeAvailability.Add(MapCardGamePlatform(PlatformType.Arena));
 
 		}
 
 		if (apiCard.PrintAvailability.Mtgo)
 		{
-			gameTypeAvailability.Add(MapCardGameTypeAvailability(GameKind.Mtgo));
+			gameTypeAvailability.Add(MapCardGamePlatform(PlatformType.Mtgo));
 		}
 
 		return gameTypeAvailability;
 	}
 
-	private static CardGameType MapCardGameTypeAvailability(GameKind gameKind)
+	private static CardGamePlatform MapCardGamePlatform(PlatformType gameKind)
 	{
-		return new CardGameType
+		return new CardGamePlatform
 		{
 			CardId = default,
 			GameTypeId = (int)gameKind

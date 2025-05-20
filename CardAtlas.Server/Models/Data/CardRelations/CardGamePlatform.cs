@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data.CardRelations;
 
-public class CardGameType
+public class CardGamePlatform
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -15,5 +15,5 @@ public class CardGameType
 
 	[ForeignKey("GameType")]
 	public required int GameTypeId { get; set; }
-	public GameType GameType { get; set; } = null!;
+	public GamePlatform GameType { get; set; } = null!;
 }

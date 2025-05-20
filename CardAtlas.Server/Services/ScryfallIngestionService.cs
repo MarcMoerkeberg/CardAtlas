@@ -37,7 +37,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private Dictionary<string, Artist> _cardArtistBatch = new();
 	private HashSet<Artist> _artistBatch = new();
 	private Dictionary<Guid, List<CardPrice>> _cardPriceBatch = new();
-	private Dictionary<Guid, List<CardGameType>> _cardAvailabilityBatch = new();
+	private Dictionary<Guid, List<CardGamePlatform>> _cardGamePlatformBatch = new();
 	private Dictionary<Guid, List<CardPrintFinish>> _printFinishBatch = new();
 	private HashSet<GameFormat> _gameFormatsBatch = new();
 	private Dictionary<Guid, List<CardLegality>> _cardLegalitiesBatch = new();
@@ -147,7 +147,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		BatchArtistsAndCardRelations(apiCard);
 		BatchCardImages(apiCard);
 		BatchCardPrices(apiCard);
-		BatchCardGameType(apiCard);
+		BatchCardGamePlatform(apiCard);
 		BatchPrintFinishes(apiCard);
 		BatchGameFormatsAndLegalities(apiCard);
 		BatchKeywordsAndCardRelations(apiCard);
@@ -265,17 +265,17 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	/// <summary>
-	/// Batches <see cref="CardGameType"/> entities from game information on <paramref name="apiCard"/>.<br/><br/>
-	/// <see cref="CardGameType"/> represents relations between <see cref="Card"/> and <see cref="GameKind"/> entities.
+	/// Batches <see cref="CardGamePlatform"/> entities from game information on <paramref name="apiCard"/>.<br/><br/>
+	/// <see cref="CardGamePlatform"/> represents relations between <see cref="Card"/> and <see cref="GamePlatform"/> entities.
 	/// </summary>
-	/// <returns>A read-only list of <see cref="CardGameType"/>. Returns an empty list if the <paramref name="apiCard"/> has no "game" information.</returns>
-	private IReadOnlyList<CardGameType> BatchCardGameType(ApiCard apiCard)
+	/// <returns>A read-only list of <see cref="CardGamePlatform"/>. Returns an empty list if the <paramref name="apiCard"/> has no "game" information.</returns>
+	private IReadOnlyList<CardGamePlatform> BatchCardGamePlatform(ApiCard apiCard)
 	{
-		List<CardGameType> availabilityToUpsert = GameMapper.MapCardGameType(apiCard);
+		List<CardGamePlatform> availabilityToUpsert = GameMapper.MapCardGamePlatform(apiCard);
 
 		if (availabilityToUpsert is { Count: > 0 })
 		{
-			_cardAvailabilityBatch[apiCard.Id] = availabilityToUpsert;
+			_cardGamePlatformBatch[apiCard.Id] = availabilityToUpsert;
 		}
 
 		return availabilityToUpsert;
@@ -621,7 +621,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_cardArtistBatch.Clear();
 		_artistBatch.Clear();
 		_cardPriceBatch.Clear();
-		_cardAvailabilityBatch.Clear();
+		_cardGamePlatformBatch.Clear();
 		_printFinishBatch.Clear();
 		_gameFormatsBatch.Clear();
 		_cardLegalitiesBatch.Clear();
