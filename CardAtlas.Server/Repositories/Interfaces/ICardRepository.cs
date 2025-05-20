@@ -242,4 +242,10 @@ public interface ICardRepository
 	/// </summary>
 	/// <returns>The total number of inserted or updated <see cref="Card"/> entities.</returns>
 	Task<int> Upsert(UpsertContainer<Card> upsertionData);
+
+	/// <summary>
+	/// Creates and updates <see cref="Keyword"/> entities, based on the provided <paramref name="upsertionData"/>.
+	/// </summary>
+	/// <returns>The total number of inserted or updated <see cref="Keyword"/> entities.</returns>
+	Task<int> UpsertKeywords(UpsertContainer<Keyword> upsertionData);
 }

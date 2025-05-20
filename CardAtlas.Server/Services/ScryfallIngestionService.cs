@@ -368,8 +368,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		await Task.WhenAll(
 			UpsertCards(),
-			UpsertGameFormats()
-		//keywords, promotypes
+			CreateMissingGameFormats(),
+			CreateMissingKeywords(),
+			CreateMissingPromoTypes()
 		);
 
 		IEnumerable<Card> updatedCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
@@ -473,20 +474,20 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		int affectedtedNumberOfRows = await _cardRepository.Upsert(upsertionData);
-		await AssignCardIdToBatchedImages();
-		//CardPrices
+		IEnumerable<Card> updatedCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
+
+		AssignCardIdToBatchedImages(updatedCards);
+		AssignCardIdToBatchedPrices(updatedCards);
 
 		return affectedtedNumberOfRows;
 	}
 
 	/// <summary>
-	/// Assigns <see cref="Card.Id"/>  to <see cref="CardImage"/> entities in the current <see cref="_imageBatch"/>.
+	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardImage.CardId"/> on entities in the current <see cref="_imageBatch"/>.
 	/// </summary>
-	private async Task AssignCardIdToBatchedImages()
+	private void AssignCardIdToBatchedImages(IEnumerable<Card> cardsWithIdentity)
 	{
-		IEnumerable<Card> updatedCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
-
-		foreach (Card card in updatedCards)
+		foreach (Card card in cardsWithIdentity)
 		{
 			if (_imageBatch.TryGetValue($"{card.ScryfallId}_{card.Name}", out List<CardImage>? matchingImages))
 			{
@@ -499,12 +500,29 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	/// <summary>
-	/// Inserts or updates <see cref="GameFormat"/> entities based on the current<see cref="_gameFormatsBatch"/>.
+	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardPrice.CardId"/> on entities in the current <see cref="_cardPriceBatch"/>.
 	/// </summary>
-	/// <returns>The total number of inserted or updated <see cref="GameFormat"/> entities.</returns>
-	private async Task<int> UpsertGameFormats()
+	private void AssignCardIdToBatchedPrices(IEnumerable<Card> cardsWithIdentity)
 	{
-		UpsertContainer<GameFormat> upsertionData = new();
+		foreach (Card card in cardsWithIdentity)
+		{
+			if (_cardPriceBatch.TryGetValue(card.ScryfallId!.Value, out List<CardPrice>? prices))
+			{
+				foreach (CardPrice price in prices)
+				{
+					price.CardId = card.Id;
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Creates <see cref="GameFormat"/> entities from <see cref="_gameFormatsBatch"/> if they do not have an existing naming match in the db.
+	/// </summary>
+	/// <returns>The number of added <see cref="GameFormat"/> entities.</returns>
+	private async Task<int> CreateMissingGameFormats()
+	{
+		List<GameFormat> missingGameFormats = new();
 		IEnumerable<GameFormat> existingFormats = await _gameRepository.GetFormats(SourceType.Scryfall);
 
 		foreach (GameFormat batchedFormat in _gameFormatsBatch)
@@ -513,18 +531,56 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 			if (existingFormat is null)
 			{
-				upsertionData.ToInsert.Add(batchedFormat);
-			}
-			else
-			{
-				batchedFormat.Id = existingFormat.Id;
-				if (_gameFormatComparer.Equals(existingFormat, batchedFormat)) continue;
-
-				upsertionData.ToUpdate.Add(batchedFormat);
+				missingGameFormats.Add(batchedFormat);
 			}
 		}
 
-		return await _gameRepository.UpsertGameFormat(upsertionData);
+		return missingGameFormats.Count > 0 ?
+			(await _gameRepository.CreateFormats(missingGameFormats)).Count()
+			: 0;
+	}
+
+	/// <summary>
+	/// Creates <see cref="Keyword"/> entities from <see cref="_keywordsBatch"/> if they do not have an existing naming match in the db.
+	/// </summary>
+	/// <returns>The number of added <see cref="Keyword"/> entities.</returns>
+	private async Task<int> CreateMissingKeywords()
+	{
+		List<Keyword> missingKeywords = new();
+		IEnumerable<Keyword> existingKeywords = await _cardRepository.GetKeywords(SourceType.Scryfall);
+
+		foreach (Keyword batchedKeyword in _keywordsBatch)
+		{
+			Keyword? existingKeyword = existingKeywords.FirstWithNameOrDefault(batchedKeyword.Name, SourceType.Scryfall);
+
+			if (existingKeyword is null)
+			{
+				missingKeywords.Add(batchedKeyword);
+			}
+		}
+
+		return missingKeywords.Count > 0
+			? (await _cardRepository.CreateKeywords(missingKeywords)).Count()
+			: 0;
+	}
+
+	private async Task<int> CreateMissingPromoTypes()
+	{
+		List<PromoType> missingPromoTypes = new();
+		IEnumerable<PromoType> existingPromoTypes = await _cardRepository.GetPromoTypes(SourceType.Scryfall);
+
+		foreach (PromoType batchedPromoType in _promoTypesBatch)
+		{
+			PromoType? existingPromoType = existingPromoTypes.FirstWithNameOrDefault(batchedPromoType.Name, SourceType.Scryfall);
+			if (existingPromoType is null)
+			{
+				missingPromoTypes.Add(batchedPromoType);
+			}
+		}
+
+		return missingPromoTypes.Count > 0
+			? (await _cardRepository.CreatePromoTypes(missingPromoTypes)).Count()
+			: 0;
 	}
 
 	/// <summary>

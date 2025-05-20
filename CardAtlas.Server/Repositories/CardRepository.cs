@@ -494,8 +494,10 @@ public class CardRepository : ICardRepository
 		return await dbContext.UpsertAsync(upsertionData);
 	}
 
-		int numberOfAffectedRows = await dbContext.SaveChangesAsync();
+	public async Task<int> UpsertKeywords(UpsertContainer<Keyword> upsertionData)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		return numberOfAffectedRows;
+		return await dbContext.UpsertAsync(upsertionData);
 	}
 }
