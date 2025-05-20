@@ -13,7 +13,7 @@ public class KeywordComparer : IEqualityComparer<Keyword>
 			&& x.SourceId == y.SourceId
 			&& string.Equals(x.Name, y.Name)
 			&& string.Equals(x.ReminderText, y.ReminderText)
-			&& string.Equals(x.ReminderText, y.ReminderText);
+			&& string.Equals(x.Description, y.Description);
 	}
 
 	public int GetHashCode(Keyword obj)
@@ -22,7 +22,7 @@ public class KeywordComparer : IEqualityComparer<Keyword>
 		hash.Add(obj.Id);
 		hash.Add(obj.Name);
 		hash.Add(obj.ReminderText);
-		hash.Add(obj.ReminderText);
+		hash.Add(obj.Description);
 
 		return hash.ToHashCode();
 	}

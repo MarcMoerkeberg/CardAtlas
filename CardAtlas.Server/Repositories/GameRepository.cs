@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.DAL;
+using CardAtlas.Server.Extensions;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Internal;
@@ -95,11 +96,6 @@ public class GameRepository : IGameRepository
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		if (upsertionData.ToInsert is { Count: > 0 }) dbContext.GameFormats.AddRange(upsertionData.ToInsert);
-		if (upsertionData.ToUpdate is { Count: > 0 }) dbContext.GameFormats.UpdateRange(upsertionData.ToUpdate);
-
-		int numberOfAffectedRows = await dbContext.SaveChangesAsync();
-
-		return numberOfAffectedRows;
+		return await dbContext.UpsertAsync(upsertionData);
 	}
 }

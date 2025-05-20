@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.DAL;
+using CardAtlas.Server.Extensions;
 using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
@@ -490,8 +491,8 @@ public class CardRepository : ICardRepository
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		if (upsertionData.ToInsert is { Count: > 0 }) dbContext.Cards.AddRange(upsertionData.ToInsert);
-		if (upsertionData.ToUpdate is { Count: > 0 }) dbContext.Cards.UpdateRange(upsertionData.ToUpdate);
+		return await dbContext.UpsertAsync(upsertionData);
+	}
 
 		int numberOfAffectedRows = await dbContext.SaveChangesAsync();
 

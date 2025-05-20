@@ -46,6 +46,6 @@ public interface IGameRepository
 	/// <summary>
 	/// Creates and updates <see cref="GameFormat"/> entities, based on the provided <paramref name="upsertionData"/>.
 	/// </summary>
-	/// <returns>The number of affected effected entities.</returns>
+	/// <returns>The total number of inserted or updated <see cref="GameFormat"/> entities.</returns>
 	Task<int> UpsertGameFormat(UpsertContainer<GameFormat> upsertionData);
 }

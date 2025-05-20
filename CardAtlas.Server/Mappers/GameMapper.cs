@@ -25,7 +25,7 @@ public static class GameMapper
 	/// <summary>
 	/// Maps the print availability from <paramref name="apiCard"/> to a collection of <see cref="CardGameType"/>
 	/// </summary>
-	public static List<CardGameType> MapGameTypeAvailability(ApiCard apiCard)
+	public static List<CardGameType> MapCardGameType(ApiCard apiCard)
 	{
 		var gameTypeAvailability = new List<CardGameType>();
 

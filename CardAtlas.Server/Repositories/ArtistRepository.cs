@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.DAL;
+using CardAtlas.Server.Extensions;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Repositories.Interfaces;
@@ -64,11 +65,6 @@ public class ArtistRepository : IArtistRepository
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		if (upsertionData.ToInsert is { Count: > 0 }) dbContext.Artists.AddRange(upsertionData.ToInsert);
-		if (upsertionData.ToUpdate is { Count: > 0 }) dbContext.Artists.UpdateRange(upsertionData.ToUpdate);
-
-		int numberOfAffectedRows = await dbContext.SaveChangesAsync();
-
-		return numberOfAffectedRows;
+		return await dbContext.UpsertAsync(upsertionData);
 	}
 }

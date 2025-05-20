@@ -1,4 +1,5 @@
 ﻿using CardAtlas.Server.DAL;
+using CardAtlas.Server.Extensions;
 using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.Image;
@@ -96,11 +97,6 @@ public class CardImageRepository : ICardImageRepository
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
-		if (upsertionData.ToInsert is { Count: > 0 }) dbContext.CardImages.AddRange(upsertionData.ToInsert);
-		if (upsertionData.ToUpdate is { Count: > 0 }) dbContext.CardImages.UpdateRange(upsertionData.ToUpdate);
-
-		int numberOfAffectedRows = await dbContext.SaveChangesAsync();
-
-		return numberOfAffectedRows;
+		return await dbContext.UpsertAsync(upsertionData);
 	}
 }
