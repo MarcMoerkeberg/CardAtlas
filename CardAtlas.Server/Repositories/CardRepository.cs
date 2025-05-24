@@ -609,4 +609,35 @@ public class CardRepository : ICardRepository
 			.Where(cardPrintFinish => cardIds.Contains(cardPrintFinish.CardId))
 			.ToListAsync();
 	}
+
+	public async Task<IEnumerable<CardLegality>> GetCardLegalities(long cardId)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardLegalities
+			.AsNoTracking()
+			.Include(cl => cl.Legality)
+			.Include(cl => cl.GameFormat)
+			.Where(cardLegality => cardLegality.CardId == cardId)
+			.ToListAsync();
+	}
+
+	public async Task<IEnumerable<CardLegality>> GetCardLegalities(IEnumerable<long> cardIds)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardLegalities
+			.AsNoTracking()
+			.Include(cl => cl.Legality)
+			.Include(cl => cl.GameFormat)
+			.Where(cardLegality => cardIds.Contains(cardLegality.CardId))
+			.ToListAsync();
+	}
+
+	public async Task<int> Upsert(UpsertContainer<CardLegality> upsertionData)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.UpsertAsync(upsertionData);
+	}
 }

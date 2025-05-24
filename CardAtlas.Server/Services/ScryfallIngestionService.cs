@@ -29,6 +29,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly IEqualityComparer<CardImage> _imageComparer;
 	private readonly IEqualityComparer<CardPrice> _priceComparer;
 	private readonly IEqualityComparer<CardGamePlatform> _platformComparer;
+	private readonly IEqualityComparer<CardLegality> _cardLegalityComparer;
 	private readonly IScryfallApi _scryfallApi;
 	private readonly ISetRepository _setRepository;
 
@@ -61,6 +62,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		IEqualityComparer<CardImage> imageComparer,
 		IEqualityComparer<CardPrice> priceComparer,
 		IEqualityComparer<CardGamePlatform> platformComparer,
+		IEqualityComparer<CardLegality> cardLegalityComparer,
 		IScryfallApi scryfallApi,
 		ISetRepository setRepository)
 	{
@@ -76,6 +78,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_imageComparer = imageComparer;
 		_priceComparer = priceComparer;
 		_platformComparer = platformComparer;
+		_cardLegalityComparer = cardLegalityComparer;
+		_setComparer = setComparer;
 		_scryfallApi = scryfallApi;
 		_setRepository = setRepository;
 	}
@@ -492,6 +496,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		AssignCardIdToBatchedPrices(cardsWithIdentity);
 		AssignCardIdToBatchedCardGamePlatforms(cardsWithIdentity);
 		AssignCardIdToBatchedCardPrintFinishes(cardsWithIdentity);
+		AssignCardIdToBatchedCardLegalities(cardsWithIdentity);
 	}
 
 	/// <summary>
@@ -556,6 +561,22 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			foreach (CardPrintFinish printFinish in printFinishes)
 			{
 				printFinish.CardId = card.Id;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardPrice.CardId"/> on entities in the current <see cref="_cardLegalitiesBatch"/>.
+	/// </summary>
+	private void AssignCardIdToBatchedCardLegalities(IEnumerable<Card> cardsWithIdentity)
+	{
+		foreach (Card card in cardsWithIdentity)
+		{
+			if (!_cardLegalitiesBatch.TryGetValue(card.ScryfallId!.Value, out List<CardLegality>? cardLegalities)) continue;
+
+			foreach (CardLegality legality in cardLegalities)
+			{
+				legality.CardId = card.Id;
 			}
 		}
 	}
@@ -787,6 +808,43 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			: 0;
 	}
 
+	private async Task<int> UpsertCardLegalities()
+	{
+		UpsertContainer<CardLegality> upsertionData = new();
+		List<CardLegality> batchedCardLegalities = _cardLegalitiesBatch
+			.Values
+			.SelectMany(cardLegalityList => cardLegalityList)
+			.Where(cardPrice => cardPrice.CardId != 0)
+			.ToList();
+
+		IEnumerable<long> cardIds = batchedCardLegalities.Select(cardLegality => cardLegality.CardId).Distinct();
+		IEnumerable<CardLegality> existingCardLegalities = await _cardRepository.GetCardLegalities(cardIds);
+		Dictionary<(long cardId, int gameFormatId), CardLegality> existingLegalitiesLookup = existingCardLegalities.ToDictionary(
+			cardLegality => (cardLegality.CardId, cardLegality.GameFormatId),
+			cardLegality => cardLegality
+		);
+
+		foreach (CardLegality batchedLegality in batchedCardLegalities)
+		{
+			if (existingLegalitiesLookup.TryGetValue((batchedLegality.CardId, batchedLegality.GameFormatId), out CardLegality? existingCardPrice))
+			{
+				batchedLegality.Id = existingCardPrice.Id;
+				if (_cardLegalityComparer.Equals(existingCardPrice, batchedLegality)) continue;
+
+				upsertionData.ToUpdate.Add(batchedLegality);
+			}
+			else
+			{
+				upsertionData.ToInsert.Add(batchedLegality);
+			}
+		}
+
+		int upsertedCount = await _cardRepository.Upsert(upsertionData);
+		_cardLegalitiesBatch.Clear();
+
+		return upsertedCount;
+	}
+
 	private void ClearBatchedData()
 	{
 		_cardBatch.Clear();
@@ -797,7 +855,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		//_cardGamePlatformBatch.Clear();
 		//_printFinishBatch.Clear();
 		_gameFormatsBatch.Clear();
-		_cardLegalitiesBatch.Clear();
+		//_cardLegalitiesBatch.Clear();
 		_keywordsBatch.Clear();
 		_cardKeywordsBatch.Clear();
 		_promoTypesBatch.Clear();

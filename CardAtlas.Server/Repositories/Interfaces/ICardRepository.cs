@@ -98,6 +98,16 @@ public interface ICardRepository
 	Task<CardLegality> GetCardLegality(long cardLegalityId);
 
 	/// <summary>
+	/// Returns all <see cref="CardLegality"/> entities associated with the <paramref name="cardId"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardLegality>> GetCardLegalities(long cardId);
+
+	/// <summary>
+	/// Returns all <see cref="CardLegality"/> entities associated with the <paramref name="cardIds"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardLegality>> GetCardLegalities(IEnumerable<long> cardIds);
+
+	/// <summary>
 	/// Adds the <paramref name="legality"/> to the database.
 	/// </summary>
 	/// <returns>The added <see cref="CardLegality"/> with identity.</returns>
@@ -242,6 +252,12 @@ public interface ICardRepository
 	/// </summary>
 	/// <returns>The total number of inserted or updated <see cref="Card"/> entities.</returns>
 	Task<int> Upsert(UpsertContainer<Card> upsertionData);
+
+	/// <summary>
+	/// Creates and updates <see cref="Card"/> entities, based on the provided <paramref name="upsertionData"/>.
+	/// </summary>
+	/// <returns>The total number of inserted or updated <see cref="Card"/> entities.</returns>
+	Task<int> Upsert(UpsertContainer<CardLegality> upsertionData);
 
 	/// <summary>
 	/// Creates and updates <see cref="Keyword"/> entities, based on the provided <paramref name="upsertionData"/>.
