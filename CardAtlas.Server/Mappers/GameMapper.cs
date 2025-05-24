@@ -48,12 +48,12 @@ public static class GameMapper
 		return gameTypeAvailability;
 	}
 
-	private static CardGamePlatform MapCardGamePlatform(PlatformType gameKind)
+	private static CardGamePlatform MapCardGamePlatform(PlatformType gamePlatform)
 	{
 		return new CardGamePlatform
 		{
 			CardId = default,
-			GameTypeId = (int)gameKind
+			GamePlatformId = (int)gamePlatform
 		};
 	}
 

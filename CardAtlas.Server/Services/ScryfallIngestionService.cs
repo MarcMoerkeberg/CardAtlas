@@ -28,6 +28,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly IEqualityComparer<GameFormat> _gameFormatComparer;
 	private readonly IEqualityComparer<CardImage> _imageComparer;
 	private readonly IEqualityComparer<CardPrice> _priceComparer;
+	private readonly IEqualityComparer<CardGamePlatform> _platformComparer;
 	private readonly IScryfallApi _scryfallApi;
 	private readonly ISetRepository _setRepository;
 
@@ -59,6 +60,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		IEqualityComparer<GameFormat> gameFormatComparer,
 		IEqualityComparer<CardImage> imageComparer,
 		IEqualityComparer<CardPrice> priceComparer,
+		IEqualityComparer<CardGamePlatform> platformComparer,
 		IScryfallApi scryfallApi,
 		ISetRepository setRepository)
 	{
@@ -73,6 +75,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_gameFormatComparer = gameFormatComparer;
 		_imageComparer = imageComparer;
 		_priceComparer = priceComparer;
+		_platformComparer = platformComparer;
 		_scryfallApi = scryfallApi;
 		_setRepository = setRepository;
 	}
@@ -377,11 +380,11 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		);
 
 		IEnumerable<Card> updatedCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
-		Dictionary<Guid, Card> cardLookup = updatedCards.ToDictionary(card => card.ScryfallId!.Value);
 
 		await Task.WhenAll(
 			UpsertImages(),
-			UpsertCardPrices()
+			UpsertCardPrices(),
+			CreateMissingCardGamePlatforms(updatedCards)
 		//BatchCardGameTypeAvailability(apiCard);
 		//PrintFinishes(apiCard);
 		//Legalities(apiCard);
@@ -481,6 +484,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		AssignCardIdToBatchedImages(updatedCards);
 		AssignCardIdToBatchedPrices(updatedCards);
+		AssignCardIdToBatchedCardGamePlatforms(updatedCards);
 
 		return affectedtedNumberOfRows;
 	}
@@ -515,6 +519,22 @@ public class ScryfallIngestionService : IScryfallIngestionService
 				{
 					price.CardId = card.Id;
 				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardPrice.CardId"/> on entities in the current <see cref="_cardGamePlatformBatch"/>.
+	/// </summary>
+	private void AssignCardIdToBatchedCardGamePlatforms(IEnumerable<Card> cardsWithIdentity)
+	{
+		foreach (Card card in cardsWithIdentity)
+		{
+			if (!_cardGamePlatformBatch.TryGetValue(card.ScryfallId!.Value, out List<CardGamePlatform>? platforms)) continue;
+
+			foreach (CardGamePlatform platform in platforms)
+			{
+				platform.CardId = card.Id;
 			}
 		}
 	}
@@ -642,8 +662,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		UpsertContainer<CardPrice> upsertionData = new();
 		List<CardPrice> batchedPrices = _cardPriceBatch
 			.Values
-			.SelectMany(imageList => imageList)
-			.Where(image => image.CardId != 0)
+			.SelectMany(cardPriceList => cardPriceList)
+			.Where(cardPrice => cardPrice.CardId != 0)
 			.ToList();
 
 		IEnumerable<long> cardIds = batchedPrices.Select(image => image.CardId).Distinct();
@@ -672,6 +692,43 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_cardPriceBatch.Clear();
 
 		return upsertedCount;
+	}
+
+	/// <summary>
+	/// Adds all missing <see cref="CardGamePlatform"/> entities to the database from <see cref="_cardGamePlatformBatch"/>.<br/>
+	/// <see cref="CardGamePlatform"/> represents the relationship between <see cref="GamePlatform"/> and <see cref="Card"/> entities.
+	/// </summary>
+	/// <returns>The number of added <see cref="CardGamePlatform"/> entities.</returns>
+	/// <returns></returns>
+	private async Task<int> CreateMissingCardGamePlatforms(IEnumerable<Card> existingCards)
+	{
+		List<CardGamePlatform> missingPlatforms = new();
+		IEnumerable<CardGamePlatform> existingPlatforms = await _cardRepository.GetCardGamePlatforms(existingCards.Select(card => card.Id));
+
+		List<CardGamePlatform> batchedPlatforms = _cardGamePlatformBatch
+			.Values
+			.SelectMany(platformList => platformList)
+			.Where(platform => platform.CardId != 0)
+			.ToList();
+
+		if (existingPlatforms.Any())
+		{
+			HashSet<(long cardId, int gamePlatformId)> existingPlatformLookup = existingPlatforms
+				.Select(platform => (platform.CardId, platform.GamePlatformId))
+				.ToHashSet();
+
+			missingPlatforms.AddRange(batchedPlatforms
+				.Where(platform => !existingPlatformLookup.Contains((platform.CardId, platform.GamePlatformId)))
+			);
+		}
+		else
+		{
+			missingPlatforms.AddRange(batchedPlatforms);
+		}
+
+		return missingPlatforms.Count > 0
+			? (await _cardRepository.Create(existingPlatforms)).Count()
+			: 0;
 	}
 
 	private void ClearBatchedData()

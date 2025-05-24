@@ -92,7 +92,7 @@ public class GameRepository : IGameRepository
 			.SingleAsync(gameFormat => gameFormat.Id == formatId);
 	}
 
-	public async Task<int> UpsertGameFormat(UpsertContainer<GameFormat> upsertionData)
+	public async Task<int> Upsert(UpsertContainer<GameFormat> upsertionData)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 

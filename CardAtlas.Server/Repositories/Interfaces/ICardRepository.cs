@@ -264,4 +264,26 @@ public interface ICardRepository
 	/// </summary>
 	/// <returns>The total number of inserted or updated <see cref="CardPrice"/> entities.</returns>
 	Task<int> Upsert(UpsertContainer<CardPrice> upsertionData);
+
+	/// <summary>
+	/// Returns all <see cref="CardGamePlatform"/> entities from the database.
+	/// </summary>
+	Task<IEnumerable<CardGamePlatform>> GetCardGamePlatforms();
+
+	/// <summary>
+	/// Returns all <see cref="CardGamePlatform"/> entities associated with the <paramref name="cardId"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardGamePlatform>> GetCardGamePlatforms(long cardId);
+
+	/// <summary>
+	/// Returns all <see cref="CardGamePlatform"/> entities associated with the <paramref name="cardIds"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardGamePlatform>> GetCardGamePlatforms(IEnumerable<long> cardIds);
+
+	/// <summary>
+	/// Adds the provided <paramref name="cardGamePlatforms"/> to the database.
+	/// </summary>
+	/// <returns>The added <see cref="CardGamePlatform"/> entities with identity.</returns>
+	Task<IEnumerable<CardGamePlatform>> Create(IEnumerable<CardGamePlatform> cardGamePlatforms);
+
 }

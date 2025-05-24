@@ -530,4 +530,51 @@ public class CardRepository : ICardRepository
 
 		return await dbContext.UpsertAsync(upsertionData);
 	}
+
+	public async Task<IEnumerable<CardGamePlatform>> GetCardGamePlatforms()
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardGamePlatforms
+			.AsNoTracking()
+			.Include(cgp => cgp.GamePlatform)
+			.ToListAsync();
+	}
+
+	public async Task<IEnumerable<CardGamePlatform>> GetCardGamePlatforms(long cardId)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardGamePlatforms
+			.AsNoTracking()
+			.Include(cgp => cgp.GamePlatform)
+			.Where(cardGamePlatform => cardGamePlatform.CardId == cardId)
+			.ToListAsync();
+	}
+
+	public async Task<IEnumerable<CardGamePlatform>> GetCardGamePlatforms(IEnumerable<long> cardIds)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardGamePlatforms
+			.AsNoTracking()
+			.Include(cgp => cgp.GamePlatform)
+			.Where(cardGamePlatform => cardIds.Contains(cardGamePlatform.CardId))
+			.ToListAsync();
+	}
+
+	public async Task<IEnumerable<CardGamePlatform>> Create(IEnumerable<CardGamePlatform> platforms)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		List<CardGamePlatform> addedPlatforms = new();
+
+		foreach (var platform in platforms)
+		{
+			EntityEntry<CardGamePlatform> addedPlatform = await dbContext.CardGamePlatforms.AddAsync(platform);
+			addedPlatforms.Add(addedPlatform.Entity);
+		}
+		await dbContext.SaveChangesAsync();
+
+		return addedPlatforms;
+	}
 }

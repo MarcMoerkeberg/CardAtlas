@@ -5,7 +5,7 @@ namespace CardAtlas.Server.Models.Data;
 
 public class GamePlatform : TypeEntity<PlatformType>
 {
-	public ICollection<CardGamePlatform> CardGameTypes { get; set; } = new HashSet<CardGamePlatform>();
+	public ICollection<CardGamePlatform> CardGamePlatforms { get; set; } = new HashSet<CardGamePlatform>();
 }
 
 public enum PlatformType

@@ -117,7 +117,7 @@ public class Card : INameable
 	[NotMapped]
 	private IEnumerable<PlatformType>? _platformTypes { get; set; }
 	[NotMapped]
-	public IEnumerable<PlatformType> PlatformTypes => _platformTypes ??= CardGamePlatforms.Any(gameType => gameType.GameType is not null) ? CardGamePlatforms.Select(gameType => gameType.GameType.Type) : Enumerable.Empty<PlatformType>();
+	public IEnumerable<PlatformType> PlatformTypes => _platformTypes ??= CardGamePlatforms.Any(gameType => gameType.GamePlatform is not null) ? CardGamePlatforms.Select(gameType => gameType.GamePlatform.Type) : Enumerable.Empty<PlatformType>();
 
 	[ForeignKey("ParentCardId")]
 	public long? ParentCardId { get; set; }

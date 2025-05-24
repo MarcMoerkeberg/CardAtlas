@@ -13,7 +13,7 @@ public class CardGamePlatform
 	public required long CardId { get; set; }
 	public Card Card { get; set; } = null!;
 
-	[ForeignKey("GameType")]
-	public required int GameTypeId { get; set; }
-	public GamePlatform GameType { get; set; } = null!;
+	[ForeignKey("GamePlatform")]
+	public required int GamePlatformId { get; set; }
+	public GamePlatform GamePlatform { get; set; } = null!;
 }
