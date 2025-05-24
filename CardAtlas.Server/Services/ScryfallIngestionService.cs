@@ -47,7 +47,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private HashSet<Keyword> _keywordsBatch = new();
 	private Dictionary<Guid, List<CardKeyword>> _cardKeywordsBatch = new();
 	private HashSet<PromoType> _promoTypesBatch = new();
-	private Dictionary<Guid, List<CardPromoType>> _cardPromotypesBatch = new();
+	private Dictionary<Guid, List<CardPromoType>> _cardPromoTypesBatch = new();
 
 	public ScryfallIngestionService(
 		IArtistRepository artistRepository,
@@ -366,7 +366,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		if (promoTypesOnCard is { Count: > 0 })
 		{
-			_cardPromotypesBatch[apiCard.Id] = promoTypesOnCard;
+			_cardPromoTypesBatch[apiCard.Id] = promoTypesOnCard;
 		}
 
 		return promoTypesOnCard;
@@ -392,8 +392,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			CreateMissingCardGamePlatforms(updatedCards),
 			CreateMissingCardPrintFinishes(updatedCards),
 			UpsertCardLegalities(),
-			CreateMissingCardKeywords(updatedCards)
-		//PromoTypeRelations(apiCard);
+			CreateMissingCardKeywords(updatedCards),
+			CreateMissingCardPromoTypes(updatedCards)
 		);
 	}
 
@@ -920,20 +920,42 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return addedCount;
 	}
 
-	private void ClearBatchedData()
+	/// <summary>
+	/// Adds all missing <see cref="CardPromoType"/> entities to the database from <see cref="_cardPromoTypesBatch"/>.<br/>
+	/// <see cref="CardPromoType"/> represents the relationship between <see cref="PromoType"/> and <see cref="Card"/> entities.
+	/// </summary>
+	/// <returns>The number of added <see cref="CardKeyword"/> entities.</returns>
+	private async Task<int> CreateMissingCardPromoTypes(IEnumerable<Card> existingCards)
 	{
-		_cardBatch.Clear();
-		//_imageBatch.Clear();
-		_cardArtistBatch.Clear();
-		_artistBatch.Clear();
-		//_cardPriceBatch.Clear();
-		//_cardGamePlatformBatch.Clear();
-		//_printFinishBatch.Clear();
-		_gameFormatsBatch.Clear();
-		//_cardLegalitiesBatch.Clear();
-		_keywordsBatch.Clear();
-		_cardKeywordsBatch.Clear();
-		_promoTypesBatch.Clear();
-		_cardPromotypesBatch.Clear();
+		List<CardPromoType> missingCardPromoTypes = new();
+		IEnumerable<CardPromoType> existingCardPromoTypes = await _cardRepository.GetCardPromoTypes(existingCards.Select(card => card.Id));
+
+		List<CardPromoType> batchedCardPromoTypes = _cardPromoTypesBatch
+			.Values
+			.SelectMany(cardPromoTypeList => cardPromoTypeList)
+			.Where(cardPromoType => cardPromoType.CardId != 0)
+			.ToList();
+
+		if (existingCardPromoTypes.Any())
+		{
+			HashSet<(long cardId, int promoTypeId)> existingCardPromoTypesLookup = existingCardPromoTypes
+				.Select(cardKeyword => (cardKeyword.CardId, cardKeyword.PromoTypeId))
+				.ToHashSet();
+
+			missingCardPromoTypes.AddRange(batchedCardPromoTypes
+				.Where(cardKeyword => !existingCardPromoTypesLookup.Contains((cardKeyword.CardId, cardKeyword.PromoTypeId)))
+			);
+		}
+		else
+	{
+			missingCardPromoTypes.AddRange(batchedCardPromoTypes);
+		}
+
+		int addedCount = missingCardPromoTypes.Count > 0
+			? (await _cardRepository.Create(existingCardPromoTypes)).Count()
+			: 0;
+		_cardPromoTypesBatch.Clear();
+
+		return addedCount;
 	}
 }

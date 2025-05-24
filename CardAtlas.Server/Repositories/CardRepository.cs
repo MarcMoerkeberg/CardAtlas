@@ -662,4 +662,26 @@ public class CardRepository : ICardRepository
 			.Where(cardKeyword => cardIds.Contains(cardKeyword.CardId))
 			.ToListAsync();
 	}
+
+	public async Task<IEnumerable<CardPromoType>> GetCardPromoTypes(long cardId)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardPromoTypes
+			.AsNoTracking()
+			.Include(cpt => cpt.PromoType)
+			.Where(cardPromoType => cardPromoType.CardId == cardId)
+			.ToListAsync();
+	}
+
+	public async Task<IEnumerable<CardPromoType>> GetCardPromoTypes(IEnumerable<long> cardIds)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardPromoTypes
+			.AsNoTracking()
+			.Include(cpt => cpt.PromoType)
+			.Where(cardPromoType => cardIds.Contains(cardPromoType.CardId))
+			.ToListAsync();
+	}
 }

@@ -258,6 +258,16 @@ public interface ICardRepository
 	Task<CardPromoType> GetCardPromoType(long cardPromoTypeId);
 
 	/// <summary>
+	/// Returns all <see cref="CardPromoType"/> entities associated with the <paramref name="cardId"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardPromoType>> GetCardPromoTypes(long cardId);
+
+	/// <summary>
+	/// Returns all <see cref="CardPromoType"/> entities associated with the <paramref name="cardIds"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardPromoType>> GetCardPromoTypes(IEnumerable<long> cardIds);
+
+	/// <summary>
 	/// Creates and updates <see cref="Card"/> entities, based on the provided <paramref name="upsertionData"/>.
 	/// </summary>
 	/// <returns>The total number of inserted or updated <see cref="Card"/> entities.</returns>
