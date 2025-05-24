@@ -50,7 +50,21 @@ public class CardImageRepository : ICardImageRepository
 			.Include(cardImage => cardImage.SourceType)
 			.Include(cardImage => cardImage.ImageType)
 			.AsNoTracking()
-			.Where(cardImage => cardImage.SourceType == SourceType.Scryfall)
+			.Where(cardImage => cardImage.SourceType == source)
+			.ToListAsync();
+	}
+
+	public async Task<IEnumerable<CardImage>> Get(IEnumerable<long> cardIds)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardImages
+			.AsNoTracking()
+			.Include(ci => ci.ImageType)
+			.Include(ci => ci.ImageFormat)
+			.Include(ci => ci.ImageStatus)
+			.Include(ci => ci.Source)
+			.Where(cardImage => cardIds.Contains(cardImage.CardId))
 			.ToListAsync();
 	}
 

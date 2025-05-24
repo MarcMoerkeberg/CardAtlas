@@ -37,14 +37,20 @@ public interface ICardImageRepository
 	/// <summary>
 	/// Returns the <see cref="CardImage"/> entries from the db with the specified <paramref name="cardId"/>.
 	/// </summary>
-	/// <returns>All <see cref="CardImage"/> entries which references <paramref name="cardId"/>. Enumerable is empty if no matches is found.</returns>
+	/// <returns>All <see cref="CardImage"/> entries which references <paramref name="cardId"/>. Enumerable is empty if no matches are found.</returns>
 	public Task<IEnumerable<CardImage>> GetFromCardId(long cardId);
 
 	/// <summary>
 	/// Returns all <see cref="CardImage"/> entities from the db with the specified <paramref name="source"/>.
 	/// </summary>
-	/// <returns>All <see cref="CardImage"/> entities with the specified <paramref name="source"/>. Enumerable is empty if no matches is found.</returns>
+	/// <returns>All <see cref="CardImage"/> entities with the specified <paramref name="source"/>. Enumerable is empty if no matches are found.</returns>
 	public Task<IEnumerable<CardImage>> Get(SourceType source);
+
+	/// <summary>
+	/// Returns all <see cref="CardImage"/> entities from the db associated with the specified <paramref name="cardIds"/>.
+	/// </summary>
+	/// <returns>All <see cref="CardImage"/> entities associated with the specified <paramref name="cardIds"/>. Enumerable is empty if no matches are found.</returns>
+	public Task<IEnumerable<CardImage>> Get(IEnumerable<long> cardIds);
 
 	/// <summary>
 	/// Creates and updates <see cref="CardImage"/> entities, based on the provided <paramref name="upsertionData"/>.

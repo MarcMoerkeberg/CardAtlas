@@ -564,6 +564,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			: 0;
 	}
 
+	/// <summary>
+	/// Creates <see cref="PromoType"/> entities from <see cref="_promoTypesBatch"/> if they do not have an existing naming match in the db.
+	/// </summary>
+	/// <returns>The number of added <see cref="PromoType"/> entities.</returns>
 	private async Task<int> CreateMissingPromoTypes()
 	{
 		List<PromoType> missingPromoTypes = new();
@@ -591,24 +595,38 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private async Task<int> UpsertImages()
 	{
 		UpsertContainer<CardImage> upsertionData = new();
-		IEnumerable<CardImage> existingImages = await _cardImageRepository.Get(SourceType.Scryfall);
+		List<CardImage> batchedImages = _imageBatch
+			.Values
+			.SelectMany(imageList => imageList)
+			.Where(image => image.CardId != 0)
+			.ToList();
 
-		foreach (CardImage batchedImage in _imageBatch.Values.SelectMany(image => image))
-		{
-			if (batchedImage.CardId == default(int)) continue;
-			CardImage? existingImage = existingImages.SingleOrDefault(cardImage => cardImage.CardId == batchedImage.CardId && cardImage.Type == (ImageTypeKind)batchedImage.ImageTypeId);
+		IEnumerable<long> cardIds = batchedImages.Select(image => image.CardId).Distinct();
+		IEnumerable<CardImage> existingImages = await _cardImageRepository.Get(cardIds);
+		Dictionary<(long cardId, ImageTypeKind imageType), CardImage> existingImagesLookup = existingImages.ToDictionary(
+			image => (image.CardId, image.Type),
+			image => image
+		);
 
-			if (existingImage is null)
+		foreach (CardImage batchedImage in batchedImages)
 			{
-				upsertionData.ToInsert.Add(batchedImage);
-			}
-			else
+			if (existingImagesLookup.TryGetValue((batchedImage.CardId, (ImageTypeKind)batchedImage.ImageTypeId), out CardImage? existingImage))
 			{
 				batchedImage.Id = existingImage.Id;
 				if (_imageComparer.Equals(existingImage, batchedImage)) continue;
 
 				upsertionData.ToUpdate.Add(batchedImage);
 			}
+			else
+			{
+				upsertionData.ToInsert.Add(batchedImage);
+			}
+		}
+
+		int upsertedCount = await _cardImageRepository.Upsert(upsertionData);
+		_imageBatch.Clear();
+
+		return upsertedCount;
 		}
 
 		return await _cardImageRepository.Upsert(upsertionData);
