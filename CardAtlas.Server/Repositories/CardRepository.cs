@@ -640,4 +640,26 @@ public class CardRepository : ICardRepository
 
 		return await dbContext.UpsertAsync(upsertionData);
 	}
+
+	public async Task<IEnumerable<CardKeyword>> GetCardKeywords(long cardId)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardKeywords
+			.AsNoTracking()
+			.Include(ck => ck.Keyword)
+			.Where(cardKeyword => cardKeyword.CardId == cardId)
+			.ToListAsync();
+	}
+
+	public async Task<IEnumerable<CardKeyword>> GetCardKeywords(IEnumerable<long> cardIds)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardKeywords
+			.AsNoTracking()
+			.Include(ck => ck.Keyword)
+			.Where(cardKeyword => cardIds.Contains(cardKeyword.CardId))
+			.ToListAsync();
+	}
 }

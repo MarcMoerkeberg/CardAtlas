@@ -390,9 +390,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			UpsertImages(),
 			UpsertCardPrices(),
 			CreateMissingCardGamePlatforms(updatedCards),
-			CreateMissingCardPrintFinishes(updatedCards)
-		//Legalities(apiCard);
-		//KeywordRelations(apiCard);
+			CreateMissingCardPrintFinishes(updatedCards),
+			UpsertCardLegalities(),
+			CreateMissingCardKeywords(updatedCards)
 		//PromoTypeRelations(apiCard);
 		);
 	}
@@ -501,6 +501,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		AssignCardIdToBatchedCardGamePlatforms(cardsWithIdentity);
 		AssignCardIdToBatchedCardPrintFinishes(cardsWithIdentity);
 		AssignCardIdToBatchedCardLegalities(cardsWithIdentity);
+		AssignCardIdToBatchedCardKeywords(cardsWithIdentity);
 	}
 
 	/// <summary>
@@ -581,6 +582,22 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			foreach (CardLegality legality in cardLegalities)
 			{
 				legality.CardId = card.Id;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardPrice.CardId"/> on entities in the current <see cref="_cardKeywordsBatch"/>.
+	/// </summary>
+	private void AssignCardIdToBatchedCardKeywords(IEnumerable<Card> cardsWithIdentity)
+	{
+		foreach (Card card in cardsWithIdentity)
+		{
+			if (!_cardKeywordsBatch.TryGetValue(card.ScryfallId!.Value, out List<CardKeyword>? cardKeywords)) continue;
+
+			foreach (CardKeyword cardKeyword in cardKeywords)
+			{
+				cardKeyword.CardId = card.Id;
 			}
 		}
 	}
@@ -862,6 +879,45 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_cardLegalitiesBatch.Clear();
 
 		return upsertedCount;
+	}
+
+	/// <summary>
+	/// Adds all missing <see cref="CardKeyword"/> entities to the database from <see cref="_cardKeywordsBatch"/>.<br/>
+	/// <see cref="CardKeyword"/> represents the relationship between <see cref="Keyword"/> and <see cref="Card"/> entities.
+	/// </summary>
+	/// <returns>The number of added <see cref="CardKeyword"/> entities.</returns>
+	private async Task<int> CreateMissingCardKeywords(IEnumerable<Card> existingCards)
+	{
+		List<CardKeyword> missingCardKeywords = new();
+		IEnumerable<CardKeyword> existingCardKeywords = await _cardRepository.GetCardKeywords(existingCards.Select(card => card.Id));
+
+		List<CardKeyword> batchedCardKeywords = _cardKeywordsBatch
+			.Values
+			.SelectMany(cardKeywordList => cardKeywordList)
+			.Where(cardKeyword => cardKeyword.CardId != 0)
+			.ToList();
+
+		if (existingCardKeywords.Any())
+		{
+			HashSet<(long cardId, int printFinishId)> existingCardKeywordsLookup = existingCardKeywords
+				.Select(cardKeyword => (cardKeyword.CardId, cardKeyword.KeywordId))
+				.ToHashSet();
+
+			missingCardKeywords.AddRange(batchedCardKeywords
+				.Where(cardKeyword => !existingCardKeywordsLookup.Contains((cardKeyword.CardId, cardKeyword.KeywordId)))
+			);
+		}
+		else
+		{
+			missingCardKeywords.AddRange(batchedCardKeywords);
+		}
+
+		int addedCount = missingCardKeywords.Count > 0
+			? (await _cardRepository.Create(existingCardKeywords)).Count()
+			: 0;
+		_cardKeywordsBatch.Clear();
+
+		return addedCount;
 	}
 
 	private void ClearBatchedData()

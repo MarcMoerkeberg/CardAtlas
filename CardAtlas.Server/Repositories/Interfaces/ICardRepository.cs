@@ -180,6 +180,16 @@ public interface ICardRepository
 	Task<CardKeyword> GetCardKeyword(long cardKeywordId);
 
 	/// <summary>
+	/// Returns all <see cref="CardKeyword"/> entities associated with the <paramref name="cardId"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardKeyword>> GetCardKeywords(long cardId);
+
+	/// <summary>
+	/// Returns all <see cref="CardKeyword"/> entities associated with the <paramref name="cardIds"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardKeyword>> GetCardKeywords(IEnumerable<long> cardIds);
+
+	/// <summary>
 	/// Adds the provided <paramref name="cardKeyword"/> to the database.
 	/// </summary>
 	/// <returns>The added <see cref="CardKeyword"/> with identity.</returns>
