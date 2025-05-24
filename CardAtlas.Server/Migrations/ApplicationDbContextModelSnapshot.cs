@@ -173,7 +173,7 @@ namespace CardAtlas.Server.Migrations
                     b.ToTable("Cards");
                 });
 
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardGameType", b =>
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardGamePlatform", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -184,16 +184,16 @@ namespace CardAtlas.Server.Migrations
                     b.Property<long>("CardId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("GameTypeId")
+                    b.Property<int>("GamePlatformId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CardId");
 
-                    b.HasIndex("GameTypeId");
+                    b.HasIndex("GamePlatformId");
 
-                    b.ToTable("CardGameTypes");
+                    b.ToTable("CardGamePlatforms");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardKeyword", b =>
@@ -449,7 +449,7 @@ namespace CardAtlas.Server.Migrations
                     b.ToTable("GameFormats");
                 });
 
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.GameType", b =>
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.GamePlatform", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -464,7 +464,7 @@ namespace CardAtlas.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("GameTypes");
+                    b.ToTable("GamePlatforms");
 
                     b.HasData(
                         new
@@ -1079,6 +1079,20 @@ namespace CardAtlas.Server.Migrations
                     b.HasIndex("SourceId");
 
                     b.ToTable("Sets");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = -1,
+                            Code = "Defaul",
+                            IsDigitalOnly = false,
+                            IsFoilOnly = false,
+                            IsNonFoilOnly = false,
+                            Name = "Unknown - Default set",
+                            NumberOfCardsInSet = 0,
+                            SetTypeId = -1,
+                            SourceId = -1
+                        });
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.SetType", b =>
@@ -1350,23 +1364,23 @@ namespace CardAtlas.Server.Migrations
                     b.Navigation("Set");
                 });
 
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardGameType", b =>
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardGamePlatform", b =>
                 {
                     b.HasOne("CardAtlas.Server.Models.Data.Card", "Card")
-                        .WithMany("GameTypes")
+                        .WithMany("CardGamePlatforms")
                         .HasForeignKey("CardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CardAtlas.Server.Models.Data.GameType", "GameType")
-                        .WithMany("CardGameTypes")
-                        .HasForeignKey("GameTypeId")
+                    b.HasOne("CardAtlas.Server.Models.Data.GamePlatform", "GamePlatform")
+                        .WithMany("CardGamePlatforms")
+                        .HasForeignKey("GamePlatformId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Card");
 
-                    b.Navigation("GameType");
+                    b.Navigation("GamePlatform");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardKeyword", b =>
@@ -1582,6 +1596,8 @@ namespace CardAtlas.Server.Migrations
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Card", b =>
                 {
+                    b.Navigation("CardGamePlatforms");
+
                     b.Navigation("CardKeywords");
 
                     b.Navigation("CardPrintFinishes");
@@ -1589,8 +1605,6 @@ namespace CardAtlas.Server.Migrations
                     b.Navigation("CardPromoTypes");
 
                     b.Navigation("ChildCards");
-
-                    b.Navigation("GameTypes");
 
                     b.Navigation("Images");
 
@@ -1614,9 +1628,9 @@ namespace CardAtlas.Server.Migrations
                     b.Navigation("CardLegalities");
                 });
 
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.GameType", b =>
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.GamePlatform", b =>
                 {
-                    b.Navigation("CardGameTypes");
+                    b.Navigation("CardGamePlatforms");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Image.ImageFormat", b =>

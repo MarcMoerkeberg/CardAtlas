@@ -9,20 +9,6 @@ namespace CardAtlas.Server.Mappers;
 public static class GameMapper
 {
 	/// <summary>
-	/// Maps the print availability from <paramref name="apiCard"/> to a collection of <see cref="PlatformType"/>
-	/// </summary>
-	public static List<PlatformType> MapGameTypes(ApiCard apiCard)
-	{
-		var gameTypes = new List<PlatformType>();
-
-		if (apiCard.PrintAvailability.Paper) gameTypes.Add(PlatformType.Paper);
-		if (apiCard.PrintAvailability.Arena) gameTypes.Add(PlatformType.Arena);
-		if (apiCard.PrintAvailability.Mtgo) gameTypes.Add(PlatformType.Mtgo);
-
-		return gameTypes;
-	}
-
-	/// <summary>
 	/// Maps the print availability from <paramref name="apiCard"/> to a collection of <see cref="CardGamePlatform"/>
 	/// </summary>
 	public static List<CardGamePlatform> MapCardGamePlatform(ApiCard apiCard)

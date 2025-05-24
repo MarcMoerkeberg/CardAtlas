@@ -54,7 +54,7 @@ namespace CardAtlas.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "GameTypes",
+                name: "GamePlatforms",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -63,7 +63,7 @@ namespace CardAtlas.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GameTypes", x => x.Id);
+                    table.PrimaryKey("PK_GamePlatforms", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -376,27 +376,27 @@ namespace CardAtlas.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CardGameTypes",
+                name: "CardGamePlatforms",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CardId = table.Column<long>(type: "bigint", nullable: false),
-                    GameTypeId = table.Column<int>(type: "int", nullable: false)
+                    GamePlatformId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CardGameTypes", x => x.Id);
+                    table.PrimaryKey("PK_CardGamePlatforms", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_CardGameTypes_Cards_CardId",
+                        name: "FK_CardGamePlatforms_Cards_CardId",
                         column: x => x.CardId,
                         principalTable: "Cards",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CardGameTypes_GameTypes_GameTypeId",
-                        column: x => x.GameTypeId,
-                        principalTable: "GameTypes",
+                        name: "FK_CardGamePlatforms_GamePlatforms_GamePlatformId",
+                        column: x => x.GamePlatformId,
+                        principalTable: "GamePlatforms",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -628,7 +628,7 @@ namespace CardAtlas.Server.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "GameTypes",
+                table: "GamePlatforms",
                 columns: new[] { "Id", "Name" },
                 values: new object[,]
                 {
@@ -788,15 +788,20 @@ namespace CardAtlas.Server.Migrations
                     { 4, "Mtgo" }
                 });
 
+            migrationBuilder.InsertData(
+                table: "Sets",
+                columns: new[] { "Id", "ArenaCode", "Block", "BlockCode", "Code", "IsDigitalOnly", "IsFoilOnly", "IsNonFoilOnly", "MtgoCode", "Name", "NumberOfCardsInSet", "ParentSetCode", "ReleaseDate", "ScryfallId", "SetTypeId", "SourceId" },
+                values: new object[] { -1, null, null, null, "Defaul", false, false, false, null, "Unknown - Default set", 0, null, null, null, -1, -1 });
+
             migrationBuilder.CreateIndex(
-                name: "IX_CardGameTypes_CardId",
-                table: "CardGameTypes",
+                name: "IX_CardGamePlatforms_CardId",
+                table: "CardGamePlatforms",
                 column: "CardId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CardGameTypes_GameTypeId",
-                table: "CardGameTypes",
-                column: "GameTypeId");
+                name: "IX_CardGamePlatforms_GamePlatformId",
+                table: "CardGamePlatforms",
+                column: "GamePlatformId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CardImages_CardId",
@@ -943,7 +948,7 @@ namespace CardAtlas.Server.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CardGameTypes");
+                name: "CardGamePlatforms");
 
             migrationBuilder.DropTable(
                 name: "CardImages");
@@ -964,7 +969,7 @@ namespace CardAtlas.Server.Migrations
                 name: "CardPromoTypes");
 
             migrationBuilder.DropTable(
-                name: "GameTypes");
+                name: "GamePlatforms");
 
             migrationBuilder.DropTable(
                 name: "ImageFormats");
