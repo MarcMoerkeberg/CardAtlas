@@ -247,5 +247,21 @@ public interface ICardRepository
 	/// Creates and updates <see cref="Keyword"/> entities, based on the provided <paramref name="upsertionData"/>.
 	/// </summary>
 	/// <returns>The total number of inserted or updated <see cref="Keyword"/> entities.</returns>
-	Task<int> UpsertKeywords(UpsertContainer<Keyword> upsertionData);
+	Task<int> Upsert(UpsertContainer<Keyword> upsertionData);
+
+	/// <summary>
+	/// Returns all <see cref="CardPrice"/> entities from the database.
+	/// </summary>
+	Task<IEnumerable<CardPrice>> GetCardPrices();
+
+	/// <summary>
+	/// Returns all <see cref="CardPrice"/> entities associated with the <paramref name="cardIds"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardPrice>> GetCardPrices(IEnumerable<long> cardIds);
+
+	/// <summary>
+	/// Creates and updates <see cref="CardPrice"/> entities, based on the provided <paramref name="upsertionData"/>.
+	/// </summary>
+	/// <returns>The total number of inserted or updated <see cref="CardPrice"/> entities.</returns>
+	Task<int> Upsert(UpsertContainer<CardPrice> upsertionData);
 }

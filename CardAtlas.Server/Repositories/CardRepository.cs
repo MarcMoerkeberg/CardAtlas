@@ -494,7 +494,37 @@ public class CardRepository : ICardRepository
 		return await dbContext.UpsertAsync(upsertionData);
 	}
 
-	public async Task<int> UpsertKeywords(UpsertContainer<Keyword> upsertionData)
+	public async Task<int> Upsert(UpsertContainer<Keyword> upsertionData)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.UpsertAsync(upsertionData);
+	}
+
+	public async Task<IEnumerable<CardPrice>> GetCardPrices()
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardPrices
+			.AsNoTracking()
+			.Include(cp => cp.Currency)
+			.Include(cp => cp.Vendor)
+			.ToListAsync();
+	}
+
+	public async Task<IEnumerable<CardPrice>> GetCardPrices(IEnumerable<long> cardIds)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardPrices
+			.AsNoTracking()
+			.Include(cp => cp.Currency)
+			.Include(cp => cp.Vendor)
+			.Where(cardPrice => cardIds.Contains(cardPrice.CardId))
+			.ToListAsync();
+	}
+
+	public async Task<int> Upsert(UpsertContainer<CardPrice> upsertionData)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 

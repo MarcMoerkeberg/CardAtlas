@@ -27,6 +27,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly IEqualityComparer<Artist> _artistComparer;
 	private readonly IEqualityComparer<GameFormat> _gameFormatComparer;
 	private readonly IEqualityComparer<CardImage> _imageComparer;
+	private readonly IEqualityComparer<CardPrice> _priceComparer;
 	private readonly IScryfallApi _scryfallApi;
 	private readonly ISetRepository _setRepository;
 
@@ -57,6 +58,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		IEqualityComparer<Artist> artistComparer,
 		IEqualityComparer<GameFormat> gameFormatComparer,
 		IEqualityComparer<CardImage> imageComparer,
+		IEqualityComparer<CardPrice> priceComparer,
 		IScryfallApi scryfallApi,
 		ISetRepository setRepository)
 	{
@@ -70,6 +72,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_artistComparer = artistComparer;
 		_gameFormatComparer = gameFormatComparer;
 		_imageComparer = imageComparer;
+		_priceComparer = priceComparer;
 		_scryfallApi = scryfallApi;
 		_setRepository = setRepository;
 	}
@@ -377,8 +380,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		Dictionary<Guid, Card> cardLookup = updatedCards.ToDictionary(card => card.ScryfallId!.Value);
 
 		await Task.WhenAll(
-			UpsertImages()
-		//BatchCardPrices(apiCard);
+			UpsertImages(),
+			UpsertCardPrices()
 		//BatchCardGameTypeAvailability(apiCard);
 		//PrintFinishes(apiCard);
 		//Legalities(apiCard);
@@ -609,7 +612,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		);
 
 		foreach (CardImage batchedImage in batchedImages)
-			{
+		{
 			if (existingImagesLookup.TryGetValue((batchedImage.CardId, (ImageTypeKind)batchedImage.ImageTypeId), out CardImage? existingImage))
 			{
 				batchedImage.Id = existingImage.Id;
@@ -627,18 +630,57 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_imageBatch.Clear();
 
 		return upsertedCount;
+	}
+
+	/// <summary>
+	/// Inserts or updates <see cref="CardPrice"/> entities based on the current<see cref="_cardPriceBatch"/>.<br/>
+	/// Skips any images with a <see cref="CardPrice.CardId"/> of 0.
+	/// </summary>
+	/// <returns>The total number of inserted or updated <see cref="CardPrice"/> entities.</returns>
+	private async Task<int> UpsertCardPrices()
+	{
+		UpsertContainer<CardPrice> upsertionData = new();
+		List<CardPrice> batchedPrices = _cardPriceBatch
+			.Values
+			.SelectMany(imageList => imageList)
+			.Where(image => image.CardId != 0)
+			.ToList();
+
+		IEnumerable<long> cardIds = batchedPrices.Select(image => image.CardId).Distinct();
+		IEnumerable<CardPrice> existingCardPrices = await _cardRepository.GetCardPrices(cardIds);
+		Dictionary<(long cardId, VendorType vendorType, CurrencyType currencyType), CardPrice> existingPricesLookup = existingCardPrices.ToDictionary(
+			cardPrice => (cardPrice.CardId, cardPrice.Vendor.Type, cardPrice.Currency.Type),
+			cardPrice => cardPrice
+		);
+
+		foreach (CardPrice batchedCardPrice in batchedPrices)
+		{
+			if (existingPricesLookup.TryGetValue((batchedCardPrice.CardId, (VendorType)batchedCardPrice.VendorId, (CurrencyType)batchedCardPrice.VendorId), out CardPrice? existingCardPrice))
+			{
+				batchedCardPrice.Id = existingCardPrice.Id;
+				if (_priceComparer.Equals(existingCardPrice, batchedCardPrice)) continue;
+
+				upsertionData.ToUpdate.Add(batchedCardPrice);
+			}
+			else
+			{
+				upsertionData.ToInsert.Add(batchedCardPrice);
+			}
 		}
 
-		return await _cardImageRepository.Upsert(upsertionData);
+		int upsertedCount = await _cardRepository.Upsert(upsertionData);
+		_cardPriceBatch.Clear();
+
+		return upsertedCount;
 	}
 
 	private void ClearBatchedData()
 	{
 		_cardBatch.Clear();
-		_imageBatch.Clear();
+		//_imageBatch.Clear();
 		_cardArtistBatch.Clear();
 		_artistBatch.Clear();
-		_cardPriceBatch.Clear();
+		//_cardPriceBatch.Clear();
 		_cardGamePlatformBatch.Clear();
 		_printFinishBatch.Clear();
 		_gameFormatsBatch.Clear();
