@@ -79,7 +79,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		UpsertContainer<Set> upsertionData = new();
 		IEnumerable<ApiSet> apiSets = await _scryfallApi.GetSets();
-		IEnumerable<Set> existingSets = await _setRepository.GetFromScryfallIds(apiSets.Select(set => set.Id));
+		IEnumerable<Set> existingSets = await _setRepository.Get(apiSets.Select(set => set.Id));
 		Dictionary<Guid, Set> existingSetsByScryfallId = existingSets
 			.Where(set => set.ScryfallId.HasValue)
 			.ToDictionary(set => set.ScryfallId!.Value);
@@ -612,7 +612,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		int addedCount = missingGameFormats.Count > 0 ?
-			(await _gameRepository.CreateFormats(missingGameFormats)).Count()
+			(await _gameRepository.Create(missingGameFormats)).Count()
 			: 0;
 		_gameFormatsBatch.Clear();
 
@@ -687,7 +687,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			.ToList();
 
 		IEnumerable<long> cardIds = batchedImages.Select(image => image.CardId).Distinct();
-		IEnumerable<CardImage> existingImages = await _cardImageRepository.Get(cardIds);
+		IEnumerable<CardImage> existingImages = await _cardImageRepository.GetFromCardIds(cardIds);
 		Dictionary<(long cardId, ImageTypeKind imageType), CardImage> existingImagesLookup = existingImages.ToDictionary(
 			image => (image.CardId, image.Type),
 			image => image

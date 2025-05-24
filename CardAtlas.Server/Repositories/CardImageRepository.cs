@@ -12,14 +12,10 @@ namespace CardAtlas.Server.Repositories;
 
 public class CardImageRepository : ICardImageRepository
 {
-	private readonly IEqualityComparer<CardImage> _cardImageComparer;
 	private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-	public CardImageRepository(
-		IEqualityComparer<CardImage> cardImageComparer,
-		IDbContextFactory<ApplicationDbContext> dbContextFactory)
+	public CardImageRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
 	{
-		_cardImageComparer = cardImageComparer;
 		_dbContextFactory = dbContextFactory;
 	}
 
@@ -54,7 +50,7 @@ public class CardImageRepository : ICardImageRepository
 			.ToListAsync();
 	}
 
-	public async Task<IEnumerable<CardImage>> Get(IEnumerable<long> cardIds)
+	public async Task<IEnumerable<CardImage>> GetFromCardIds(IEnumerable<long> cardIds)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -90,20 +86,6 @@ public class CardImageRepository : ICardImageRepository
 		CardImageMapper.MergeProperties(imageToUpdate, cardImageWithChanges);
 
 		await dbContext.SaveChangesAsync();
-		return imageToUpdate;
-	}
-
-	public async Task<CardImage> UpdateIfChanged(CardImage cardImageWithChanges)
-	{
-		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
-		CardImage imageToUpdate = await dbContext.CardImages.SingleAsync(cardImage => cardImage.Id == cardImageWithChanges.Id);
-
-		if (!_cardImageComparer.Equals(imageToUpdate, cardImageWithChanges))
-		{
-			CardImageMapper.MergeProperties(imageToUpdate, cardImageWithChanges);
-			await dbContext.SaveChangesAsync();
-		}
-
 		return imageToUpdate;
 	}
 

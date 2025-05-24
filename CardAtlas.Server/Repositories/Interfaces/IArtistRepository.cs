@@ -6,12 +6,6 @@ namespace CardAtlas.Server.Repositories.Interfaces
 	public interface IArtistRepository
 	{
 		/// <summary>
-		/// Adds the provided <paramref name="artist"/> to the database.
-		/// </summary>
-		/// <returns>The added <see cref="Artist"/> with identity.</returns>
-		Task<Artist> Create(Artist artist);
-
-		/// <summary>
 		/// Returns the <see cref="Artist"/> from the db with the specified <paramref name="artistId"/>.<br/>
 		/// Throws an <see cref="InvalidOperationException"/> if no, or one or more <see cref="Artist"/> entities is found.
 		/// </summary>
@@ -30,6 +24,12 @@ namespace CardAtlas.Server.Repositories.Interfaces
 		/// </summary>
 		/// <returns>A list of <see cref="Artist"/> entities with the specified <paramref name="scryfallIds"/>.</returns>
 		Task<IEnumerable<Artist>> Get(IEnumerable<Guid> scryfallIds);
+
+		/// <summary>
+		/// Adds the provided <paramref name="artist"/> to the database.
+		/// </summary>
+		/// <returns>The added <see cref="Artist"/> with identity.</returns>
+		Task<Artist> Create(Artist artist);
 
 		/// <summary>
 		/// Creates and updates <see cref="Artist"/> entities, based on the provided <paramref name="upsertionData"/>.

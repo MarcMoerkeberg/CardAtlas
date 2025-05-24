@@ -1,7 +1,6 @@
 ﻿using CardAtlas.Server.DAL;
 using CardAtlas.Server.Extensions;
 using CardAtlas.Server.Models.Data;
-using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -18,25 +17,7 @@ public class GameRepository : IGameRepository
 		_dbContextFactory = dbContextFactory;
 	}
 
-	public async Task<IEnumerable<CardGamePlatform>> CreateCardGameTypes(IEnumerable<CardGamePlatform> cardGamePlatforms)
-	{
-		var addedCardGameTypes = new List<CardGamePlatform>();
-		if (!cardGamePlatforms.Any()) return addedCardGameTypes;
-
-		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
-
-		foreach (CardGamePlatform gamePlatform in cardGamePlatforms)
-		{
-			EntityEntry<CardGamePlatform> addedCardPrintFinish = await dbContext.CardGamePlatforms.AddAsync(gamePlatform);
-			addedCardGameTypes.Add(addedCardPrintFinish.Entity);
-		}
-
-		await dbContext.SaveChangesAsync();
-
-		return addedCardGameTypes;
-	}
-
-	public async Task<GameFormat> CreateFormat(GameFormat format)
+	public async Task<GameFormat> Create(GameFormat format)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -46,7 +27,7 @@ public class GameRepository : IGameRepository
 		return addedGameType.Entity;
 	}
 
-	public async Task<IEnumerable<GameFormat>> CreateFormats(IEnumerable<GameFormat> formats)
+	public async Task<IEnumerable<GameFormat>> Create(IEnumerable<GameFormat> formats)
 	{
 		var addedFormats = new List<GameFormat>();
 		if (!formats.Any()) return addedFormats;

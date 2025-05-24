@@ -11,16 +11,13 @@ namespace CardAtlas.Server.Repositories;
 public class SetRepository : ISetRepository
 {
 	private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
-	private readonly IEqualityComparer<Set> _setComparer;
 	public SetRepository(
-		IDbContextFactory<ApplicationDbContext> dbContextFactory,
-		IEqualityComparer<Set> equalityComparer)
+		IDbContextFactory<ApplicationDbContext> dbContextFactory)
 	{
 		_dbContextFactory = dbContextFactory;
-		_setComparer = equalityComparer;
 	}
 
-	public async Task<Set?> GetFromScryfallId(Guid scryfallId)
+	public async Task<Set?> Get(Guid scryfallId)
 	{
 		if (scryfallId == Guid.Empty)
 		{
@@ -34,7 +31,7 @@ public class SetRepository : ISetRepository
 			.SingleOrDefaultAsync(set => set.ScryfallId == scryfallId);
 	}
 
-	public async Task<IEnumerable<Set>> GetFromScryfallIds(IEnumerable<Guid> scryfallIds)
+	public async Task<IEnumerable<Set>> Get(IEnumerable<Guid> scryfallIds)
 	{
 		if (!scryfallIds.Any()) return Enumerable.Empty<Set>();
 
@@ -106,21 +103,6 @@ public class SetRepository : ISetRepository
 		await dbContext.SaveChangesAsync();
 
 		return setsWithChanges.Where(set => set.Id != 0);
-	}
-
-	public async Task<Set> UpdateIfChanged(Set setWithChanges)
-	{
-		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
-
-		Set existingSet = await dbContext.Sets.SingleAsync(set => set.Id == setWithChanges.Id);
-
-		if (!_setComparer.Equals(existingSet, setWithChanges))
-		{
-			SetMapper.MergeProperties(existingSet, setWithChanges);
-			await dbContext.SaveChangesAsync();
-		}
-
-		return existingSet;
 	}
 
 	public async Task<int> Upsert(UpsertContainer<Set> upsertionData)
