@@ -12,19 +12,9 @@ namespace CardAtlas.Server.Repositories;
 
 public class CardRepository : ICardRepository
 {
-	private readonly IEqualityComparer<Card> _cardComparer;
-	private readonly IEqualityComparer<CardLegality> _cardLegalityComparer;
-	private readonly IEqualityComparer<CardPrice> _cardPriceComparer;
 	private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
-	public CardRepository(
-		IEqualityComparer<Card> comparer,
-		IEqualityComparer<CardLegality> cardLegalityComparer,
-		IEqualityComparer<CardPrice> cardPriceComparer,
-		IDbContextFactory<ApplicationDbContext> dbContextFactory)
+	public CardRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
 	{
-		_cardComparer = comparer;
-		_cardLegalityComparer = cardLegalityComparer;
-		_cardPriceComparer = cardPriceComparer;
 		_dbContextFactory = dbContextFactory;
 	}
 
@@ -56,21 +46,6 @@ public class CardRepository : ICardRepository
 		await dbContext.SaveChangesAsync();
 
 		return cardToUpdate;
-	}
-
-	public async Task<Card> UpdateIfChanged(Card cardWithChanges)
-	{
-		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
-
-		Card existingCard = await dbContext.Cards.SingleAsync(card => card.Id == cardWithChanges.Id);
-
-		if (!_cardComparer.Equals(existingCard, cardWithChanges))
-		{
-			CardMapper.MergeProperties(existingCard, cardWithChanges);
-			await dbContext.SaveChangesAsync();
-		}
-
-		return existingCard;
 	}
 
 	public async Task<IEnumerable<Card>> Get(Guid scryfallId)
@@ -130,28 +105,13 @@ public class CardRepository : ICardRepository
 		return addedPrice.Entity;
 	}
 
-	public async Task<CardPrice> UpdatePrice(CardPrice priceToUpdate)
+	public async Task<CardPrice> Update(CardPrice priceToUpdate)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		CardPrice existingPrice = await dbContext.CardPrices.SingleAsync(price => price.Id == priceToUpdate.Id);
 		CardPriceMapper.MergeProperties(existingPrice, priceToUpdate);
 		await dbContext.SaveChangesAsync();
-
-		return existingPrice;
-	}
-
-	public async Task<CardPrice> UpdatePriceIfChanged(CardPrice priceToUpdate)
-	{
-		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
-
-		CardPrice existingPrice = await dbContext.CardPrices.SingleAsync(price => price.Id == priceToUpdate.Id);
-
-		if (!_cardPriceComparer.Equals(existingPrice, priceToUpdate))
-		{
-			CardPriceMapper.MergeProperties(existingPrice, priceToUpdate);
-			await dbContext.SaveChangesAsync();
-		}
 
 		return existingPrice;
 	}
@@ -211,7 +171,7 @@ public class CardRepository : ICardRepository
 		return addedLegalities;
 	}
 
-	public async Task<CardLegality> UpdateCardLegality(CardLegality legalityWithChanges)
+	public async Task<CardLegality> Update(CardLegality legalityWithChanges)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -223,7 +183,7 @@ public class CardRepository : ICardRepository
 		return legalityToUpdate;
 	}
 
-	public async Task<IEnumerable<CardLegality>> UpdateCardLegalities(IEnumerable<CardLegality> legalitiesWithChanges)
+	public async Task<IEnumerable<CardLegality>> Update(IEnumerable<CardLegality> legalitiesWithChanges)
 	{
 		var updatedCardLegalities = new List<CardLegality>();
 		if (!legalitiesWithChanges.Any()) return updatedCardLegalities;
@@ -235,45 +195,6 @@ public class CardRepository : ICardRepository
 			CardLegality legalityToUpdate = await dbContext.CardLegalities.SingleAsync(cardLegality => cardLegality.Id == legalityWithChanges.Id);
 
 			CardMapper.MergeProperties(legalityToUpdate, legalityWithChanges);
-			updatedCardLegalities.Add(legalityToUpdate);
-		}
-
-		await dbContext.SaveChangesAsync();
-
-		return updatedCardLegalities;
-	}
-
-	public async Task<CardLegality> UpdateCardLegalityIfChanged(CardLegality legalityWithChanges)
-	{
-		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
-
-		CardLegality legalityToUpdate = await dbContext.CardLegalities.SingleAsync(cardLegality => cardLegality.Id == legalityWithChanges.Id);
-
-		if (_cardLegalityComparer.Equals(legalityToUpdate, legalityWithChanges))
-		{
-			CardMapper.MergeProperties(legalityToUpdate, legalityWithChanges);
-			await dbContext.SaveChangesAsync();
-		}
-
-		return legalityToUpdate;
-	}
-
-	public async Task<IEnumerable<CardLegality>> UpdateCardLegalitiesIfChanged(IEnumerable<CardLegality> legalitiesWithChanges)
-	{
-		var updatedCardLegalities = new List<CardLegality>();
-		if (!legalitiesWithChanges.Any()) return updatedCardLegalities;
-
-		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
-
-		foreach (var legalityWithChanges in legalitiesWithChanges)
-		{
-			CardLegality legalityToUpdate = await dbContext.CardLegalities.SingleAsync(cardLegality => cardLegality.Id == legalityWithChanges.Id);
-
-			if (_cardLegalityComparer.Equals(legalityToUpdate, legalityWithChanges))
-			{
-				CardMapper.MergeProperties(legalityToUpdate, legalityWithChanges);
-			}
-
 			updatedCardLegalities.Add(legalityToUpdate);
 		}
 
@@ -364,7 +285,7 @@ public class CardRepository : ICardRepository
 		return addedCardKeywords;
 	}
 
-	public async Task<CardKeyword> UpdateCardKeyword(CardKeyword cardKeywordWithChanges)
+	public async Task<CardKeyword> Update(CardKeyword cardKeywordWithChanges)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -376,7 +297,7 @@ public class CardRepository : ICardRepository
 		return cardKeywordToUpdate;
 	}
 
-	public async Task<IEnumerable<CardKeyword>> UpdateCardKeywords(IEnumerable<CardKeyword> cardKeywordsWithChanges)
+	public async Task<IEnumerable<CardKeyword>> Update(IEnumerable<CardKeyword> cardKeywordsWithChanges)
 	{
 		var updatedCardKeywords = new List<CardKeyword>();
 		if (!cardKeywordsWithChanges.Any()) return updatedCardKeywords;
@@ -468,7 +389,7 @@ public class CardRepository : ICardRepository
 			.SingleAsync(cardPromoType => cardPromoType.Id == cardPromoTypeId);
 	}
 
-	public async Task<IEnumerable<CardPromoType>> UpdateCardPromoTypes(IEnumerable<CardPromoType> cardPromoTypes)
+	public async Task<IEnumerable<CardPromoType>> Update(IEnumerable<CardPromoType> cardPromoTypes)
 	{
 		List<CardPromoType> updatedCardPromoTypes = new();
 		if (!cardPromoTypes.Any()) return updatedCardPromoTypes;

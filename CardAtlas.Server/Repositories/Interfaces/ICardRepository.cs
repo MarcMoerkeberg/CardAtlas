@@ -14,27 +14,6 @@ public interface ICardRepository
 	Task<Card> Get(long cardId);
 
 	/// <summary>
-	/// Adds the provided <paramref name="card"/> to the database.
-	/// </summary>
-	/// <returns>The added <see cref="Card"/> with identity.</returns>
-	Task<Card> Create(Card card);
-
-	/// <summary>
-	/// Updates existing entity with changes from <paramref name="cardWithChanges"/>.<br/>
-	/// </summary>
-	/// <returns>The updated <see cref="Card"/>.</returns>
-	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-	Task<Card> Update(Card cardWithChanges);
-
-	/// <summary>
-	/// Updates existing entity with changes from <paramref name="cardWithChanges"/>.<br/>
-	/// Does not update the if there are no changes.
-	/// </summary>
-	/// <returns>The updated <see cref="Card"/>.</returns>
-	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-	Task<Card> UpdateIfChanged(Card cardWithChanges);
-
-	/// <summary>
 	/// Returns the <see cref="Card"/> entries from the db with the specified <paramref name="scryfallId"/>.<br/>
 	/// Multiple cards may have the same scryfallId, since they are created as seperate card instances if they have multiple <see cref="ScryfallApi.Models.CardFace"/> (such as flip or split cards).
 	/// </summary>
@@ -64,33 +43,6 @@ public interface ICardRepository
 	Task<IEnumerable<CardPrice>> GetPrices(long cardId);
 
 	/// <summary>
-	/// Creates a new <see cref="CardPrice"/> entry in the database.
-	/// </summary>
-	/// <returns>The added <see cref="CardPrice"/> with identity.</returns>
-	Task<CardPrice> Create(CardPrice priceToUpsert);
-
-	/// <summary>
-	/// Updates the existing entity with changes from <paramref name="priceToUpdate"/>.
-	/// </summary>
-	/// <returns>The updated <see cref="CardPrice"/> entity.</returns>
-	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-	Task<CardPrice> UpdatePrice(CardPrice priceToUpdate);
-
-	/// <summary>
-	/// Updates the existing entity with changes from <paramref name="priceToUpdate"/>.<br/>
-	/// Does not update if there are no changes.
-	/// </summary>
-	/// <returns>The updated <see cref="CardPrice"/> entity.</returns>
-	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-	Task<CardPrice> UpdatePriceIfChanged(CardPrice priceToUpdate);
-
-	/// <summary>
-	/// Creates a new <see cref="CardPrintFinish"/> entry in the database for each <paramref name="cardPrintFinishes"/>.
-	/// </summary>
-	/// <returns>The added <see cref="CardPrintFinish"/> entities with identity.</returns>
-	Task<IEnumerable<CardPrintFinish>> Create(IEnumerable<CardPrintFinish> cardPrintFinishes);
-
-	/// <summary>
 	/// Returns the <see cref="CardLegality"/> from the db with the specified <paramref name="cardLegalityId"/>.<br/>
 	/// Throws an <see cref="InvalidOperationException"/> if no, or one or more <see cref="CardLegality"/> entities is found.
 	/// </summary>
@@ -108,48 +60,6 @@ public interface ICardRepository
 	Task<IEnumerable<CardLegality>> GetCardLegalities(IEnumerable<long> cardIds);
 
 	/// <summary>
-	/// Adds the <paramref name="legality"/> to the database.
-	/// </summary>
-	/// <returns>The added <see cref="CardLegality"/> with identity.</returns>
-	Task<CardLegality> Create(CardLegality legality);
-
-	/// <summary>
-	/// Adds a new <see cref="CardLegality"/> entry in the database for each <paramref name="legalities"/>.
-	/// </summary>
-	/// <returns>The added <see cref="CardLegality"/> entities with identity.</returns>
-	Task<IEnumerable<CardLegality>> Create(IEnumerable<CardLegality> legalities);
-
-	/// <summary>
-	/// Updates the existing entity from <paramref name="legalityWithChanges"/>.
-	/// </summary>
-	/// <returns>The updated <see cref="CardLegality"/> entity.</returns>
-	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-	Task<CardLegality> UpdateCardLegality(CardLegality legalityWithChanges);
-
-	/// <summary>
-	/// Updates the existing entites from <paramref name="legalitiesWithChanges"/>.
-	/// </summary>
-	/// <returns>The updated <see cref="CardLegality"/> entities.</returns>
-	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-	Task<IEnumerable<CardLegality>> UpdateCardLegalities(IEnumerable<CardLegality> legalitiesWithChanges);
-
-	/// <summary>
-	/// Updates the existing entity with changes from <paramref name="legalityWithChanges"/>.<br/>
-	/// Does not update if there are no changes.
-	/// </summary>
-	/// <returns>The updated <see cref="CardLegality"/> entity.</returns>
-	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-	Task<CardLegality> UpdateCardLegalityIfChanged(CardLegality legalityWithChanges);
-
-	/// <summary>
-	/// Updates the existing entites with changes from <paramref name="legalitiesWithChanges"/>.<br/>
-	/// Does not update if there are no changes.
-	/// </summary>
-	/// <returns>The updated <see cref="CardLegality"/> entites.</returns>
-	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-	Task<IEnumerable<CardLegality>> UpdateCardLegalitiesIfChanged(IEnumerable<CardLegality> legalitiesWithChanges);
-
-	/// <summary>
 	/// Returns all <see cref="Keyword"/> entities from the database.
 	/// </summary>
 	/// <returns></returns>
@@ -159,18 +69,6 @@ public interface ICardRepository
 	/// Returns all <see cref="Keyword"/> entities with the source <paramref name="source"/> from the database.
 	/// </summary>
 	Task<IEnumerable<Keyword>> GetKeywords(SourceType source);
-
-	/// <summary>
-	/// Adds the <paramref name="keyword"/> to the database.
-	/// </summary>
-	/// <returns>The added <see cref="Keyword"/> with identity.</returns>
-	Task<Keyword> Create(Keyword keyword);
-
-	/// <summary>
-	/// Adds a new <see cref="Keyword"/> entry in the database for each <paramref name="keywords"/>.
-	/// </summary>
-	/// <returns>The added <see cref="Keyword"/> entities with identity.</returns>
-	Task<IEnumerable<Keyword>> Create(IEnumerable<Keyword> keywords);
 
 	/// <summary>
 	/// Returns the <see cref="CardKeyword"/> from the db with the specified <paramref name="cardKeywordId"/>.<br/>
@@ -190,6 +88,115 @@ public interface ICardRepository
 	Task<IEnumerable<CardKeyword>> GetCardKeywords(IEnumerable<long> cardIds);
 
 	/// <summary>
+	/// Return all <see cref="PromoType"/> entities from the database.
+	/// </summary>
+	Task<IEnumerable<PromoType>> GetPromoTypes();
+
+	/// <summary>
+	/// Returns all <see cref="PromoType"/> entities with the <paramref name="source"/> from the database.
+	/// </summary>
+	Task<IEnumerable<PromoType>> GetPromoTypes(SourceType source);
+
+	/// <summary>
+	/// Returns the <see cref="CardPromoType"/> from the db with the specified <paramref name="cardPromoTypeId"/>.<br/>
+	/// Throws an <see cref="InvalidOperationException"/> if no, or one or more <see cref="CardPromoType"/> entities is found.
+	/// </summary>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<CardPromoType> GetCardPromoType(long cardPromoTypeId);
+
+	/// <summary>
+	/// Returns all <see cref="CardPromoType"/> entities associated with the <paramref name="cardId"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardPromoType>> GetCardPromoTypes(long cardId);
+
+	/// <summary>
+	/// Returns all <see cref="CardPromoType"/> entities associated with the <paramref name="cardIds"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardPromoType>> GetCardPromoTypes(IEnumerable<long> cardIds);
+
+	/// <summary>
+	/// Returns all <see cref="CardPrice"/> entities from the database.
+	/// </summary>
+	Task<IEnumerable<CardPrice>> GetCardPrices();
+
+	/// <summary>
+	/// Returns all <see cref="CardPrice"/> entities associated with the <paramref name="cardIds"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardPrice>> GetCardPrices(IEnumerable<long> cardIds);
+
+	/// <summary>
+	/// Returns all <see cref="CardGamePlatform"/> entities from the database.
+	/// </summary>
+	Task<IEnumerable<CardGamePlatform>> GetCardGamePlatforms();
+
+	/// <summary>
+	/// Returns all <see cref="CardGamePlatform"/> entities associated with the <paramref name="cardId"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardGamePlatform>> GetCardGamePlatforms(long cardId);
+
+	/// <summary>
+	/// Returns all <see cref="CardGamePlatform"/> entities associated with the <paramref name="cardIds"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardGamePlatform>> GetCardGamePlatforms(IEnumerable<long> cardIds);
+
+	/// <summary>
+	/// Returns all <see cref="CardPrintFinish"/> entities from the database.
+	/// </summary>
+	Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes();
+
+	/// <summary>
+	/// Returns all <see cref="CardPrintFinish"/> entities associated with the <paramref name="cardId"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes(long cardId);
+
+	/// <summary>
+	/// Returns all <see cref="CardPrintFinish"/> entities associated with the <paramref name="cardIds"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes(IEnumerable<long> cardIds);
+
+	/// <summary>
+	/// Adds the provided <paramref name="card"/> to the database.
+	/// </summary>
+	/// <returns>The added <see cref="Card"/> with identity.</returns>
+	Task<Card> Create(Card card);
+
+	/// <summary>
+	/// Creates a new <see cref="CardPrice"/> entry in the database.
+	/// </summary>
+	/// <returns>The added <see cref="CardPrice"/> with identity.</returns>
+	Task<CardPrice> Create(CardPrice priceToUpsert);
+
+	/// <summary>
+	/// Creates a new <see cref="CardPrintFinish"/> entry in the database for each <paramref name="cardPrintFinishes"/>.
+	/// </summary>
+	/// <returns>The added <see cref="CardPrintFinish"/> entities with identity.</returns>
+	Task<IEnumerable<CardPrintFinish>> Create(IEnumerable<CardPrintFinish> cardPrintFinishes);
+
+	/// <summary>
+	/// Adds the <paramref name="legality"/> to the database.
+	/// </summary>
+	/// <returns>The added <see cref="CardLegality"/> with identity.</returns>
+	Task<CardLegality> Create(CardLegality legality);
+
+	/// <summary>
+	/// Adds a new <see cref="CardLegality"/> entry in the database for each <paramref name="legalities"/>.
+	/// </summary>
+	/// <returns>The added <see cref="CardLegality"/> entities with identity.</returns>
+	Task<IEnumerable<CardLegality>> Create(IEnumerable<CardLegality> legalities);
+
+	/// <summary>
+	/// Adds the <paramref name="keyword"/> to the database.
+	/// </summary>
+	/// <returns>The added <see cref="Keyword"/> with identity.</returns>
+	Task<Keyword> Create(Keyword keyword);
+
+	/// <summary>
+	/// Adds a new <see cref="Keyword"/> entry in the database for each <paramref name="keywords"/>.
+	/// </summary>
+	/// <returns>The added <see cref="Keyword"/> entities with identity.</returns>
+	Task<IEnumerable<Keyword>> Create(IEnumerable<Keyword> keywords);
+
+	/// <summary>
 	/// Adds the provided <paramref name="cardKeyword"/> to the database.
 	/// </summary>
 	/// <returns>The added <see cref="CardKeyword"/> with identity.</returns>
@@ -200,30 +207,6 @@ public interface ICardRepository
 	/// </summary>
 	/// <returns>The added <see cref="CardKeyword"/> entities with identity.</returns>
 	Task<IEnumerable<CardKeyword>> Create(IEnumerable<CardKeyword> cardKeywords);
-
-	/// <summary>
-	/// Updates the existing entity with changes from <paramref name="cardKeywordWithChanges"/>.
-	/// </summary>
-	/// <returns>The updated <see cref="CardKeyword"/> entity.</returns>
-	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-	Task<CardKeyword> UpdateCardKeyword(CardKeyword cardKeywordWithChanges);
-
-	/// <summary>
-	/// Updates the existing entites with changes from <paramref name="cardKeywordWithChanges"/>.
-	/// </summary>
-	/// <returns>The updated <see cref="CardKeyword"/> entites.</returns>
-	/// <exception cref="InvalidOperationException">Is thrown if none or more than one entity with the id property from the input is found.</exception>
-	Task<IEnumerable<CardKeyword>> UpdateCardKeywords(IEnumerable<CardKeyword> cardKeywordWithChanges);
-
-	/// <summary>
-	/// Return all <see cref="PromoType"/> entities from the database.
-	/// </summary>
-	Task<IEnumerable<PromoType>> GetPromoTypes();
-
-	/// <summary>
-	/// Returns all <see cref="PromoType"/> entities with the <paramref name="source"/> from the database.
-	/// </summary>
-	Task<IEnumerable<PromoType>> GetPromoTypes(SourceType source);
 
 	/// <summary>
 	/// Adds the <paramref name="promoType"/> to the database.
@@ -244,28 +227,59 @@ public interface ICardRepository
 	Task<IEnumerable<CardPromoType>> Create(IEnumerable<CardPromoType> cardPromoTypes);
 
 	/// <summary>
+	/// Adds the provided <paramref name="cardGamePlatforms"/> to the database.
+	/// </summary>
+	/// <returns>The added <see cref="CardGamePlatform"/> entities with identity.</returns>
+	Task<IEnumerable<CardGamePlatform>> Create(IEnumerable<CardGamePlatform> cardGamePlatforms);
+
+	/// <summary>
+	/// Updates existing entity with changes from <paramref name="cardWithChanges"/>.<br/>
+	/// </summary>
+	/// <returns>The updated <see cref="Card"/>.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<Card> Update(Card cardWithChanges);
+
+	/// <summary>
+	/// Updates the existing entity with changes from <paramref name="priceToUpdate"/>.
+	/// </summary>
+	/// <returns>The updated <see cref="CardPrice"/> entity.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<CardPrice> Update(CardPrice priceToUpdate);
+
+	/// <summary>
+	/// Updates the existing entity from <paramref name="legalityWithChanges"/>.
+	/// </summary>
+	/// <returns>The updated <see cref="CardLegality"/> entity.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<CardLegality> Update(CardLegality legalityWithChanges);
+
+	/// <summary>
+	/// Updates the existing entites from <paramref name="legalitiesWithChanges"/>.
+	/// </summary>
+	/// <returns>The updated <see cref="CardLegality"/> entities.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<IEnumerable<CardLegality>> Update(IEnumerable<CardLegality> legalitiesWithChanges);
+
+	/// <summary>
+	/// Updates the existing entity with changes from <paramref name="cardKeywordWithChanges"/>.
+	/// </summary>
+	/// <returns>The updated <see cref="CardKeyword"/> entity.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
+	Task<CardKeyword> Update(CardKeyword cardKeywordWithChanges);
+
+	/// <summary>
+	/// Updates the existing entites with changes from <paramref name="cardKeywordWithChanges"/>.
+	/// </summary>
+	/// <returns>The updated <see cref="CardKeyword"/> entites.</returns>
+	/// <exception cref="InvalidOperationException">Is thrown if none or more than one entity with the id property from the input is found.</exception>
+	Task<IEnumerable<CardKeyword>> Update(IEnumerable<CardKeyword> cardKeywordWithChanges);
+
+	/// <summary>
 	/// Updates the existing entities with changes from <paramref name="cardPromoTypes"/>.
 	/// </summary>
 	/// <returns>The updated <see cref="CardPromoType"/> entities.</returns>
 	/// <exception cref="InvalidOperationException">Is thrown if none or more than one entity with the id property from the input is found.</exception>
-	Task<IEnumerable<CardPromoType>> UpdateCardPromoTypes(IEnumerable<CardPromoType> cardPromoTypes);
-
-	/// <summary>
-	/// Returns the <see cref="CardPromoType"/> from the db with the specified <paramref name="cardPromoTypeId"/>.<br/>
-	/// Throws an <see cref="InvalidOperationException"/> if no, or one or more <see cref="CardPromoType"/> entities is found.
-	/// </summary>
-	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-	Task<CardPromoType> GetCardPromoType(long cardPromoTypeId);
-
-	/// <summary>
-	/// Returns all <see cref="CardPromoType"/> entities associated with the <paramref name="cardId"/> from the database.
-	/// </summary>
-	Task<IEnumerable<CardPromoType>> GetCardPromoTypes(long cardId);
-
-	/// <summary>
-	/// Returns all <see cref="CardPromoType"/> entities associated with the <paramref name="cardIds"/> from the database.
-	/// </summary>
-	Task<IEnumerable<CardPromoType>> GetCardPromoTypes(IEnumerable<long> cardIds);
+	Task<IEnumerable<CardPromoType>> Update(IEnumerable<CardPromoType> cardPromoTypes);
 
 	/// <summary>
 	/// Creates and updates <see cref="Card"/> entities, based on the provided <paramref name="upsertionData"/>.
@@ -286,54 +300,8 @@ public interface ICardRepository
 	Task<int> Upsert(UpsertContainer<Keyword> upsertionData);
 
 	/// <summary>
-	/// Returns all <see cref="CardPrice"/> entities from the database.
-	/// </summary>
-	Task<IEnumerable<CardPrice>> GetCardPrices();
-
-	/// <summary>
-	/// Returns all <see cref="CardPrice"/> entities associated with the <paramref name="cardIds"/> from the database.
-	/// </summary>
-	Task<IEnumerable<CardPrice>> GetCardPrices(IEnumerable<long> cardIds);
-
-	/// <summary>
 	/// Creates and updates <see cref="CardPrice"/> entities, based on the provided <paramref name="upsertionData"/>.
 	/// </summary>
 	/// <returns>The total number of inserted or updated <see cref="CardPrice"/> entities.</returns>
 	Task<int> Upsert(UpsertContainer<CardPrice> upsertionData);
-
-	/// <summary>
-	/// Returns all <see cref="CardGamePlatform"/> entities from the database.
-	/// </summary>
-	Task<IEnumerable<CardGamePlatform>> GetCardGamePlatforms();
-
-	/// <summary>
-	/// Returns all <see cref="CardGamePlatform"/> entities associated with the <paramref name="cardId"/> from the database.
-	/// </summary>
-	Task<IEnumerable<CardGamePlatform>> GetCardGamePlatforms(long cardId);
-
-	/// <summary>
-	/// Returns all <see cref="CardGamePlatform"/> entities associated with the <paramref name="cardIds"/> from the database.
-	/// </summary>
-	Task<IEnumerable<CardGamePlatform>> GetCardGamePlatforms(IEnumerable<long> cardIds);
-
-	/// <summary>
-	/// Adds the provided <paramref name="cardGamePlatforms"/> to the database.
-	/// </summary>
-	/// <returns>The added <see cref="CardGamePlatform"/> entities with identity.</returns>
-	Task<IEnumerable<CardGamePlatform>> Create(IEnumerable<CardGamePlatform> cardGamePlatforms);
-
-	/// <summary>
-	/// Returns all <see cref="CardPrintFinish"/> entities from the database.
-	/// </summary>
-	Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes();
-
-	/// <summary>
-	/// Returns all <see cref="CardPrintFinish"/> entities associated with the <paramref name="cardId"/> from the database.
-	/// </summary>
-	Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes(long cardId);
-
-	/// <summary>
-	/// Returns all <see cref="CardPrintFinish"/> entities associated with the <paramref name="cardIds"/> from the database.
-	/// </summary>
-	Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes(IEnumerable<long> cardIds);
 }
