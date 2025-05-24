@@ -20,15 +20,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly IArtistRepository _artistRepository;
 	private readonly ICardImageRepository _cardImageRepository;
 	private readonly ICardRepository _cardRepository;
-	private readonly IEqualityComparer<Keyword> _keywordComparer;
 	private readonly IGameRepository _gameRepository;
 	private readonly IEqualityComparer<Set> _setComparer;
 	private readonly IEqualityComparer<Card> _cardComparer;
 	private readonly IEqualityComparer<Artist> _artistComparer;
-	private readonly IEqualityComparer<GameFormat> _gameFormatComparer;
 	private readonly IEqualityComparer<CardImage> _imageComparer;
 	private readonly IEqualityComparer<CardPrice> _priceComparer;
-	private readonly IEqualityComparer<CardGamePlatform> _platformComparer;
 	private readonly IEqualityComparer<CardLegality> _cardLegalityComparer;
 	private readonly IScryfallApi _scryfallApi;
 	private readonly ISetRepository _setRepository;
@@ -53,15 +50,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		IArtistRepository artistRepository,
 		ICardImageRepository cardImageRepository,
 		ICardRepository cardRepository,
-		IEqualityComparer<Keyword> keywordComparer,
 		IGameRepository gameRepository,
 		IEqualityComparer<Set> setComparer,
 		IEqualityComparer<Card> cardComparer,
 		IEqualityComparer<Artist> artistComparer,
-		IEqualityComparer<GameFormat> gameFormatComparer,
 		IEqualityComparer<CardImage> imageComparer,
 		IEqualityComparer<CardPrice> priceComparer,
-		IEqualityComparer<CardGamePlatform> platformComparer,
 		IEqualityComparer<CardLegality> cardLegalityComparer,
 		IScryfallApi scryfallApi,
 		ISetRepository setRepository)
@@ -69,15 +63,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_artistRepository = artistRepository;
 		_cardImageRepository = cardImageRepository;
 		_cardRepository = cardRepository;
-		_keywordComparer = keywordComparer;
 		_gameRepository = gameRepository;
 		_setComparer = setComparer;
 		_cardComparer = cardComparer;
 		_artistComparer = artistComparer;
-		_gameFormatComparer = gameFormatComparer;
 		_imageComparer = imageComparer;
 		_priceComparer = priceComparer;
-		_platformComparer = platformComparer;
 		_cardLegalityComparer = cardLegalityComparer;
 		_setComparer = setComparer;
 		_scryfallApi = scryfallApi;
@@ -128,7 +119,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			if (_cardBatch.Count >= 1000)
 			{
 				await PersistBatchedData();
-				ClearBatchedData();
 			}
 		}
 
@@ -947,7 +937,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			);
 		}
 		else
-	{
+		{
 			missingCardPromoTypes.AddRange(batchedCardPromoTypes);
 		}
 
