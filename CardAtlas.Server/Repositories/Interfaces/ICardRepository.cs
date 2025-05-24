@@ -88,7 +88,7 @@ public interface ICardRepository
 	/// Creates a new <see cref="CardPrintFinish"/> entry in the database for each <paramref name="cardPrintFinishes"/>.
 	/// </summary>
 	/// <returns>The added <see cref="CardPrintFinish"/> entities with identity.</returns>
-	Task<IEnumerable<CardPrintFinish>> CreateCardPrintFinishes(IEnumerable<CardPrintFinish> cardPrintFinishes);
+	Task<IEnumerable<CardPrintFinish>> Create(IEnumerable<CardPrintFinish> cardPrintFinishes);
 
 	/// <summary>
 	/// Returns the <see cref="CardLegality"/> from the db with the specified <paramref name="cardLegalityId"/>.<br/>
@@ -286,4 +286,18 @@ public interface ICardRepository
 	/// <returns>The added <see cref="CardGamePlatform"/> entities with identity.</returns>
 	Task<IEnumerable<CardGamePlatform>> Create(IEnumerable<CardGamePlatform> cardGamePlatforms);
 
+	/// <summary>
+	/// Returns all <see cref="CardPrintFinish"/> entities from the database.
+	/// </summary>
+	Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes();
+
+	/// <summary>
+	/// Returns all <see cref="CardPrintFinish"/> entities associated with the <paramref name="cardId"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes(long cardId);
+
+	/// <summary>
+	/// Returns all <see cref="CardPrintFinish"/> entities associated with the <paramref name="cardIds"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes(IEnumerable<long> cardIds);
 }

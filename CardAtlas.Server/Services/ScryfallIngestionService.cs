@@ -384,9 +384,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		await Task.WhenAll(
 			UpsertImages(),
 			UpsertCardPrices(),
-			CreateMissingCardGamePlatforms(updatedCards)
-		//BatchCardGameTypeAvailability(apiCard);
-		//PrintFinishes(apiCard);
+			CreateMissingCardGamePlatforms(updatedCards),
+			CreateMissingCardPrintFinishes(updatedCards)
 		//Legalities(apiCard);
 		//KeywordRelations(apiCard);
 		//PromoTypeRelations(apiCard);
@@ -480,13 +479,19 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		int affectedtedNumberOfRows = await _cardRepository.Upsert(upsertionData);
-		IEnumerable<Card> updatedCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
 
-		AssignCardIdToBatchedImages(updatedCards);
-		AssignCardIdToBatchedPrices(updatedCards);
-		AssignCardIdToBatchedCardGamePlatforms(updatedCards);
+		IEnumerable<Card> updatedCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
+		AssignCardIdToBatchedEntities(updatedCards);
 
 		return affectedtedNumberOfRows;
+	}
+
+	private void AssignCardIdToBatchedEntities(IEnumerable<Card> cardsWithIdentity)
+	{
+		AssignCardIdToBatchedImages(cardsWithIdentity);
+		AssignCardIdToBatchedPrices(cardsWithIdentity);
+		AssignCardIdToBatchedCardGamePlatforms(cardsWithIdentity);
+		AssignCardIdToBatchedCardPrintFinishes(cardsWithIdentity);
 	}
 
 	/// <summary>
@@ -535,6 +540,22 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			foreach (CardGamePlatform platform in platforms)
 			{
 				platform.CardId = card.Id;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardPrice.CardId"/> on entities in the current <see cref="_printFinishBatch"/>.
+	/// </summary>
+	private void AssignCardIdToBatchedCardPrintFinishes(IEnumerable<Card> cardsWithIdentity)
+	{
+		foreach (Card card in cardsWithIdentity)
+		{
+			if (!_printFinishBatch.TryGetValue(card.ScryfallId!.Value, out List<CardPrintFinish>? printFinishes)) continue;
+
+			foreach (CardPrintFinish printFinish in printFinishes)
+			{
+				printFinish.CardId = card.Id;
 			}
 		}
 	}
@@ -699,7 +720,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <see cref="CardGamePlatform"/> represents the relationship between <see cref="GamePlatform"/> and <see cref="Card"/> entities.
 	/// </summary>
 	/// <returns>The number of added <see cref="CardGamePlatform"/> entities.</returns>
-	/// <returns></returns>
 	private async Task<int> CreateMissingCardGamePlatforms(IEnumerable<Card> existingCards)
 	{
 		List<CardGamePlatform> missingPlatforms = new();
@@ -731,6 +751,42 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			: 0;
 	}
 
+	/// <summary>
+	/// Adds all missing <see cref="CardPrintFinish"/> entities to the database from <see cref="_printFinishBatch"/>.<br/>
+	/// <see cref="CardPrintFinish"/> represents the relationship between <see cref="PrintFinish"/> and <see cref="Card"/> entities.
+	/// </summary>
+	/// <returns>The number of added <see cref="CardPrintFinish"/> entities.</returns>
+	private async Task<int> CreateMissingCardPrintFinishes(IEnumerable<Card> existingCards)
+	{
+		List<CardPrintFinish> missingPrintFinishes = new();
+		IEnumerable<CardPrintFinish> existingPrintFinishes = await _cardRepository.GetCardPrintFinishes(existingCards.Select(card => card.Id));
+
+		List<CardPrintFinish> batchedPrintFinishes = _printFinishBatch
+			.Values
+			.SelectMany(printFinishList => printFinishList)
+			.Where(printFinish => printFinish.CardId != 0)
+			.ToList();
+
+		if (existingPrintFinishes.Any())
+		{
+			HashSet<(long cardId, int printFinishId)> existingPrintFinishLookup = existingPrintFinishes
+				.Select(cardPrintFinish => (cardPrintFinish.CardId, cardPrintFinish.PrintFinishId))
+				.ToHashSet();
+
+			missingPrintFinishes.AddRange(batchedPrintFinishes
+				.Where(printFinish => !existingPrintFinishLookup.Contains((printFinish.CardId, printFinish.PrintFinishId)))
+			);
+		}
+		else
+		{
+			missingPrintFinishes.AddRange(batchedPrintFinishes);
+		}
+
+		return missingPrintFinishes.Count > 0
+			? (await _cardRepository.Create(existingPrintFinishes)).Count()
+			: 0;
+	}
+
 	private void ClearBatchedData()
 	{
 		_cardBatch.Clear();
@@ -738,8 +794,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_cardArtistBatch.Clear();
 		_artistBatch.Clear();
 		//_cardPriceBatch.Clear();
-		_cardGamePlatformBatch.Clear();
-		_printFinishBatch.Clear();
+		//_cardGamePlatformBatch.Clear();
+		//_printFinishBatch.Clear();
 		_gameFormatsBatch.Clear();
 		_cardLegalitiesBatch.Clear();
 		_keywordsBatch.Clear();

@@ -156,7 +156,7 @@ public class CardRepository : ICardRepository
 		return existingPrice;
 	}
 
-	public async Task<IEnumerable<CardPrintFinish>> CreateCardPrintFinishes(IEnumerable<CardPrintFinish> cardPrintFinishes)
+	public async Task<IEnumerable<CardPrintFinish>> Create(IEnumerable<CardPrintFinish> cardPrintFinishes)
 	{
 		var addedCardPrintFinishes = new List<CardPrintFinish>();
 		if (!cardPrintFinishes.Any()) return addedCardPrintFinishes;
@@ -576,5 +576,37 @@ public class CardRepository : ICardRepository
 		await dbContext.SaveChangesAsync();
 
 		return addedPlatforms;
+	}
+
+	public async Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes()
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardPrintFinishes
+			.AsNoTracking()
+			.Include(cpf => cpf.PrintFinish)
+			.ToListAsync();
+	}
+
+	public async Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes(long cardId)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardPrintFinishes
+			.AsNoTracking()
+			.Include(cpf => cpf.PrintFinish)
+			.Where(cardPrintFinish => cardPrintFinish.CardId == cardId)
+			.ToListAsync();
+	}
+
+	public async Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes(IEnumerable<long> cardIds)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardPrintFinishes
+			.AsNoTracking()
+			.Include(cpf => cpf.PrintFinish)
+			.Where(cardPrintFinish => cardIds.Contains(cardPrintFinish.CardId))
+			.ToListAsync();
 	}
 }
