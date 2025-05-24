@@ -625,7 +625,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		return missingKeywords.Count > 0
-			? (await _cardRepository.CreateKeywords(missingKeywords)).Count()
+			? (await _cardRepository.Create(missingKeywords)).Count()
 			: 0;
 	}
 
@@ -648,7 +648,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		return missingPromoTypes.Count > 0
-			? (await _cardRepository.CreatePromoTypes(missingPromoTypes)).Count()
+			? (await _cardRepository.Create(missingPromoTypes)).Count()
 			: 0;
 	}
 

@@ -67,7 +67,7 @@ public interface ICardRepository
 	/// Creates a new <see cref="CardPrice"/> entry in the database.
 	/// </summary>
 	/// <returns>The added <see cref="CardPrice"/> with identity.</returns>
-	Task<CardPrice> CreatePrice(CardPrice priceToUpsert);
+	Task<CardPrice> Create(CardPrice priceToUpsert);
 
 	/// <summary>
 	/// Updates the existing entity with changes from <paramref name="priceToUpdate"/>.
@@ -111,13 +111,13 @@ public interface ICardRepository
 	/// Adds the <paramref name="legality"/> to the database.
 	/// </summary>
 	/// <returns>The added <see cref="CardLegality"/> with identity.</returns>
-	Task<CardLegality> CreateCardLegality(CardLegality legality);
+	Task<CardLegality> Create(CardLegality legality);
 
 	/// <summary>
 	/// Adds a new <see cref="CardLegality"/> entry in the database for each <paramref name="legalities"/>.
 	/// </summary>
 	/// <returns>The added <see cref="CardLegality"/> entities with identity.</returns>
-	Task<IEnumerable<CardLegality>> CreateCardLegalities(IEnumerable<CardLegality> legalities);
+	Task<IEnumerable<CardLegality>> Create(IEnumerable<CardLegality> legalities);
 
 	/// <summary>
 	/// Updates the existing entity from <paramref name="legalityWithChanges"/>.
@@ -164,13 +164,13 @@ public interface ICardRepository
 	/// Adds the <paramref name="keyword"/> to the database.
 	/// </summary>
 	/// <returns>The added <see cref="Keyword"/> with identity.</returns>
-	Task<Keyword> CreateKeyword(Keyword keyword);
+	Task<Keyword> Create(Keyword keyword);
 
 	/// <summary>
 	/// Adds a new <see cref="Keyword"/> entry in the database for each <paramref name="keywords"/>.
 	/// </summary>
 	/// <returns>The added <see cref="Keyword"/> entities with identity.</returns>
-	Task<IEnumerable<Keyword>> CreateKeywords(IEnumerable<Keyword> keywords);
+	Task<IEnumerable<Keyword>> Create(IEnumerable<Keyword> keywords);
 
 	/// <summary>
 	/// Returns the <see cref="CardKeyword"/> from the db with the specified <paramref name="cardKeywordId"/>.<br/>
@@ -183,13 +183,13 @@ public interface ICardRepository
 	/// Adds the provided <paramref name="cardKeyword"/> to the database.
 	/// </summary>
 	/// <returns>The added <see cref="CardKeyword"/> with identity.</returns>
-	Task<CardKeyword> CreateCardKeyword(CardKeyword cardKeyword);
+	Task<CardKeyword> Create(CardKeyword cardKeyword);
 
 	/// <summary>
 	/// Adds a new <see cref="CardKeyword"/> entry in the database for each <paramref name="cardKeywords"/>.
 	/// </summary>
 	/// <returns>The added <see cref="CardKeyword"/> entities with identity.</returns>
-	Task<IEnumerable<CardKeyword>> CreateCardKeywords(IEnumerable<CardKeyword> cardKeywords);
+	Task<IEnumerable<CardKeyword>> Create(IEnumerable<CardKeyword> cardKeywords);
 
 	/// <summary>
 	/// Updates the existing entity with changes from <paramref name="cardKeywordWithChanges"/>.
@@ -219,19 +219,19 @@ public interface ICardRepository
 	/// Adds the <paramref name="promoType"/> to the database.
 	/// </summary>
 	/// <returns>The added <see cref="PromoType"/> with identity.</returns>
-	Task<PromoType> CreatePromoType(PromoType promoType);
+	Task<PromoType> Create(PromoType promoType);
 
 	/// <summary>
 	/// Adds a new <see cref="PromoType"/> entry in the database for each <paramref name="promoTypes"/>.
 	/// </summary>
 	/// <returns>The added <see cref="PromoType"/> entities with identity.</returns>
-	Task<IEnumerable<PromoType>> CreatePromoTypes(IEnumerable<PromoType> promoTypes);
+	Task<IEnumerable<PromoType>> Create(IEnumerable<PromoType> promoTypes);
 
 	/// <summary>
 	/// Adds the <paramref name="cardPromoTypes"/> to the database.
 	/// </summary>
 	/// <returns>The added <see cref="CardPromoType"/> with identity.</returns>
-	Task<IEnumerable<CardPromoType>> CreateCardPromoTypes(IEnumerable<CardPromoType> cardPromoTypes);
+	Task<IEnumerable<CardPromoType>> Create(IEnumerable<CardPromoType> cardPromoTypes);
 
 	/// <summary>
 	/// Updates the existing entities with changes from <paramref name="cardPromoTypes"/>.

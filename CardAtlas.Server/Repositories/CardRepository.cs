@@ -120,7 +120,7 @@ public class CardRepository : ICardRepository
 			.ToListAsync();
 	}
 
-	public async Task<CardPrice> CreatePrice(CardPrice cardPrice)
+	public async Task<CardPrice> Create(CardPrice cardPrice)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -183,7 +183,7 @@ public class CardRepository : ICardRepository
 			.SingleAsync(cardLegality => cardLegality.Id == cardLegalityId);
 	}
 
-	public async Task<CardLegality> CreateCardLegality(CardLegality legality)
+	public async Task<CardLegality> Create(CardLegality legality)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -193,7 +193,7 @@ public class CardRepository : ICardRepository
 		return addedLegality.Entity;
 	}
 
-	public async Task<IEnumerable<CardLegality>> CreateCardLegalities(IEnumerable<CardLegality> legalities)
+	public async Task<IEnumerable<CardLegality>> Create(IEnumerable<CardLegality> legalities)
 	{
 		var addedLegalities = new List<CardLegality>();
 		if (!legalities.Any()) return addedLegalities;
@@ -301,7 +301,7 @@ public class CardRepository : ICardRepository
 			.ToListAsync();
 	}
 
-	public async Task<Keyword> CreateKeyword(Keyword keyword)
+	public async Task<Keyword> Create(Keyword keyword)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -311,7 +311,7 @@ public class CardRepository : ICardRepository
 		return addedKeyword.Entity;
 	}
 
-	public async Task<IEnumerable<Keyword>> CreateKeywords(IEnumerable<Keyword> keywords)
+	public async Task<IEnumerable<Keyword>> Create(IEnumerable<Keyword> keywords)
 	{
 		var addedKeywords = new List<Keyword>();
 		if (!keywords.Any()) return addedKeywords;
@@ -337,7 +337,7 @@ public class CardRepository : ICardRepository
 			.SingleAsync(cardKeyword => cardKeyword.Id == cardKeywordId);
 	}
 
-	public async Task<CardKeyword> CreateCardKeyword(CardKeyword cardKeyword)
+	public async Task<CardKeyword> Create(CardKeyword cardKeyword)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -347,7 +347,7 @@ public class CardRepository : ICardRepository
 		return addedCardKeyword.Entity;
 	}
 
-	public async Task<IEnumerable<CardKeyword>> CreateCardKeywords(IEnumerable<CardKeyword> cardKeywords)
+	public async Task<IEnumerable<CardKeyword>> Create(IEnumerable<CardKeyword> cardKeywords)
 	{
 		var addedCardKeywords = new List<CardKeyword>();
 		if (!cardKeywords.Any()) return addedCardKeywords;
@@ -415,7 +415,7 @@ public class CardRepository : ICardRepository
 			.ToListAsync();
 	}
 
-	public async Task<PromoType> CreatePromoType(PromoType promoType)
+	public async Task<PromoType> Create(PromoType promoType)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -425,7 +425,7 @@ public class CardRepository : ICardRepository
 		return addedPromoType.Entity;
 	}
 
-	public async Task<IEnumerable<PromoType>> CreatePromoTypes(IEnumerable<PromoType> promoTypes)
+	public async Task<IEnumerable<PromoType>> Create(IEnumerable<PromoType> promoTypes)
 	{
 		List<PromoType> addedPromoTypes = new();
 		if (!promoTypes.Any()) return addedPromoTypes;
@@ -442,7 +442,7 @@ public class CardRepository : ICardRepository
 		return addedPromoTypes;
 	}
 
-	public async Task<IEnumerable<CardPromoType>> CreateCardPromoTypes(IEnumerable<CardPromoType> cardPromoTypes)
+	public async Task<IEnumerable<CardPromoType>> Create(IEnumerable<CardPromoType> cardPromoTypes)
 	{
 		List<CardPromoType> addedCardPromoTypes = new();
 		if (!cardPromoTypes.Any()) return addedCardPromoTypes;
