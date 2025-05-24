@@ -376,14 +376,15 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		await UpsertArtists();
 
+		Task<IEnumerable<Card>> upsertedCardsTask = UpsertCards();
 		await Task.WhenAll(
-			UpsertCards(),
+			upsertedCardsTask,
 			CreateMissingGameFormats(),
 			CreateMissingKeywords(),
 			CreateMissingPromoTypes()
 		);
 
-		IEnumerable<Card> updatedCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
+		IEnumerable<Card> updatedCards = await upsertedCardsTask;
 
 		await Task.WhenAll(
 			UpsertImages(),
@@ -426,6 +427,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		int numberOfAffectedRows = await _artistRepository.Upsert(upsertionData);
 		await AssignArtistIdsOnBatchedCards();
+		_artistBatch.Clear();
 
 		return numberOfAffectedRows;
 	}
@@ -451,14 +453,16 @@ public class ScryfallIngestionService : IScryfallIngestionService
 				batchedCard.ArtistId = Artist.DefaultId;
 			}
 		}
+
+		_cardArtistBatch.Clear();
 	}
 
 	/// <summary>
 	/// Inserts or updates <see cref="Card"/> entities based on the current <see cref="_cardBatch"/>.<br/>
 	/// After upserting, it assigns the <see cref="Card.Id"/> to the <see cref="CardImage.CardId"/> property of the current <see cref="_imageBatch"/> entities.
 	/// </summary>
-	/// <returns>The total number of inserted or updated <see cref="Card"/> entities.</returns>
-	private async Task<int> UpsertCards()
+	/// <returns>All upserted <see cref="Card"/> entities.</returns>
+	private async Task<IEnumerable<Card>> UpsertCards()
 	{
 		IEnumerable<Card> existingCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
 		UpsertContainer<Card> upsertionData = new();
@@ -482,12 +486,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			}
 		}
 
-		int affectedtedNumberOfRows = await _cardRepository.Upsert(upsertionData);
-
+		await _cardRepository.Upsert(upsertionData);
 		IEnumerable<Card> updatedCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
 		AssignCardIdToBatchedEntities(updatedCards);
+		_cardBatch.Clear();
 
-		return affectedtedNumberOfRows;
+		return updatedCards;
 	}
 
 	private void AssignCardIdToBatchedEntities(IEnumerable<Card> cardsWithIdentity)
@@ -600,9 +604,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			}
 		}
 
-		return missingGameFormats.Count > 0 ?
+		int addedCount = missingGameFormats.Count > 0 ?
 			(await _gameRepository.CreateFormats(missingGameFormats)).Count()
 			: 0;
+		_gameFormatsBatch.Clear();
+
+		return addedCount;
 	}
 
 	/// <summary>
@@ -624,9 +631,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			}
 		}
 
-		return missingKeywords.Count > 0
+		int addedCount = missingKeywords.Count > 0
 			? (await _cardRepository.Create(missingKeywords)).Count()
 			: 0;
+		_keywordsBatch.Clear();
+
+		return addedCount;
 	}
 
 	/// <summary>
@@ -647,9 +657,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			}
 		}
 
-		return missingPromoTypes.Count > 0
+		int addedCount = missingPromoTypes.Count > 0
 			? (await _cardRepository.Create(missingPromoTypes)).Count()
 			: 0;
+		_promoTypesBatch.Clear();
+
+		return addedCount;
 	}
 
 	/// <summary>
@@ -767,9 +780,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			missingPlatforms.AddRange(batchedPlatforms);
 		}
 
-		return missingPlatforms.Count > 0
+		int addedCount = missingPlatforms.Count > 0
 			? (await _cardRepository.Create(existingPlatforms)).Count()
 			: 0;
+		_cardGamePlatformBatch.Clear();
+
+		return addedCount;
 	}
 
 	/// <summary>
@@ -803,9 +819,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			missingPrintFinishes.AddRange(batchedPrintFinishes);
 		}
 
-		return missingPrintFinishes.Count > 0
+		int addedCount = missingPrintFinishes.Count > 0
 			? (await _cardRepository.Create(existingPrintFinishes)).Count()
 			: 0;
+		_printFinishBatch.Clear();
+
+		return addedCount;
 	}
 
 	private async Task<int> UpsertCardLegalities()
