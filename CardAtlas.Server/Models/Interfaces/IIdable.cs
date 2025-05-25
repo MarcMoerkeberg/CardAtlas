@@ -1,6 +1,6 @@
 ﻿namespace CardAtlas.Server.Models.Interfaces;
 
-public interface IIdable
+public interface INameable
 {
-	int Id { get; }
+	string Name { get; }
 }

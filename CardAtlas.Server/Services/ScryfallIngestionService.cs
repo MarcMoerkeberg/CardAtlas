@@ -3,6 +3,7 @@ using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Image;
+using CardAtlas.Server.Models.Interfaces;
 using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Repositories.Interfaces;
 using CardAtlas.Server.Services.Interfaces;
@@ -663,20 +664,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return addedCount;
 	}
 
-	private async Task AssignGameFormatIdsToLegalities()
-	{
-		List<GameFormat> gameFormats = await _gameRepository.GetFormats(SourceType.Scryfall);
-		Dictionary<string, GameFormat> gameFormatsLookup = gameFormats.ToDictionary(gameFormat => gameFormat.Name, StringComparer.OrdinalIgnoreCase);
-		IEnumerable<(string formatName, CardLegality legality)> cardLegalities = _cardLegalitiesBatch.Values.SelectMany(tuple => tuple);
-
-		foreach ((string formatName, CardLegality legality) in cardLegalities)
-		{
-			if (!gameFormatsLookup.TryGetValue(formatName, out GameFormat? gameFormat)) continue;
-
-			legality.GameFormatId = gameFormat.Id;
-		}
-	}
-
 	/// <summary>
 	/// Creates <see cref="Keyword"/> entities from <see cref="_keywordsBatch"/> if they do not have an existing naming match in the db.
 	/// </summary>
@@ -703,20 +690,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_keywordsBatch.Clear();
 
 		return addedCount;
-	}
-
-	private async Task AssignKeywordIdsToCardKeywords()
-	{
-		List<Keyword> keywords = await _cardRepository.GetKeywords(SourceType.Scryfall);
-		Dictionary<string, Keyword> keywordsLookup = keywords.ToDictionary(keyword => keyword.Name, StringComparer.OrdinalIgnoreCase);
-		IEnumerable<(string keywordName, CardKeyword cardKeyword)> cardLegalities = _cardKeywordsBatch.Values.SelectMany(tuple => tuple);
-
-		foreach ((string keywordName, CardKeyword cardKeyword) in cardLegalities)
-		{
-			if (!keywordsLookup.TryGetValue(keywordName, out Keyword? keyword)) continue;
-
-			cardKeyword.KeywordId = keyword.Id;
-		}
 	}
 
 	/// <summary>
@@ -746,17 +719,59 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return addedCount;
 	}
 
-	private async Task AssignPromoTypesIdsToCardPromoTypes()
+	/// <summary>
+	/// Assigns the <see cref="CardLegality.GameFormatId"/> on batched (non-persisted) entities in <see cref="_cardLegalitiesBatch"/>.
+	/// </summary>
+	private Task AssignGameFormatIdsToLegalities() =>
+		AssignIdsAsync<GameFormat, CardLegality>(
+			() => _gameRepository.GetFormats(SourceType.Scryfall),
+			_cardLegalitiesBatch.Values.SelectMany(tuple => tuple),
+			(legality, id) => legality.GameFormatId = id
+		);
+
+	/// <summary>
+	/// Assigns the <see cref="CardKeyword.KeywordId"/> on batched (non-persisted) entities in <see cref="_cardKeywordsBatch"/>.
+	/// </summary>
+	private Task AssignKeywordIdsToCardKeywords() =>
+		AssignIdsAsync<Keyword, CardKeyword>(
+			() => _cardRepository.GetKeywords(SourceType.Scryfall),
+			_cardKeywordsBatch.Values.SelectMany(tuple => tuple),
+			(cardKeyword, id) => cardKeyword.KeywordId = id
+		);
+
+	/// <summary>
+	/// Assigns the <see cref="CardPromoType.PromoTypeId"/> on batched (non-persisted) entities in <see cref="_cardPromoTypesBatch"/>.
+	/// </summary>
+	private Task AssignPromoTypesIdsToCardPromoTypes() =>
+		AssignIdsAsync<PromoType, CardPromoType>(
+			() => _cardRepository.GetPromoTypes(SourceType.Scryfall),
+			_cardPromoTypesBatch.Values.SelectMany(tuple => tuple),
+			(cardPromoType, id) => cardPromoType.PromoTypeId = id
+		);
+
+	/// <summary>
+	/// Assigns Id property from <typeparamref name="TEntity"/> onto <typeparamref name="TRelation"/> using the <paramref name="assignId"/> action.<br/>
+	/// This method is used for assigning Ids to relational entities when persisting batched data. ie. Relationships between <see cref="Card"/> and <see cref="Keyword"/>.
+	/// </summary>
+	/// <typeparam name="TEntity">The entity containing the persisted Id. Ie. <see cref="Keyword"/>.</typeparam>
+	/// <typeparam name="TRelation">The relational entity, which should recieve the Id. Ie. <see cref="CardKeyword"/>.</typeparam>
+	/// <param name="getExistingEntities">Repository method for getting the existing entities. Ie. <see cref="Keyword"/>.</param>
+	/// <param name="batchedData">The batched relational entities, which should have assigned the Id. Name is used for matching with existing entities.</param>
+	/// <param name="assignId">The action for setting the Id. This is where you can assign specific properties to the id of the existing entities. Ie. Assigning <see cref="Keyword.Id"/> to <see cref="CardKeyword.KeywordId"/>.</param>
+	private async Task AssignIdsAsync<TEntity, TRelation>(
+		Func<Task<List<TEntity>>> getExistingEntities,
+		IEnumerable<(string name, TRelation relation)> batchedData,
+		Action<TRelation, int> assignId)
+		where TEntity : IIdable, INameable
 	{
-		List<PromoType> promoTypes = await _cardRepository.GetPromoTypes(SourceType.Scryfall);
-		Dictionary<string, PromoType> promoTypesLookup = promoTypes.ToDictionary(promoType => promoType.Name, StringComparer.OrdinalIgnoreCase);
-		IEnumerable<(string promoTypeName, CardPromoType cardPromoType)> cardLegalities = _cardPromoTypesBatch.Values.SelectMany(tuple => tuple);
+		IEnumerable<TEntity> existingEntities = await getExistingEntities();
+		Dictionary<string, TEntity> entityLookup = existingEntities.ToDictionary(entity => entity.Name, StringComparer.OrdinalIgnoreCase);
 
-		foreach ((string promoTypeName, CardPromoType cardPromoType) in cardLegalities)
+		foreach ((string name, TRelation relation) in batchedData)
 		{
-			if (!promoTypesLookup.TryGetValue(promoTypeName, out PromoType? promoType)) continue;
+			if (!entityLookup.TryGetValue(name, out TEntity? existingEntity)) continue;
 
-			cardPromoType.PromoTypeId = promoType.Id;
+			assignId(relation, existingEntity.Id);
 		}
 	}
 

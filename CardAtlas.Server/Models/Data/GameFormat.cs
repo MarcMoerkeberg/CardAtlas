@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data;
 
-public class GameFormat : INameable, ISourceable
+public class GameFormat : IIdable, INameable, ISourceable
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]

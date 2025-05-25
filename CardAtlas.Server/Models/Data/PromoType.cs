@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data;
 
-public class PromoType : INameable, ISourceable
+public class PromoType : IIdable, INameable, ISourceable
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
