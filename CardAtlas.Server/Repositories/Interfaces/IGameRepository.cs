@@ -15,7 +15,7 @@ public interface IGameRepository
 	/// </summary>
 	/// <param name="source"></param>
 	/// <returns></returns>
-	Task<HashSet<GameFormat>> GetFormats(SourceType source);
+	Task<List<GameFormat>> GetFormats(SourceType source);
 
 	/// <summary>
 	/// Returns the <see cref="GameFormat"/> entity with the provided <paramref name="formatId"/>.

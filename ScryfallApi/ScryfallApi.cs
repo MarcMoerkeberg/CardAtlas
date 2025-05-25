@@ -141,7 +141,7 @@ namespace ScryfallApi
 				throw new Exception(Errors.DeserializationError);
 			}
 
-			return responseData.Data.Where(data => data is not null);
+			return responseData.Data;
 		}
 
 		/// <summary>

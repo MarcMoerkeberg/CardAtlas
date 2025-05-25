@@ -27,6 +27,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly IEqualityComparer<CardImage> _imageComparer;
 	private readonly IEqualityComparer<CardPrice> _priceComparer;
 	private readonly IEqualityComparer<CardLegality> _cardLegalityComparer;
+	private readonly IEqualityComparer<GameFormat> _gameFormatComparer;
+	private readonly IEqualityComparer<Keyword> _keywordComparer;
+	private readonly IEqualityComparer<PromoType> _promoTypeComparer;
 	private readonly IScryfallApi _scryfallApi;
 	private readonly ISetRepository _setRepository;
 
@@ -35,16 +38,16 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private HashSet<Card> _cardBatch = new();
 	private Dictionary<string, List<CardImage>> _imageBatch = new();
 	private Dictionary<string, Artist> _cardArtistBatch = new();
-	private HashSet<Artist> _artistBatch = new();
+	private Dictionary<Guid, Artist> _artistBatch = new();
 	private Dictionary<Guid, List<CardPrice>> _cardPriceBatch = new();
 	private Dictionary<Guid, List<CardGamePlatform>> _cardGamePlatformBatch = new();
 	private Dictionary<Guid, List<CardPrintFinish>> _printFinishBatch = new();
 	private HashSet<GameFormat> _gameFormatsBatch = new();
-	private Dictionary<Guid, List<CardLegality>> _cardLegalitiesBatch = new();
+	private Dictionary<Guid, List<(string formatName, CardLegality legality)>> _cardLegalitiesBatch = new();
 	private HashSet<Keyword> _keywordsBatch = new();
-	private Dictionary<Guid, List<CardKeyword>> _cardKeywordsBatch = new();
+	private Dictionary<Guid, List<(string keywordName, CardKeyword cardKeyword)>> _cardKeywordsBatch = new();
 	private HashSet<PromoType> _promoTypesBatch = new();
-	private Dictionary<Guid, List<CardPromoType>> _cardPromoTypesBatch = new();
+	private Dictionary<Guid, List<(string promoTypeName, CardPromoType cardPromoType)>> _cardPromoTypesBatch = new();
 
 	public ScryfallIngestionService(
 		IArtistRepository artistRepository,
@@ -57,6 +60,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		IEqualityComparer<CardImage> imageComparer,
 		IEqualityComparer<CardPrice> priceComparer,
 		IEqualityComparer<CardLegality> cardLegalityComparer,
+		IEqualityComparer<GameFormat> gameFormatComparer,
+		IEqualityComparer<Keyword> keywordComparer,
+		IEqualityComparer<PromoType> promoTypeComparer,
 		IScryfallApi scryfallApi,
 		ISetRepository setRepository)
 	{
@@ -71,6 +77,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_priceComparer = priceComparer;
 		_cardLegalityComparer = cardLegalityComparer;
 		_setComparer = setComparer;
+		_gameFormatComparer = gameFormatComparer;
+		_keywordComparer = keywordComparer;
+		_promoTypeComparer = promoTypeComparer;
 		_scryfallApi = scryfallApi;
 		_setRepository = setRepository;
 	}
@@ -116,7 +125,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		{
 			BatchCardData(apiCard);
 
-			if (_cardBatch.Count >= 1000)
+			if (_cardBatch.Count >= 2000)
 			{
 				await PersistBatchedData();
 			}
@@ -143,15 +152,23 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// </summary>
 	private void BatchCardData(ApiCard apiCard)
 	{
-		BatchCards(apiCard);
-		BatchArtistsAndCardRelations(apiCard);
-		BatchCardImages(apiCard);
-		BatchCardPrices(apiCard);
-		BatchCardGamePlatform(apiCard);
-		BatchPrintFinishes(apiCard);
-		BatchGameFormatsAndLegalities(apiCard);
-		BatchKeywordsAndCardRelations(apiCard);
-		BatchPromoTypesAndCardRelations(apiCard);
+		try
+		{
+			BatchCards(apiCard);
+			BatchArtistsAndCardRelations(apiCard);
+			BatchCardImages(apiCard);
+			BatchCardPrices(apiCard);
+			BatchCardGamePlatform(apiCard);
+			BatchPrintFinishes(apiCard);
+			BatchGameFormatsAndLegalities(apiCard);
+			BatchKeywordsAndCardRelations(apiCard);
+			BatchPromoTypesAndCardRelations(apiCard);
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			throw;
+		}
 	}
 
 	/// <summary>
@@ -164,9 +181,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		Set set = _setLookup[apiCard.SetId];
 
-		List<Card> mappedCards = apiCard.CardFaces is not { Length: > 0 }
-			? new List<Card> { CardMapper.MapCard(apiCard, set) }
-			: apiCard.CardFaces.Select(cardFace => CardMapper.MapCard(apiCard, set, cardFace: cardFace)).ToList();
+		List<Card> mappedCards = apiCard.CardFaces is { Length: > 0 }
+			? apiCard.CardFaces.Select(cardFace => CardMapper.MapCard(apiCard, set, cardFace: cardFace)).ToList()
+			: new List<Card> { CardMapper.MapCard(apiCard, set) };
 
 		if (mappedCards is { Count: > 1 })
 		{
@@ -199,7 +216,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 				if (artist is null) continue;
 
 				_cardArtistBatch[$"{apiCard.Id}_{cardFace.Name}"] = artist;
-				_artistBatch.Add(artist);
+				_artistBatch.TryAdd(artist.ScryfallId!.Value, artist);
 				artists.Add(artist);
 			}
 		}
@@ -210,7 +227,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			if (artist is not null)
 			{
 				_cardArtistBatch[$"{apiCard.Id}_{apiCard.Name}"] = artist;
-				_artistBatch.Add(artist);
+				_artistBatch.TryAdd(artist.ScryfallId!.Value, artist);
 				artists.Add(artist);
 			}
 		}
@@ -271,14 +288,14 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>A read-only list of <see cref="CardGamePlatform"/>. Returns an empty list if the <paramref name="apiCard"/> has no "game" information.</returns>
 	private IReadOnlyList<CardGamePlatform> BatchCardGamePlatform(ApiCard apiCard)
 	{
-		List<CardGamePlatform> availabilityToUpsert = GameMapper.MapCardGamePlatform(apiCard);
+		List<CardGamePlatform> cardGamePlatformsToUpsert = GameMapper.MapCardGamePlatform(apiCard);
 
-		if (availabilityToUpsert is { Count: > 0 })
+		if (cardGamePlatformsToUpsert is { Count: > 0 })
 		{
-			_cardGamePlatformBatch[apiCard.Id] = availabilityToUpsert;
+			_cardGamePlatformBatch[apiCard.Id] = cardGamePlatformsToUpsert;
 		}
 
-		return availabilityToUpsert;
+		return cardGamePlatformsToUpsert;
 	}
 
 	/// <summary>
@@ -303,12 +320,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// </summary>
 	/// <param name="apiCard"></param>
 	/// <returns>A read-only list of <see cref="CardLegality"/>. Returns an empty list if the <paramref name="apiCard"/> has no logality information.</returns>
-	private IReadOnlyList<CardLegality> BatchGameFormatsAndLegalities(ApiCard apiCard)
+	private IReadOnlyList<(string formatName, CardLegality legality)> BatchGameFormatsAndLegalities(ApiCard apiCard)
 	{
 		IEnumerable<GameFormat> formatsOnCard = GameMapper.MapGameFormat(apiCard);
-		_gameFormatsBatch.UnionWith(formatsOnCard);
+		_gameFormatsBatch.UnionWith(formatsOnCard.Except(_gameFormatsBatch, _gameFormatComparer));
 
-		List<CardLegality> cardLegalities = CardMapper.MapCardLegalities(apiCard, _gameFormatsBatch);
+		List<(string formatName, CardLegality legality)> cardLegalities = CardMapper.MapCardLegalities(apiCard, _gameFormatsBatch);
 
 		if (cardLegalities is { Count: > 0 })
 		{
@@ -323,14 +340,14 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <see cref="CardKeyword"/> represents relations between <see cref="Card"/> and <see cref="Keyword"/> entities.
 	/// </summary>
 	/// <returns>A read-only list of <see cref="CardKeyword"/>. Returns an empty list if the <paramref name="apiCard"/> has no keywords.</returns>
-	private IReadOnlyList<CardKeyword> BatchKeywordsAndCardRelations(ApiCard apiCard)
+	private IReadOnlyList<(string keywordName, CardKeyword cardKeyword)> BatchKeywordsAndCardRelations(ApiCard apiCard)
 	{
-		if (apiCard.Keywords is not { Length: > 0 }) return new List<CardKeyword>();
+		if (apiCard.Keywords is not { Length: > 0 }) return new List<(string keywordName, CardKeyword cardKeyword)>();
 
 		IEnumerable<Keyword> apiCardKeywords = CardMapper.MapKeywords(apiCard);
-		_keywordsBatch.UnionWith(apiCardKeywords);
+		_keywordsBatch.UnionWith(apiCardKeywords.Except(_keywordsBatch, _keywordComparer));
 
-		List<CardKeyword> keywordsOnCard = CardMapper.MapCardKeywords(apiCard, _keywordsBatch);
+		List<(string keywordName, CardKeyword cardKeyword)> keywordsOnCard = CardMapper.MapCardKeywords(apiCard, _keywordsBatch);
 
 		if (keywordsOnCard is { Count: > 0 })
 		{
@@ -345,14 +362,14 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <see cref="CardPromoType"/> represents relations between <see cref="Card"/> and <see cref="PromoType"/> entities.
 	/// </summary>
 	/// <returns>A read-only list of <see cref="CardPromoType"/>. Returns an empty list if the <paramref name="apiCard"/> has no promo types.</returns>
-	private IReadOnlyList<CardPromoType> BatchPromoTypesAndCardRelations(ApiCard apiCard)
+	private IReadOnlyList<(string promoTypeName, CardPromoType cardPromoType)> BatchPromoTypesAndCardRelations(ApiCard apiCard)
 	{
-		if (apiCard.PromoTypes is not { Length: > 0 }) return new List<CardPromoType>();
+		if (apiCard.PromoTypes is not { Length: > 0 }) return new List<(string promoTypeName, CardPromoType cardPromoType)>();
 
 		IEnumerable<PromoType> apiCardPromoTypes = CardMapper.MapPromoTypes(apiCard);
-		_promoTypesBatch.UnionWith(apiCardPromoTypes);
+		_promoTypesBatch.UnionWith(apiCardPromoTypes.Except(_promoTypesBatch, _promoTypeComparer));
 
-		List<CardPromoType> promoTypesOnCard = CardMapper.MapCardPromoTypes(apiCard, apiCardPromoTypes);
+		List<(string promoTypeName, CardPromoType cardPromoType)> promoTypesOnCard = CardMapper.MapCardPromoTypes(apiCard, apiCardPromoTypes);
 
 		if (promoTypesOnCard is { Count: > 0 })
 		{
@@ -376,15 +393,24 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		IEnumerable<Card> updatedCards = await upsertedCardsTask;
 
-		await Task.WhenAll(
-			UpsertImages(),
-			UpsertCardPrices(),
-			CreateMissingCardGamePlatforms(updatedCards),
-			CreateMissingCardPrintFinishes(updatedCards),
-			UpsertCardLegalities(),
-			CreateMissingCardKeywords(updatedCards),
-			CreateMissingCardPromoTypes(updatedCards)
-		);
+		try
+		{
+
+			await Task.WhenAll(
+				UpsertImages(),
+				UpsertCardPrices(),
+				CreateMissingCardGamePlatforms(updatedCards),
+				CreateMissingCardPrintFinishes(updatedCards),
+				UpsertCardLegalities(),
+				CreateMissingCardKeywords(updatedCards),
+				CreateMissingCardPromoTypes(updatedCards)
+			);
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			throw;
+		}
 	}
 
 
@@ -396,12 +422,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private async Task<int> UpsertArtists()
 	{
 		UpsertContainer<Artist> upsertionData = new();
-		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Select(artist => artist.ScryfallId!.Value));
+		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Keys);
 		Dictionary<Guid, Artist> artistLookup = existingArtists.ToDictionary(artist => artist.ScryfallId!.Value);
 
-		foreach (Artist batchedArtist in _artistBatch)
+		foreach ((Guid scryfallId, Artist batchedArtist) in _artistBatch)
 		{
-			if (artistLookup.TryGetValue(batchedArtist.ScryfallId!.Value, out Artist? existingArtist))
+			if (artistLookup.TryGetValue(scryfallId, out Artist? existingArtist))
 			{
 				batchedArtist.Id = existingArtist.Id;
 
@@ -428,7 +454,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// </summary>
 	private async Task AssignArtistIdsOnBatchedCards()
 	{
-		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Select(artist => artist.ScryfallId!.Value));
+		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Keys);
 		Dictionary<Guid, Artist> artistLookup = existingArtists.ToDictionary(artist => artist.ScryfallId!.Value);
 
 		foreach (Card batchedCard in _cardBatch)
@@ -436,7 +462,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			if (_cardArtistBatch.TryGetValue($"{batchedCard.ScryfallId}_{batchedCard.Name}", out Artist? batchedArtist) &&
 				artistLookup.TryGetValue(batchedArtist.ScryfallId!.Value, out Artist? existingArtist))
 			{
-				batchedCard.ArtistId = batchedArtist.Id;
+				batchedCard.ArtistId = existingArtist.Id;
 			}
 			else
 			{
@@ -456,11 +482,11 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		IEnumerable<Card> existingCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
 		UpsertContainer<Card> upsertionData = new();
-		Dictionary<Guid, Card> cardLookup = existingCards.ToDictionary(card => card.ScryfallId!.Value);
+		Dictionary<string, Card> cardLookup = existingCards.ToDictionary(card => $"{card.ScryfallId!.Value}_{card.Name}_{card.ParentCard?.Name}", StringComparer.OrdinalIgnoreCase);
 
 		foreach (Card batchedCard in _cardBatch)
 		{
-			if (cardLookup.TryGetValue(batchedCard.ScryfallId!.Value, out Card? existingCard))
+			if (cardLookup.TryGetValue($"{batchedCard.ScryfallId!.Value}_{batchedCard.Name}_{batchedCard.ParentCard?.Name}", out Card? existingCard))
 			{
 				batchedCard.ArtistId = existingCard.ArtistId;
 				batchedCard.ParentCardId = existingCard.ParentCardId;
@@ -492,6 +518,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		AssignCardIdToBatchedCardPrintFinishes(cardsWithIdentity);
 		AssignCardIdToBatchedCardLegalities(cardsWithIdentity);
 		AssignCardIdToBatchedCardKeywords(cardsWithIdentity);
+		AssignCardIdToBatchedCardPromoTypes(cardsWithIdentity);
 	}
 
 	/// <summary>
@@ -567,9 +594,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		foreach (Card card in cardsWithIdentity)
 		{
-			if (!_cardLegalitiesBatch.TryGetValue(card.ScryfallId!.Value, out List<CardLegality>? cardLegalities)) continue;
+			if (!_cardLegalitiesBatch.TryGetValue(card.ScryfallId!.Value, out List<(string formatName, CardLegality legality)>? cardLegalities)) continue;
 
-			foreach (CardLegality legality in cardLegalities)
+			foreach ((string _, CardLegality legality) in cardLegalities)
 			{
 				legality.CardId = card.Id;
 			}
@@ -583,11 +610,27 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		foreach (Card card in cardsWithIdentity)
 		{
-			if (!_cardKeywordsBatch.TryGetValue(card.ScryfallId!.Value, out List<CardKeyword>? cardKeywords)) continue;
+			if (!_cardKeywordsBatch.TryGetValue(card.ScryfallId!.Value, out List<(string keywordName, CardKeyword cardKeyword)>? cardKeywords)) continue;
 
-			foreach (CardKeyword cardKeyword in cardKeywords)
+			foreach ((string _, CardKeyword cardKeyword) in cardKeywords)
 			{
 				cardKeyword.CardId = card.Id;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardPrice.CardId"/> on entities in the current <see cref="_cardPromoTypesBatch"/>.
+	/// </summary>
+	private void AssignCardIdToBatchedCardPromoTypes(IEnumerable<Card> cardsWithIdentity)
+	{
+		foreach (Card card in cardsWithIdentity)
+		{
+			if (!_cardPromoTypesBatch.TryGetValue(card.ScryfallId!.Value, out List<(string promoTypeName, CardPromoType cardPromoType)>? cardPromoTypes)) continue;
+
+			foreach ((string _, CardPromoType cardPromoType) in cardPromoTypes)
+			{
+				cardPromoType.CardId = card.Id;
 			}
 		}
 	}
@@ -614,9 +657,24 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		int addedCount = missingGameFormats.Count > 0 ?
 			(await _gameRepository.Create(missingGameFormats)).Count()
 			: 0;
+		await AssignGameFormatIdsToLegalities();
 		_gameFormatsBatch.Clear();
 
 		return addedCount;
+	}
+
+	private async Task AssignGameFormatIdsToLegalities()
+	{
+		List<GameFormat> gameFormats = await _gameRepository.GetFormats(SourceType.Scryfall);
+		Dictionary<string, GameFormat> gameFormatsLookup = gameFormats.ToDictionary(gameFormat => gameFormat.Name, StringComparer.OrdinalIgnoreCase);
+		IEnumerable<(string formatName, CardLegality legality)> cardLegalities = _cardLegalitiesBatch.Values.SelectMany(tuple => tuple);
+
+		foreach ((string formatName, CardLegality legality) in cardLegalities)
+		{
+			if (!gameFormatsLookup.TryGetValue(formatName, out GameFormat? gameFormat)) continue;
+
+			legality.GameFormatId = gameFormat.Id;
+		}
 	}
 
 	/// <summary>
@@ -641,9 +699,24 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		int addedCount = missingKeywords.Count > 0
 			? (await _cardRepository.Create(missingKeywords)).Count()
 			: 0;
+		await AssignKeywordIdsToCardKeywords();
 		_keywordsBatch.Clear();
 
 		return addedCount;
+	}
+
+	private async Task AssignKeywordIdsToCardKeywords()
+	{
+		List<Keyword> keywords = await _cardRepository.GetKeywords(SourceType.Scryfall);
+		Dictionary<string, Keyword> keywordsLookup = keywords.ToDictionary(keyword => keyword.Name, StringComparer.OrdinalIgnoreCase);
+		IEnumerable<(string keywordName, CardKeyword cardKeyword)> cardLegalities = _cardKeywordsBatch.Values.SelectMany(tuple => tuple);
+
+		foreach ((string keywordName, CardKeyword cardKeyword) in cardLegalities)
+		{
+			if (!keywordsLookup.TryGetValue(keywordName, out Keyword? keyword)) continue;
+
+			cardKeyword.KeywordId = keyword.Id;
+		}
 	}
 
 	/// <summary>
@@ -667,9 +740,24 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		int addedCount = missingPromoTypes.Count > 0
 			? (await _cardRepository.Create(missingPromoTypes)).Count()
 			: 0;
+		await AssignPromoTypesIdsToCardPromoTypes();
 		_promoTypesBatch.Clear();
 
 		return addedCount;
+	}
+
+	private async Task AssignPromoTypesIdsToCardPromoTypes()
+	{
+		List<PromoType> promoTypes = await _cardRepository.GetPromoTypes(SourceType.Scryfall);
+		Dictionary<string, PromoType> promoTypesLookup = promoTypes.ToDictionary(promoType => promoType.Name, StringComparer.OrdinalIgnoreCase);
+		IEnumerable<(string promoTypeName, CardPromoType cardPromoType)> cardLegalities = _cardPromoTypesBatch.Values.SelectMany(tuple => tuple);
+
+		foreach ((string promoTypeName, CardPromoType cardPromoType) in cardLegalities)
+		{
+			if (!promoTypesLookup.TryGetValue(promoTypeName, out PromoType? promoType)) continue;
+
+			cardPromoType.PromoTypeId = promoType.Id;
+		}
 	}
 
 	/// <summary>
@@ -737,7 +825,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		foreach (CardPrice batchedCardPrice in batchedPrices)
 		{
-			if (existingPricesLookup.TryGetValue((batchedCardPrice.CardId, (VendorType)batchedCardPrice.VendorId, (CurrencyType)batchedCardPrice.VendorId), out CardPrice? existingCardPrice))
+			if (existingPricesLookup.TryGetValue((batchedCardPrice.CardId, (VendorType)batchedCardPrice.VendorId, (CurrencyType)batchedCardPrice.CurrencyId), out CardPrice? existingCardPrice))
 			{
 				batchedCardPrice.Id = existingCardPrice.Id;
 				if (_priceComparer.Equals(existingCardPrice, batchedCardPrice)) continue;
@@ -788,7 +876,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		int addedCount = missingPlatforms.Count > 0
-			? (await _cardRepository.Create(existingPlatforms)).Count()
+			? (await _cardRepository.Create(missingPlatforms)).Count()
 			: 0;
 		_cardGamePlatformBatch.Clear();
 
@@ -827,7 +915,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		int addedCount = missingPrintFinishes.Count > 0
-			? (await _cardRepository.Create(existingPrintFinishes)).Count()
+			? (await _cardRepository.Create(missingPrintFinishes)).Count()
 			: 0;
 		_printFinishBatch.Clear();
 
@@ -839,8 +927,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		UpsertContainer<CardLegality> upsertionData = new();
 		List<CardLegality> batchedCardLegalities = _cardLegalitiesBatch
 			.Values
-			.SelectMany(cardLegalityList => cardLegalityList)
-			.Where(cardPrice => cardPrice.CardId != 0)
+			.SelectMany(cardLegalityTupleList => cardLegalityTupleList)
+			.Select(tuple => tuple.legality)
+			.Where(cardLegality => cardLegality.CardId != 0 && cardLegality.GameFormatId != 0)
 			.ToList();
 
 		IEnumerable<long> cardIds = batchedCardLegalities.Select(cardLegality => cardLegality.CardId).Distinct();
@@ -883,8 +972,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		List<CardKeyword> batchedCardKeywords = _cardKeywordsBatch
 			.Values
-			.SelectMany(cardKeywordList => cardKeywordList)
-			.Where(cardKeyword => cardKeyword.CardId != 0)
+			.SelectMany(cardKeywordTupleList => cardKeywordTupleList)
+			.Select(tuple => tuple.cardKeyword)
+			.Where(cardKeyword => cardKeyword.CardId != 0 && cardKeyword.KeywordId != 0)
 			.ToList();
 
 		if (existingCardKeywords.Any())
@@ -903,7 +993,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		int addedCount = missingCardKeywords.Count > 0
-			? (await _cardRepository.Create(existingCardKeywords)).Count()
+			? (await _cardRepository.Create(missingCardKeywords)).Count()
 			: 0;
 		_cardKeywordsBatch.Clear();
 
@@ -922,8 +1012,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		List<CardPromoType> batchedCardPromoTypes = _cardPromoTypesBatch
 			.Values
-			.SelectMany(cardPromoTypeList => cardPromoTypeList)
-			.Where(cardPromoType => cardPromoType.CardId != 0)
+			.SelectMany(cardPromoTypeTupleList => cardPromoTypeTupleList)
+			.Select(tuple => tuple.cardPromoType)
+			.Where(cardPromoType => cardPromoType.CardId != 0 && cardPromoType.PromoTypeId != 0)
 			.ToList();
 
 		if (existingCardPromoTypes.Any())
@@ -942,7 +1033,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		int addedCount = missingCardPromoTypes.Count > 0
-			? (await _cardRepository.Create(existingCardPromoTypes)).Count()
+			? (await _cardRepository.Create(missingCardPromoTypes)).Count()
 			: 0;
 		_cardPromoTypesBatch.Clear();
 

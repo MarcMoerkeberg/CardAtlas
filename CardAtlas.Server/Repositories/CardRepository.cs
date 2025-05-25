@@ -71,6 +71,7 @@ public class CardRepository : ICardRepository
 
 		return await dbContext.Cards
 			.AsNoTracking()
+			.Include(card => card.ParentCard)
 			.Where(card => card.ScryfallId.HasValue &&
 				scryfallIds.Contains(card.ScryfallId.Value))
 			.ToListAsync();
@@ -212,7 +213,7 @@ public class CardRepository : ICardRepository
 			.ToListAsync();
 	}
 
-	public async Task<IEnumerable<Keyword>> GetKeywords(SourceType source)
+	public async Task<List<Keyword>> GetKeywords(SourceType source)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -326,7 +327,7 @@ public class CardRepository : ICardRepository
 			.ToListAsync();
 	}
 
-	public async Task<IEnumerable<PromoType>> GetPromoTypes(SourceType source)
+	public async Task<List<PromoType>> GetPromoTypes(SourceType source)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 

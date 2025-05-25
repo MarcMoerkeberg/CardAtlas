@@ -231,22 +231,22 @@ public static class CardMapper
 	/// Should have all relevant <see cref="GameFormat"/> entities in <paramref name="gameFormats"/> to map the legalities.
 	/// </summary>
 	/// <returns>A new <see cref="CardLegality"/> object for each format that exists in <paramref name="gameFormats"/> and <paramref name="apiCard"/>.</returns>
-	public static List<CardLegality> MapCardLegalities(ApiCard apiCard, IEnumerable<GameFormat> gameFormats)
+	public static List<(string formatName, CardLegality legality)> MapCardLegalities(ApiCard apiCard, IEnumerable<GameFormat> gameFormats)
 	{
-		var legalities = new List<CardLegality>();
+		List<(string formatName, CardLegality legality)> legalities = new();
 		if (apiCard.ScryfallLegalities is { Count: 0 } || !gameFormats.Any()) return legalities;
 
-		foreach (var (key, value) in apiCard.ScryfallLegalities)
+		foreach ((string formatName, string legality) in apiCard.ScryfallLegalities)
 		{
-			GameFormat? gameFormat = gameFormats.FirstWithNameOrDefault(key);
+			GameFormat? gameFormat = gameFormats.FirstWithNameOrDefault(formatName);
 			if (gameFormat is null) continue;
 
-			legalities.Add(new CardLegality
+			legalities.Add((gameFormat.Name, new CardLegality
 			{
 				CardId = 0,
 				GameFormatId = gameFormat.Id,
-				LegalityId = (int)GetLegalityType(value),
-			});
+				LegalityId = (int)GetLegalityType(legality),
+			}));
 		}
 
 		return legalities;
@@ -300,9 +300,9 @@ public static class CardMapper
 	/// Should have all relevant <see cref="Keyword"/> entities in <paramref name="keywords"/> to map the relations correctly.
 	/// </summary>
 	/// <returns>A new <see cref="CardKeyword"/> object for each keyword on the <paramref name="apiCard"/> that matches an entry in <paramref name="keywords"/>.</returns>
-	public static List<CardKeyword> MapCardKeywords(ApiCard apiCard, IEnumerable<Keyword> keywords)
+	public static List<(string keywordName, CardKeyword cardKeyword)> MapCardKeywords(ApiCard apiCard, IEnumerable<Keyword> keywords)
 	{
-		List<CardKeyword> cardKeywords = new();
+		List<(string keywordName, CardKeyword cardKeyword)> cardKeywords = new();
 		if (apiCard.Keywords is not { Length: > 0 } || !keywords.Any()) return cardKeywords;
 
 		foreach (string apiCardKeywordName in apiCard.Keywords)
@@ -310,11 +310,11 @@ public static class CardMapper
 			Keyword? keyword = keywords.FirstWithNameOrDefault(apiCardKeywordName);
 			if (keyword is null) continue;
 
-			cardKeywords.Add(new CardKeyword
+			cardKeywords.Add((keyword.Name, new CardKeyword
 			{
 				CardId = 0,
 				KeywordId = keyword.Id,
-			});
+			}));
 		}
 
 		return cardKeywords;
@@ -355,9 +355,9 @@ public static class CardMapper
 	/// Should have all relevant <see cref="PromoType"/> entities in <paramref name="promoTypes"/> to map the relations correctly.
 	/// </summary>
 	/// <returns>A new <see cref="CardPromoType"/> object for each promo type on the <paramref name="apiCard"/> that matches an entry in <paramref name="promoTypes"/>.</returns>
-	public static List<CardPromoType> MapCardPromoTypes(ApiCard apiCard, IEnumerable<PromoType> promoTypes)
+	public static List<(string promoTypeName, CardPromoType cardPromoType)> MapCardPromoTypes(ApiCard apiCard, IEnumerable<PromoType> promoTypes)
 	{
-		List<CardPromoType> cardPromoTypes = new();
+		List<(string promoTypeName, CardPromoType cardPromoType)> cardPromoTypes = new();
 		if (apiCard.PromoTypes is not { Length: > 0 } || !promoTypes.Any()) return cardPromoTypes;
 
 		foreach (string apiCardPromoTypeName in apiCard.PromoTypes)
@@ -365,11 +365,11 @@ public static class CardMapper
 			PromoType? promoType = promoTypes.FirstWithNameOrDefault(apiCardPromoTypeName);
 			if (promoType is null) continue;
 
-			cardPromoTypes.Add(new CardPromoType
+			cardPromoTypes.Add((promoType.Name, new CardPromoType
 			{
 				CardId = 0,
 				PromoTypeId = promoType.Id,
-			});
+			}));
 		}
 
 		return cardPromoTypes;

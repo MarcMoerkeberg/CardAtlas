@@ -11,8 +11,7 @@ namespace CardAtlas.Server.Repositories;
 public class SetRepository : ISetRepository
 {
 	private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
-	public SetRepository(
-		IDbContextFactory<ApplicationDbContext> dbContextFactory)
+	public SetRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
 	{
 		_dbContextFactory = dbContextFactory;
 	}
@@ -39,6 +38,7 @@ public class SetRepository : ISetRepository
 
 		return await dbContext.Sets
 			.AsNoTracking()
+			.Include(set => set.SetType)
 			.Where(set => set.ScryfallId.HasValue && scryfallIds.Contains(set.ScryfallId.Value))
 			.ToListAsync();
 	}
@@ -78,8 +78,9 @@ public class SetRepository : ISetRepository
 
 		return await dbContext.Sets
 			.Include(set => set.Source)
+			.Include(set => set.SetType)
 			.AsNoTracking()
-			.Where(set => set.SourceType == source)
+			.Where(set => set.SourceId == (int)source)
 			.ToListAsync();
 	}
 

@@ -54,14 +54,14 @@ public class GameRepository : IGameRepository
 			.ToHashSetAsync();
 	}
 
-	public async Task<HashSet<GameFormat>> GetFormats(SourceType source)
+	public async Task<List<GameFormat>> GetFormats(SourceType source)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
 		return await dbContext.GameFormats
 			.AsNoTracking()
 			.Where(format => format.SourceId == (int)source)
-			.ToHashSetAsync();
+			.ToListAsync();
 	}
 
 	public async Task<GameFormat> GetFormat(int formatId)

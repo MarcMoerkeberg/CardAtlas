@@ -68,7 +68,7 @@ public interface ICardRepository
 	/// <summary>
 	/// Returns all <see cref="Keyword"/> entities with the source <paramref name="source"/> from the database.
 	/// </summary>
-	Task<IEnumerable<Keyword>> GetKeywords(SourceType source);
+	Task<List<Keyword>> GetKeywords(SourceType source);
 
 	/// <summary>
 	/// Returns the <see cref="CardKeyword"/> from the db with the specified <paramref name="cardKeywordId"/>.<br/>
@@ -95,7 +95,7 @@ public interface ICardRepository
 	/// <summary>
 	/// Returns all <see cref="PromoType"/> entities with the <paramref name="source"/> from the database.
 	/// </summary>
-	Task<IEnumerable<PromoType>> GetPromoTypes(SourceType source);
+	Task<List<PromoType>> GetPromoTypes(SourceType source);
 
 	/// <summary>
 	/// Returns the <see cref="CardPromoType"/> from the db with the specified <paramref name="cardPromoTypeId"/>.<br/>
