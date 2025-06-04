@@ -722,58 +722,29 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <summary>
 	/// Assigns the <see cref="CardLegality.GameFormatId"/> on batched (non-persisted) entities in <see cref="_cardLegalitiesBatch"/>.
 	/// </summary>
-	private Task AssignGameFormatIdsToLegalities() =>
-		AssignIdsAsync<GameFormat, CardLegality>(
-			() => _gameRepository.GetFormats(SourceType.Scryfall),
-			_cardLegalitiesBatch.Values.SelectMany(tuple => tuple),
+	private async Task AssignGameFormatIdsToLegalities() =>
+		_cardLegalitiesBatch.AssignRelationalIdToEntities(
+			await _gameRepository.GetFormats(SourceType.Scryfall),
 			(legality, id) => legality.GameFormatId = id
 		);
 
 	/// <summary>
 	/// Assigns the <see cref="CardKeyword.KeywordId"/> on batched (non-persisted) entities in <see cref="_cardKeywordsBatch"/>.
 	/// </summary>
-	private Task AssignKeywordIdsToCardKeywords() =>
-		AssignIdsAsync<Keyword, CardKeyword>(
-			() => _cardRepository.GetKeywords(SourceType.Scryfall),
-			_cardKeywordsBatch.Values.SelectMany(tuple => tuple),
+	private async Task AssignKeywordIdsToCardKeywords() =>
+		_cardKeywordsBatch.AssignRelationalIdToEntities(
+			await _cardRepository.GetKeywords(SourceType.Scryfall),
 			(cardKeyword, id) => cardKeyword.KeywordId = id
 		);
 
 	/// <summary>
 	/// Assigns the <see cref="CardPromoType.PromoTypeId"/> on batched (non-persisted) entities in <see cref="_cardPromoTypesBatch"/>.
 	/// </summary>
-	private Task AssignPromoTypesIdsToCardPromoTypes() =>
-		AssignIdsAsync<PromoType, CardPromoType>(
-			() => _cardRepository.GetPromoTypes(SourceType.Scryfall),
-			_cardPromoTypesBatch.Values.SelectMany(tuple => tuple),
+	private async Task AssignPromoTypesIdsToCardPromoTypes() =>
+		_cardPromoTypesBatch.AssignRelationalIdToEntities(
+			await _cardRepository.GetPromoTypes(SourceType.Scryfall),
 			(cardPromoType, id) => cardPromoType.PromoTypeId = id
 		);
-
-	/// <summary>
-	/// Assigns Id property from <typeparamref name="TEntity"/> onto <typeparamref name="TRelation"/> using the <paramref name="assignId"/> action.<br/>
-	/// This method is used for assigning Ids to relational entities when persisting batched data. ie. Relationships between <see cref="Card"/> and <see cref="Keyword"/>.
-	/// </summary>
-	/// <typeparam name="TEntity">The entity containing the persisted Id. Ie. <see cref="Keyword"/>.</typeparam>
-	/// <typeparam name="TRelation">The relational entity, which should recieve the Id. Ie. <see cref="CardKeyword"/>.</typeparam>
-	/// <param name="getExistingEntities">Repository method for getting the existing entities. Ie. <see cref="Keyword"/>.</param>
-	/// <param name="batchedData">The batched relational entities, which should have assigned the Id. Name is used for matching with existing entities.</param>
-	/// <param name="assignId">The action for setting the Id. This is where you can assign specific properties to the id of the existing entities. Ie. Assigning <see cref="Keyword.Id"/> to <see cref="CardKeyword.KeywordId"/>.</param>
-	private async Task AssignIdsAsync<TEntity, TRelation>(
-		Func<Task<List<TEntity>>> getExistingEntities,
-		IEnumerable<(string name, TRelation relation)> batchedData,
-		Action<TRelation, int> assignId)
-		where TEntity : IIdable, INameable
-	{
-		IEnumerable<TEntity> existingEntities = await getExistingEntities();
-		Dictionary<string, TEntity> entityLookup = existingEntities.ToDictionary(entity => entity.Name, StringComparer.OrdinalIgnoreCase);
-
-		foreach ((string name, TRelation relation) in batchedData)
-		{
-			if (!entityLookup.TryGetValue(name, out TEntity? existingEntity)) continue;
-
-			assignId(relation, existingEntity.Id);
-		}
-	}
 
 	/// <summary>
 	/// Inserts or updates <see cref="CardImage"/> entities based on the current<see cref="_imageBatch"/>.<br/>
