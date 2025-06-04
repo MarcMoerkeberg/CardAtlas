@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using CardAtlas.Server.Models.Interfaces;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data.CardRelations;
 
-public class CardLegality
+public class CardLegality : ICardRelateable
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]

@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CardAtlas.Server.Models.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data.Image;
 
-public class CardImage
+public class CardImage : ICardRelateable
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
