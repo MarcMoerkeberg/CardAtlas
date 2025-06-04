@@ -3,7 +3,6 @@ using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Image;
-using CardAtlas.Server.Models.Interfaces;
 using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Repositories.Interfaces;
 using CardAtlas.Server.Services.Interfaces;
@@ -37,8 +36,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	//Batching data
 	private Dictionary<Guid, Set> _setLookup = new();
 	private HashSet<Card> _cardBatch = new();
-	private Dictionary<string, List<CardImage>> _imageBatch = new();
-	private Dictionary<string, Artist> _cardArtistBatch = new();
+	private Dictionary<(Guid cardScryfallId, string cardName), List<CardImage>> _imageBatch = new();
+	private Dictionary<(Guid cardScryfallId, string cardName), Artist> _cardArtistBatch = new();
 	private Dictionary<Guid, Artist> _artistBatch = new();
 	private Dictionary<Guid, List<CardPrice>> _cardPriceBatch = new();
 	private Dictionary<Guid, List<CardGamePlatform>> _cardGamePlatformBatch = new();
@@ -216,7 +215,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 				Artist? artist = ArtistMapper.MapArtist(cardFace);
 				if (artist is null) continue;
 
-				_cardArtistBatch[$"{apiCard.Id}_{cardFace.Name}"] = artist;
+				_cardArtistBatch[(apiCard.Id, cardFace.Name)] = artist;
 				_artistBatch.TryAdd(artist.ScryfallId!.Value, artist);
 				artists.Add(artist);
 			}
@@ -227,7 +226,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 			if (artist is not null)
 			{
-				_cardArtistBatch[$"{apiCard.Id}_{apiCard.Name}"] = artist;
+				_cardArtistBatch[(apiCard.Id, apiCard.Name)] = artist;
 				_artistBatch.TryAdd(artist.ScryfallId!.Value, artist);
 				artists.Add(artist);
 			}
@@ -251,7 +250,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			{
 				List<CardImage> apiCardImages = CardImageMapper.MapCardImages(apiCard, cardFace);
 
-				_imageBatch[$"{apiCard.Id}_{cardFace.Name}"] = apiCardImages;
+				_imageBatch[(apiCard.Id, cardFace.Name)] = apiCardImages;
 				cardImages.AddRange(apiCardImages);
 			}
 		}
@@ -259,7 +258,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		{
 			List<CardImage> apiCardImages = CardImageMapper.MapCardImages(apiCard);
 
-			_imageBatch[$"{apiCard.Id}_{apiCard.Name}"] = apiCardImages;
+			_imageBatch[(apiCard.Id, apiCard.Name)] = apiCardImages;
 			cardImages.AddRange(apiCardImages);
 		}
 
@@ -394,24 +393,15 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		IEnumerable<Card> updatedCards = await upsertedCardsTask;
 
-		try
-		{
-
-			await Task.WhenAll(
-				UpsertImages(),
-				UpsertCardPrices(),
-				CreateMissingCardGamePlatforms(updatedCards),
-				CreateMissingCardPrintFinishes(updatedCards),
-				UpsertCardLegalities(),
-				CreateMissingCardKeywords(updatedCards),
-				CreateMissingCardPromoTypes(updatedCards)
-			);
-		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e);
-			throw;
-		}
+		await Task.WhenAll(
+			UpsertImages(),
+			UpsertCardPrices(),
+			CreateMissingCardGamePlatforms(updatedCards),
+			CreateMissingCardPrintFinishes(updatedCards),
+			UpsertCardLegalities(),
+			CreateMissingCardKeywords(updatedCards),
+			CreateMissingCardPromoTypes(updatedCards)
+		);
 	}
 
 
@@ -460,8 +450,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		foreach (Card batchedCard in _cardBatch)
 		{
-			if (_cardArtistBatch.TryGetValue($"{batchedCard.ScryfallId}_{batchedCard.Name}", out Artist? batchedArtist) &&
-				artistLookup.TryGetValue(batchedArtist.ScryfallId!.Value, out Artist? existingArtist))
+			if (batchedCard.ScryfallId.HasValue &&
+				_cardArtistBatch.TryGetValue((batchedCard.ScryfallId.Value, batchedCard.Name), out Artist? batchedArtist) &&
+				batchedArtist.ScryfallId.HasValue &&
+				artistLookup.TryGetValue(batchedArtist.ScryfallId.Value, out Artist? existingArtist))
 			{
 				batchedCard.ArtistId = existingArtist.Id;
 			}
@@ -483,11 +475,11 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		IEnumerable<Card> existingCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
 		UpsertContainer<Card> upsertionData = new();
-		Dictionary<string, Card> cardLookup = existingCards.ToDictionary(card => $"{card.ScryfallId!.Value}_{card.Name}_{card.ParentCard?.Name}", StringComparer.OrdinalIgnoreCase);
+		Dictionary<(Guid Value, string, string?), Card> cardLookup = existingCards.ToDictionary(card => (card.ScryfallId!.Value, card.Name, card.ParentCard?.Name));
 
 		foreach (Card batchedCard in _cardBatch)
 		{
-			if (cardLookup.TryGetValue($"{batchedCard.ScryfallId!.Value}_{batchedCard.Name}_{batchedCard.ParentCard?.Name}", out Card? existingCard))
+			if (cardLookup.TryGetValue((batchedCard.ScryfallId!.Value, batchedCard.Name, batchedCard.ParentCard?.Name), out Card? existingCard))
 			{
 				batchedCard.ArtistId = existingCard.ArtistId;
 				batchedCard.ParentCardId = existingCard.ParentCardId;
@@ -513,127 +505,13 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 	private void AssignCardIdToBatchedEntities(IEnumerable<Card> cardsWithIdentity)
 	{
-		AssignCardIdToBatchedImages(cardsWithIdentity);
-		AssignCardIdToBatchedPrices(cardsWithIdentity);
-		AssignCardIdToBatchedCardGamePlatforms(cardsWithIdentity);
-		AssignCardIdToBatchedCardPrintFinishes(cardsWithIdentity);
-		AssignCardIdToBatchedCardLegalities(cardsWithIdentity);
-		AssignCardIdToBatchedCardKeywords(cardsWithIdentity);
-		AssignCardIdToBatchedCardPromoTypes(cardsWithIdentity);
-	}
-
-	/// <summary>
-	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardImage.CardId"/> on entities in the current <see cref="_imageBatch"/>.
-	/// </summary>
-	private void AssignCardIdToBatchedImages(IEnumerable<Card> cardsWithIdentity)
-	{
-		foreach (Card card in cardsWithIdentity)
-		{
-			if (_imageBatch.TryGetValue($"{card.ScryfallId}_{card.Name}", out List<CardImage>? matchingImages))
-			{
-				foreach (CardImage image in matchingImages)
-				{
-					image.CardId = card.Id;
-				}
-			}
-		}
-	}
-
-	/// <summary>
-	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardPrice.CardId"/> on entities in the current <see cref="_cardPriceBatch"/>.
-	/// </summary>
-	private void AssignCardIdToBatchedPrices(IEnumerable<Card> cardsWithIdentity)
-	{
-		foreach (Card card in cardsWithIdentity)
-		{
-			if (_cardPriceBatch.TryGetValue(card.ScryfallId!.Value, out List<CardPrice>? prices))
-			{
-				foreach (CardPrice price in prices)
-				{
-					price.CardId = card.Id;
-				}
-			}
-		}
-	}
-
-	/// <summary>
-	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardPrice.CardId"/> on entities in the current <see cref="_cardGamePlatformBatch"/>.
-	/// </summary>
-	private void AssignCardIdToBatchedCardGamePlatforms(IEnumerable<Card> cardsWithIdentity)
-	{
-		foreach (Card card in cardsWithIdentity)
-		{
-			if (!_cardGamePlatformBatch.TryGetValue(card.ScryfallId!.Value, out List<CardGamePlatform>? platforms)) continue;
-
-			foreach (CardGamePlatform platform in platforms)
-			{
-				platform.CardId = card.Id;
-			}
-		}
-	}
-
-	/// <summary>
-	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardPrice.CardId"/> on entities in the current <see cref="_printFinishBatch"/>.
-	/// </summary>
-	private void AssignCardIdToBatchedCardPrintFinishes(IEnumerable<Card> cardsWithIdentity)
-	{
-		foreach (Card card in cardsWithIdentity)
-		{
-			if (!_printFinishBatch.TryGetValue(card.ScryfallId!.Value, out List<CardPrintFinish>? printFinishes)) continue;
-
-			foreach (CardPrintFinish printFinish in printFinishes)
-			{
-				printFinish.CardId = card.Id;
-			}
-		}
-	}
-
-	/// <summary>
-	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardPrice.CardId"/> on entities in the current <see cref="_cardLegalitiesBatch"/>.
-	/// </summary>
-	private void AssignCardIdToBatchedCardLegalities(IEnumerable<Card> cardsWithIdentity)
-	{
-		foreach (Card card in cardsWithIdentity)
-		{
-			if (!_cardLegalitiesBatch.TryGetValue(card.ScryfallId!.Value, out List<(string formatName, CardLegality legality)>? cardLegalities)) continue;
-
-			foreach ((string _, CardLegality legality) in cardLegalities)
-			{
-				legality.CardId = card.Id;
-			}
-		}
-	}
-
-	/// <summary>
-	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardPrice.CardId"/> on entities in the current <see cref="_cardKeywordsBatch"/>.
-	/// </summary>
-	private void AssignCardIdToBatchedCardKeywords(IEnumerable<Card> cardsWithIdentity)
-	{
-		foreach (Card card in cardsWithIdentity)
-		{
-			if (!_cardKeywordsBatch.TryGetValue(card.ScryfallId!.Value, out List<(string keywordName, CardKeyword cardKeyword)>? cardKeywords)) continue;
-
-			foreach ((string _, CardKeyword cardKeyword) in cardKeywords)
-			{
-				cardKeyword.CardId = card.Id;
-			}
-		}
-	}
-
-	/// <summary>
-	/// Assigns <see cref="Card.Id"/> from <paramref name="cardsWithIdentity"/> to <see cref="CardPrice.CardId"/> on entities in the current <see cref="_cardPromoTypesBatch"/>.
-	/// </summary>
-	private void AssignCardIdToBatchedCardPromoTypes(IEnumerable<Card> cardsWithIdentity)
-	{
-		foreach (Card card in cardsWithIdentity)
-		{
-			if (!_cardPromoTypesBatch.TryGetValue(card.ScryfallId!.Value, out List<(string promoTypeName, CardPromoType cardPromoType)>? cardPromoTypes)) continue;
-
-			foreach ((string _, CardPromoType cardPromoType) in cardPromoTypes)
-			{
-				cardPromoType.CardId = card.Id;
-			}
-		}
+		_imageBatch.AssignCardIdToEntities(cardsWithIdentity);
+		_cardPriceBatch.AssignCardIdToEntities(cardsWithIdentity);
+		_cardGamePlatformBatch.AssignCardIdToEntities(cardsWithIdentity);
+		_printFinishBatch.AssignCardIdToEntities(cardsWithIdentity);
+		_cardLegalitiesBatch.AssignCardIdToEntities(cardsWithIdentity);
+		_cardKeywordsBatch.AssignCardIdToEntities(cardsWithIdentity);
+		_cardPromoTypesBatch.AssignCardIdToEntities(cardsWithIdentity);
 	}
 
 	/// <summary>
