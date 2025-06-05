@@ -182,7 +182,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		Set set = _setLookup[apiCard.SetId];
 
 		List<Card> mappedCards = apiCard.CardFaces is { Length: > 0 }
-			? apiCard.CardFaces.Select(cardFace => CardMapper.MapCard(apiCard, set, cardFace: cardFace)).ToList()
+			? apiCard.CardFaces.Select(cardFace => CardMapper.MapCard(apiCard, set, cardFace: cardFace))
+				.DistinctBy(card => card.Name, StringComparer.OrdinalIgnoreCase) //Remove art dfc cards wince they contain no unique value at this time
+				.ToList()
 			: new List<Card> { CardMapper.MapCard(apiCard, set) };
 
 		if (mappedCards is { Count: > 1 })
@@ -475,11 +477,11 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		IEnumerable<Card> existingCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
 		UpsertContainer<Card> upsertionData = new();
-		Dictionary<(Guid Value, string, string?), Card> cardLookup = existingCards.ToDictionary(card => (card.ScryfallId!.Value, card.Name, card.ParentCard?.Name));
+		Dictionary<(Guid Value, string), Card> cardLookup = existingCards.ToDictionary(card => (card.ScryfallId!.Value, card.Name));
 
 		foreach (Card batchedCard in _cardBatch)
 		{
-			if (cardLookup.TryGetValue((batchedCard.ScryfallId!.Value, batchedCard.Name, batchedCard.ParentCard?.Name), out Card? existingCard))
+			if (cardLookup.TryGetValue((batchedCard.ScryfallId!.Value, batchedCard.Name), out Card? existingCard))
 			{
 				batchedCard.ArtistId = existingCard.ArtistId;
 				batchedCard.ParentCardId = existingCard.ParentCardId;
