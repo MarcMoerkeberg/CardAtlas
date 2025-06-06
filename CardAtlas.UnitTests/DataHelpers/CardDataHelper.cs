@@ -7,8 +7,21 @@ namespace CardAtlas.UnitTests.DataHelpers;
 
 public static class CardDataHelper
 {
-	public static Card CreateCard(string name = "Card name") => new Card
+	public static List<Card> CreateCards(int count)
 	{
+		List<Card> cards = new();
+
+		for (int i = 0; i < count; i++)
+		{
+			cards.Add(CreateCard(cardId: i + 1));
+		}
+
+		return cards;
+	}
+
+	public static Card CreateCard(long cardId = 1, Guid? scryfallId = null, string name = "Card name") => new Card
+	{
+		Id = cardId,
 		Name = name,
 		OracleText = "Oracle text.",
 		TypeLine = "Creature - Creature subtype",
@@ -18,7 +31,7 @@ public static class CardDataHelper
 		Power = "2",
 		Toughness = "2",
 		Loyalty = null,
-		ScryfallId = Guid.Empty,
+		ScryfallId = scryfallId,
 		CollectorNumber = "1",
 		ReleaseDate = new DateOnly(2025, 1, 1),
 		IsOnReservedList = false,
@@ -98,6 +111,26 @@ public static class CardDataHelper
 			CardId = 1,
 			GameFormatId = 1,
 			LegalityId = (int)LegalityType.NotImplemented
+		};
+	}
+
+	public static CardKeyword CreateCardKeyword(long cardId = 0, int keywordId = 0)
+	{
+		return new CardKeyword
+		{
+			Id = 1,
+			CardId = cardId,
+			KeywordId = keywordId,
+		};
+	}
+
+	public static Keyword CreateKeyword(int id = 1, string name = "Flying")
+	{
+		return new Keyword
+		{
+			Id = id,
+			Name = name,
+			SourceId = (int)SourceType.NotImplemented,
 		};
 	}
 }

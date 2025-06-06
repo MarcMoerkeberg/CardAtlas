@@ -19,7 +19,7 @@ public static class ScryfallIngestionExtensions
 	{
 		foreach (Card card in cards)
 		{
-			if (!card.ScryfallId.HasValue) continue;
+			if (!card.ScryfallId.HasValue || card.ScryfallId == Guid.Empty) continue;
 			if (!batchedEntities.TryGetValue(card.ScryfallId.Value, out List<TRelation>? batchedItems)) continue;
 
 			foreach (TRelation relationalEntity in batchedItems)
@@ -42,7 +42,7 @@ public static class ScryfallIngestionExtensions
 	{
 		foreach (Card card in cards)
 		{
-			if (!card.ScryfallId.HasValue) continue;
+			if (!card.ScryfallId.HasValue || card.ScryfallId == Guid.Empty) continue;
 			if (!batchedEntities.TryGetValue((card.ScryfallId.Value, card.Name), out List<TRelation>? batchedItems)) continue;
 
 			foreach (TRelation relationalEntity in batchedItems)
@@ -59,13 +59,13 @@ public static class ScryfallIngestionExtensions
 	/// <param name="batchedItems">Expects the keys to be assigned from <see cref="Card.ScryfallId"/> and match an entry in <paramref name="cards"/>.</param>
 	/// <param name="cards">These should be persisted or have assigned <see cref="Card.Id"/>.</param>
 	public static void AssignCardIdToEntities<TRelation>(
-		this Dictionary<Guid, List<(string, TRelation)>> batchedItems,
+		this Dictionary<Guid, List<(string name, TRelation relation)>> batchedItems,
 		IEnumerable<Card> cards)
 		where TRelation : ICardRelateable
 	{
 		foreach (Card card in cards)
 		{
-			if (!card.ScryfallId.HasValue) continue;
+			if (!card.ScryfallId.HasValue || card.ScryfallId == Guid.Empty) continue;
 			if (!batchedItems.TryGetValue(card.ScryfallId.Value, out List<(string, TRelation)>? tuples)) continue;
 
 			foreach ((string _, TRelation relationalEntity) in tuples)
@@ -92,11 +92,11 @@ public static class ScryfallIngestionExtensions
 	{
 		if (!entitiesWithIds.Any() || batchedData.Count == 0) return;
 
-		Dictionary<string, TEntity> entityLookup = entitiesWithIds.ToDictionary(entity => entity.Name, StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, TEntity> existingEntityLookup = entitiesWithIds.ToDictionary(entity => entity.Name, StringComparer.OrdinalIgnoreCase);
 
-		foreach ((string name, TRelation batchedRelationalEntity) in batchedData.Values.SelectMany(tuple => tuple))
+		foreach ((string batchedName, TRelation batchedRelationalEntity) in batchedData.Values.SelectMany(tuple => tuple))
 		{
-			if (!entityLookup.TryGetValue(name, out TEntity? existingEntity)) continue;
+			if (!existingEntityLookup.TryGetValue(batchedName, out TEntity? existingEntity)) continue;
 
 			assignId(batchedRelationalEntity, existingEntity.Id);
 		}
