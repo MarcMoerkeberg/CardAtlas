@@ -152,8 +152,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// </summary>
 	private void BatchCardData(ApiCard apiCard)
 	{
-		try
-		{
 			BatchCards(apiCard);
 			BatchArtistsAndCardRelations(apiCard);
 			BatchCardImages(apiCard);
@@ -164,12 +162,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			BatchKeywordsAndCardRelations(apiCard);
 			BatchPromoTypesAndCardRelations(apiCard);
 		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e);
-			throw;
-		}
-	}
 
 	/// <summary>
 	/// Batches <see cref="Card"/> entities from information on <paramref name="apiCard"/>.<br/><br/>
@@ -180,22 +172,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private IReadOnlyList<Card> BatchCards(ApiCard apiCard)
 	{
 		Set set = _setLookup[apiCard.SetId];
-
-		List<Card> mappedCards = apiCard.CardFaces is { Length: > 0 }
-			? apiCard.CardFaces.Select(cardFace => CardMapper.MapCard(apiCard, set, cardFace: cardFace))
-				.DistinctBy(card => card.Name, StringComparer.OrdinalIgnoreCase) //Remove art dfc cards wince they contain no unique value at this time
-				.ToList()
-			: new List<Card> { CardMapper.MapCard(apiCard, set) };
-
-		if (mappedCards is { Count: > 1 })
-		{
-			Card parentCard = mappedCards.First();
-
-			foreach (Card childCard in mappedCards.Skip(1))
-			{
-				childCard.ParentCard = parentCard;
-			}
-		}
+		List<Card> mappedCards = CardMapper.MapCard(apiCard, set);
 
 		_cardBatch.UnionWith(mappedCards);
 		return mappedCards;

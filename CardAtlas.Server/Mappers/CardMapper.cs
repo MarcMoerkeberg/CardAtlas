@@ -12,12 +12,39 @@ namespace CardAtlas.Server.Mappers;
 public static class CardMapper
 {
 	/// <summary>
+	/// Maps the <paramref name="apiCard"/> into a new list of <see cref="Card"/> entities.
+	/// </summary>
+	public static List<Card> MapCard(ApiCard apiCard, Set set) =>
+		MapCards(apiCard, set)
+		.AssignParent()
+		.ToList();
+
+	/// <summary>
+	/// Maps a single <see cref="ApiCard"/> into multiple <see cref="Card"/> entities.
+	/// </summary>
+	/// <returns>An IEnumerable of <see cref="Card"/> entities mapped from the <paramref name="apiCard"/> and <paramref name="set"/>.</returns>
+	private static IEnumerable<Card> MapCards(ApiCard apiCard, Set set)
+	{
+		if (apiCard.CardFaces is { Length: > 0 })
+		{
+			foreach (CardFace cardFace in apiCard.CardFaces)
+			{
+				yield return MapCard(apiCard, set, cardFace);
+			}
+		}
+		else
+		{
+			yield return MapCard(apiCard, set, cardFace: null);
+		}
+	}
+
+	/// <summary>
 	/// Maps the card properties on <paramref name="apiCard"/> to a new <see cref="Card"/>.<br/>
 	/// Prioritizes data from <paramref name="cardFace"/> if provided.
 	/// </summary>
 	/// <param name="cardFace">Prioritizes data from this if provided.</param>
 	/// <returns>A new instance of <see cref="Card"/> populated with data from parameters.</returns>
-	public static Card MapCard(ApiCard apiCard, Set? set = null, Artist? artist = null, CardFace? cardFace = null)
+	private static Card MapCard(ApiCard apiCard, Set set, CardFace? cardFace)
 	{
 		return new Card
 		{
@@ -77,8 +104,8 @@ public static class CardMapper
 			FrameLayoutId = (int)GetFrameLayoutType(apiCard),
 			LanguageId = (int)GetLanguageType(apiCard),
 
-			SetId = set is null ? Set.DefaultId : set.Id,
-			ArtistId = artist is null ? Artist.DefaultId : artist.Id,
+			SetId = set.Id,
+			ArtistId = Artist.DefaultId,
 		};
 	}
 
