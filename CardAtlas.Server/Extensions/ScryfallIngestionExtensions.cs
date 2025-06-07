@@ -101,4 +101,102 @@ public static class ScryfallIngestionExtensions
 			assignId(batchedRelationalEntity, existingEntity.Id);
 		}
 	}
+
+	/// <summary>
+	/// Finds entities in <paramref name="batchedEntities"/> that are not in <paramref name="existingEntities"/>.
+	/// </summary>
+	/// <param name="omitDefaultValues">The properties to omit and their default values.</param>
+	/// <param name="filterExistingEntities">Filter for comparing properties between existing and new entities.</param>
+	/// <returns>Returns a new list of all missing entities - Ie. Entities in <paramref name="batchedEntities"/> that are not in <paramref name="existingEntities"/>.</returns>
+	private static List<TEntity> FindMissingEntities<TEntity, TFilter>(
+		Dictionary<Guid, List<TEntity>> batchedEntities,
+		IEnumerable<TEntity> existingEntities,
+		Func<TEntity, bool> omitDefaultValues,
+		Func<TEntity, TFilter> filterExistingEntities)
+		where TFilter : notnull
+	{
+		IEnumerable<TEntity> allBatchedEntities = batchedEntities
+			.Values
+			.SelectMany(entityList => entityList)
+			.Where(omitDefaultValues);
+
+		if (!existingEntities.Any())
+		{
+			return allBatchedEntities.ToList();
+		}
+
+		HashSet<TFilter> existingEntitiesFilter = existingEntities
+			.Select(filterExistingEntities)
+			.ToHashSet();
+
+
+		return allBatchedEntities
+			.Where(entity => !existingEntitiesFilter.Contains(filterExistingEntities(entity)))
+			.ToList();
+	}
+
+	/// <summary>
+	/// Finds entities in <paramref name="batchedEntities"/> that are not in <paramref name="existingEntities"/>.
+	/// </summary>
+	/// <param name="omitDefaultValues">The properties to omit and their default values.</param>
+	/// <param name="filterExistingEntities">Filter for comparing properties between existing and new entities.</param>
+	/// <returns>Returns a new list of all missing entities - Ie. Entities in <paramref name="batchedEntities"/> that are not in <paramref name="existingEntities"/>.</returns>
+	public static List<TEntity> FindMissingEntities<TEntity, TFilter>(
+		this Dictionary<Guid, List<(string _, TEntity entity)>> batchedEntities,
+		IEnumerable<TEntity> existingEntities,
+		Func<TEntity, bool> omitDefaultValues,
+		Func<TEntity, TFilter> filterExistingEntities)
+		where TFilter : notnull
+	{
+		Dictionary<Guid, List<TEntity>> simplifiedBatch = batchedEntities.ToDictionary(
+			kvp => kvp.Key,
+			kvp => kvp.Value.Select(tuple => tuple.entity).ToList()
+		);
+
+		return FindMissingEntities(
+			simplifiedBatch,
+			existingEntities,
+			omitDefaultValues,
+			filterExistingEntities
+		);
+	}
+
+	/// <summary>
+	/// Finds entities in <paramref name="batchedEntities"/> that are not in <paramref name="existingEntities"/>.<br/>
+	/// Skips any entities where CardId property is default value.
+	/// </summary>
+	/// <param name="filterExistingEntities">Filter for comparing properties between existing and new entities.</param>
+	/// <returns>Returns a new list of all missing entities - Ie. Entities in <paramref name="batchedEntities"/> that are not in <paramref name="existingEntities"/>.</returns>
+	public static List<TEntity> FindMissingEntities<TEntity, TFilter>(
+		this Dictionary<Guid, List<TEntity>> batchedEntities,
+		IEnumerable<TEntity> existingEntities,
+		Func<TEntity, TFilter> filterExistingEntities)
+		where TEntity : ICardRelateable
+		where TFilter : notnull
+	{
+		return FindMissingEntities(
+			batchedEntities,
+			existingEntities,
+			omitDefaultValues: entity => entity.CardId != 0,
+			filterExistingEntities
+		);
+	}
+
+	/// <summary>
+	/// Finds entities in <paramref name="batchedEntities"/> that are not in <paramref name="existingEntities"/>.<br/>
+	/// It uses <typeparamref name="TEntity"/>.Name for comparing entities.
+	/// </summary>
+	/// <typeparam name="TEntity">Must implement the <see cref="INameable"/> interface.</typeparam>
+	/// <returns>A new list of all missing entities. Ie. Entities in <paramref name="batchedEntities"/> that are not in <paramref name="existingEntities"/>.</returns>
+	public static List<TEntity> FindMissingEntities<TEntity>(
+		this HashSet<TEntity> batchedEntities,
+		IEnumerable<TEntity> existingEntities)
+		where TEntity : class, INameable
+	{
+		IEnumerable<TEntity> missingEntities = existingEntities.Any()
+			? batchedEntities.Where(entity => !existingEntities.ExistsWithName(entity.Name))
+			: batchedEntities;
+
+		return missingEntities.ToList();
+	}
 }
