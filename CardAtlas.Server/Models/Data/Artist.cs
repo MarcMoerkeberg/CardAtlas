@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using CardAtlas.Server.Models.Interfaces;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data;
 
-public class Artist
+public class Artist : IIdable<int>
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]

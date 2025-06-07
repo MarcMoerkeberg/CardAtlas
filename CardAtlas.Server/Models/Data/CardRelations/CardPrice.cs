@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data.CardRelations;
 
-public class CardPrice: ICardRelateable
+public class CardPrice : ICardRelateable, IIdable<long>
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]

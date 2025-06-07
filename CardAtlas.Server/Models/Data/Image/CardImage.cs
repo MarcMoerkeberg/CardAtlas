@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data.Image;
 
-public class CardImage : ICardRelateable
+public class CardImage : ICardRelateable, IIdable<long>
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -28,7 +28,7 @@ public class CardImage : ICardRelateable
 	public required int ImageStatusId { get; set; }
 	[NotMapped]
 	public ImageStatusType Status => ImageStatus.Type;
-	
+
 	[ForeignKey("SourceId")]
 	[DeleteBehavior(DeleteBehavior.Restrict)]
 	public Source Source { get; set; } = null!;

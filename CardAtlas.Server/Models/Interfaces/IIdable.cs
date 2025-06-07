@@ -1,6 +1,9 @@
-﻿namespace CardAtlas.Server.Models.Interfaces;
+﻿using System.Numerics;
 
-public interface INameable
+namespace CardAtlas.Server.Models.Interfaces;
+
+public interface IIdable<T>
+	where T : INumber<T>
 {
-	string Name { get; }
+	T Id { get; set; }
 }

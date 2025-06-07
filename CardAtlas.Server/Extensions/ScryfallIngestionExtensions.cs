@@ -88,7 +88,7 @@ public static class ScryfallIngestionExtensions
 		this Dictionary<Guid, List<(string name, TRelation relation)>> batchedData,
 		IEnumerable<TEntity> entitiesWithIds,
 		Action<TRelation, int> assignId)
-		where TEntity : IIdable, INameable
+		where TEntity : IIdable<int>, INameable
 	{
 		if (!entitiesWithIds.Any() || batchedData.Count == 0) return;
 

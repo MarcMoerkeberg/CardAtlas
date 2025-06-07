@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardAtlas.Server.Models.Data;
 
-public class Keyword : IIdable, INameable, ISourceable
+public class Keyword : IIdable<int>, INameable, ISourceable
 {
 	[Key]
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
