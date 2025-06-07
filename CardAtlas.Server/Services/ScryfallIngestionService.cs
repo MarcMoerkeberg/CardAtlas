@@ -3,6 +3,7 @@ using CardAtlas.Server.Mappers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Image;
+using CardAtlas.Server.Models.Interfaces;
 using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Repositories.Interfaces;
 using CardAtlas.Server.Services.Interfaces;
@@ -41,7 +42,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private Dictionary<Guid, Artist> _artistBatch = new();
 	private Dictionary<Guid, List<CardPrice>> _cardPriceBatch = new();
 	private Dictionary<Guid, List<CardGamePlatform>> _cardGamePlatformBatch = new();
-	private Dictionary<Guid, List<CardPrintFinish>> _printFinishBatch = new();
+	private Dictionary<Guid, List<CardPrintFinish>> _cardPrintFinishBatch = new();
 	private HashSet<GameFormat> _gameFormatsBatch = new();
 	private Dictionary<Guid, List<(string formatName, CardLegality legality)>> _cardLegalitiesBatch = new();
 	private HashSet<Keyword> _keywordsBatch = new();
@@ -152,16 +153,16 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// </summary>
 	private void BatchCardData(ApiCard apiCard)
 	{
-			BatchCards(apiCard);
-			BatchArtistsAndCardRelations(apiCard);
-			BatchCardImages(apiCard);
-			BatchCardPrices(apiCard);
-			BatchCardGamePlatform(apiCard);
-			BatchPrintFinishes(apiCard);
-			BatchGameFormatsAndLegalities(apiCard);
-			BatchKeywordsAndCardRelations(apiCard);
-			BatchPromoTypesAndCardRelations(apiCard);
-		}
+		BatchCards(apiCard);
+		BatchArtistsAndCardRelations(apiCard);
+		BatchCardImages(apiCard);
+		BatchCardPrices(apiCard);
+		BatchCardGamePlatform(apiCard);
+		BatchPrintFinishes(apiCard);
+		BatchGameFormatsAndLegalities(apiCard);
+		BatchKeywordsAndCardRelations(apiCard);
+		BatchPromoTypesAndCardRelations(apiCard);
+	}
 
 	/// <summary>
 	/// Batches <see cref="Card"/> entities from information on <paramref name="apiCard"/>.<br/><br/>
@@ -287,7 +288,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		if (apiPrintFinishes is { Count: > 0 })
 		{
-			_printFinishBatch[apiCard.Id] = apiPrintFinishes;
+			_cardPrintFinishBatch[apiCard.Id] = apiPrintFinishes;
 		}
 
 		return apiPrintFinishes;
@@ -487,7 +488,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_imageBatch.AssignCardIdToEntities(cardsWithIdentity);
 		_cardPriceBatch.AssignCardIdToEntities(cardsWithIdentity);
 		_cardGamePlatformBatch.AssignCardIdToEntities(cardsWithIdentity);
-		_printFinishBatch.AssignCardIdToEntities(cardsWithIdentity);
+		_cardPrintFinishBatch.AssignCardIdToEntities(cardsWithIdentity);
 		_cardLegalitiesBatch.AssignCardIdToEntities(cardsWithIdentity);
 		_cardKeywordsBatch.AssignCardIdToEntities(cardsWithIdentity);
 		_cardPromoTypesBatch.AssignCardIdToEntities(cardsWithIdentity);
@@ -694,29 +695,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>The number of added <see cref="CardGamePlatform"/> entities.</returns>
 	private async Task<int> CreateMissingCardGamePlatforms(IEnumerable<Card> existingCards)
 	{
-		List<CardGamePlatform> missingPlatforms = new();
 		IEnumerable<CardGamePlatform> existingPlatforms = await _cardRepository.GetCardGamePlatforms(existingCards.Select(card => card.Id));
-
-		List<CardGamePlatform> batchedPlatforms = _cardGamePlatformBatch
-			.Values
-			.SelectMany(platformList => platformList)
-			.Where(platform => platform.CardId != 0)
-			.ToList();
-
-		if (existingPlatforms.Any())
-		{
-			HashSet<(long cardId, int gamePlatformId)> existingPlatformLookup = existingPlatforms
-				.Select(platform => (platform.CardId, platform.GamePlatformId))
-				.ToHashSet();
-
-			missingPlatforms.AddRange(batchedPlatforms
-				.Where(platform => !existingPlatformLookup.Contains((platform.CardId, platform.GamePlatformId)))
-			);
-		}
-		else
-		{
-			missingPlatforms.AddRange(batchedPlatforms);
-		}
+		List<CardGamePlatform> missingPlatforms = GetMissing(
+			_cardGamePlatformBatch,
+			existingEntities: existingPlatforms,
+			filterExistingEntities: cgp => (cgp.GamePlatformId, cgp.CardId)
+		);
 
 		int addedCount = missingPlatforms.Count > 0
 			? (await _cardRepository.Create(missingPlatforms)).Count()
@@ -727,40 +711,23 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	/// <summary>
-	/// Adds all missing <see cref="CardPrintFinish"/> entities to the database from <see cref="_printFinishBatch"/>.<br/>
+	/// Adds all missing <see cref="CardPrintFinish"/> entities to the database from <see cref="_cardPrintFinishBatch"/>.<br/>
 	/// <see cref="CardPrintFinish"/> represents the relationship between <see cref="PrintFinish"/> and <see cref="Card"/> entities.
 	/// </summary>
 	/// <returns>The number of added <see cref="CardPrintFinish"/> entities.</returns>
 	private async Task<int> CreateMissingCardPrintFinishes(IEnumerable<Card> existingCards)
 	{
-		List<CardPrintFinish> missingPrintFinishes = new();
 		IEnumerable<CardPrintFinish> existingPrintFinishes = await _cardRepository.GetCardPrintFinishes(existingCards.Select(card => card.Id));
-
-		List<CardPrintFinish> batchedPrintFinishes = _printFinishBatch
-			.Values
-			.SelectMany(printFinishList => printFinishList)
-			.Where(printFinish => printFinish.CardId != 0)
-			.ToList();
-
-		if (existingPrintFinishes.Any())
-		{
-			HashSet<(long cardId, int printFinishId)> existingPrintFinishLookup = existingPrintFinishes
-				.Select(cardPrintFinish => (cardPrintFinish.CardId, cardPrintFinish.PrintFinishId))
-				.ToHashSet();
-
-			missingPrintFinishes.AddRange(batchedPrintFinishes
-				.Where(printFinish => !existingPrintFinishLookup.Contains((printFinish.CardId, printFinish.PrintFinishId)))
-			);
-		}
-		else
-		{
-			missingPrintFinishes.AddRange(batchedPrintFinishes);
-		}
+		List<CardPrintFinish> missingPrintFinishes = GetMissing(
+			_cardPrintFinishBatch,
+			existingEntities: existingPrintFinishes,
+			filterExistingEntities: cpf => (cpf.PrintFinishId, cpf.CardId)
+		);
 
 		int addedCount = missingPrintFinishes.Count > 0
 			? (await _cardRepository.Create(missingPrintFinishes)).Count()
 			: 0;
-		_printFinishBatch.Clear();
+		_cardPrintFinishBatch.Clear();
 
 		return addedCount;
 	}
@@ -810,30 +777,14 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>The number of added <see cref="CardKeyword"/> entities.</returns>
 	private async Task<int> CreateMissingCardKeywords(IEnumerable<Card> existingCards)
 	{
-		List<CardKeyword> missingCardKeywords = new();
 		IEnumerable<CardKeyword> existingCardKeywords = await _cardRepository.GetCardKeywords(existingCards.Select(card => card.Id));
 
-		List<CardKeyword> batchedCardKeywords = _cardKeywordsBatch
-			.Values
-			.SelectMany(cardKeywordTupleList => cardKeywordTupleList)
-			.Select(tuple => tuple.cardKeyword)
-			.Where(cardKeyword => cardKeyword.CardId != 0 && cardKeyword.KeywordId != 0)
-			.ToList();
-
-		if (existingCardKeywords.Any())
-		{
-			HashSet<(long cardId, int printFinishId)> existingCardKeywordsLookup = existingCardKeywords
-				.Select(cardKeyword => (cardKeyword.CardId, cardKeyword.KeywordId))
-				.ToHashSet();
-
-			missingCardKeywords.AddRange(batchedCardKeywords
-				.Where(cardKeyword => !existingCardKeywordsLookup.Contains((cardKeyword.CardId, cardKeyword.KeywordId)))
-			);
-		}
-		else
-		{
-			missingCardKeywords.AddRange(batchedCardKeywords);
-		}
+		List<CardKeyword> missingCardKeywords = GetMissing(
+			_cardKeywordsBatch,
+			existingEntities: existingCardKeywords,
+			omitDefaultValues: ck => ck.KeywordId != 0 && ck.CardId != 0,
+			filterExistingEntities: ck => (ck.KeywordId, ck.CardId)
+		);
 
 		int addedCount = missingCardKeywords.Count > 0
 			? (await _cardRepository.Create(missingCardKeywords)).Count()
@@ -850,30 +801,14 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>The number of added <see cref="CardKeyword"/> entities.</returns>
 	private async Task<int> CreateMissingCardPromoTypes(IEnumerable<Card> existingCards)
 	{
-		List<CardPromoType> missingCardPromoTypes = new();
 		IEnumerable<CardPromoType> existingCardPromoTypes = await _cardRepository.GetCardPromoTypes(existingCards.Select(card => card.Id));
 
-		List<CardPromoType> batchedCardPromoTypes = _cardPromoTypesBatch
-			.Values
-			.SelectMany(cardPromoTypeTupleList => cardPromoTypeTupleList)
-			.Select(tuple => tuple.cardPromoType)
-			.Where(cardPromoType => cardPromoType.CardId != 0 && cardPromoType.PromoTypeId != 0)
-			.ToList();
-
-		if (existingCardPromoTypes.Any())
-		{
-			HashSet<(long cardId, int promoTypeId)> existingCardPromoTypesLookup = existingCardPromoTypes
-				.Select(cardKeyword => (cardKeyword.CardId, cardKeyword.PromoTypeId))
-				.ToHashSet();
-
-			missingCardPromoTypes.AddRange(batchedCardPromoTypes
-				.Where(cardKeyword => !existingCardPromoTypesLookup.Contains((cardKeyword.CardId, cardKeyword.PromoTypeId)))
-			);
-		}
-		else
-		{
-			missingCardPromoTypes.AddRange(batchedCardPromoTypes);
-		}
+		List<CardPromoType> missingCardPromoTypes = GetMissing(
+			_cardPromoTypesBatch,
+			existingEntities: existingCardPromoTypes,
+			omitDefaultValues: cpt => cpt.PromoTypeId != 0 && cpt.CardId != 0,
+			filterExistingEntities: cpt => (cpt.PromoTypeId, cpt.CardId)
+		);
 
 		int addedCount = missingCardPromoTypes.Count > 0
 			? (await _cardRepository.Create(missingCardPromoTypes)).Count()
@@ -881,5 +816,68 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_cardPromoTypesBatch.Clear();
 
 		return addedCount;
+	}
+
+	private static List<TEntity> GetMissing<TEntity, TFilter>(
+		this Dictionary<Guid, List<(string name, TEntity entity)>> batchedEntities,
+		IEnumerable<TEntity> existingEntities,
+		Func<TEntity, bool> omitDefaultValues,
+		Func<TEntity, TFilter> filterExistingEntities)
+	{
+		List<TEntity> missingEntities = new();
+		List<TEntity> allBatchedEntities = batchedEntities
+			.Values
+			.SelectMany(tuples => tuples)
+			.Select(tuple => tuple.entity)
+			.Where(omitDefaultValues)
+			.ToList();
+
+		if (existingEntities.Any())
+		{
+			HashSet<TFilter> existingNames = existingEntities
+				.Select(filterExistingEntities)
+				.ToHashSet();
+
+			missingEntities.AddRange(allBatchedEntities
+				.Where(entity => !existingNames.Contains(filterExistingEntities(entity)))
+			);
+		}
+		else
+		{
+			missingEntities.AddRange(allBatchedEntities);
+		}
+
+		return missingEntities;
+	}
+
+	private static List<TEntity> GetMissing<TEntity, TFilter>(
+		this Dictionary<Guid, List<TEntity>> batchedEntities,
+		IEnumerable<TEntity> existingEntities,
+		Func<TEntity, TFilter> filterExistingEntities)
+		where TEntity : ICardRelateable
+	{
+		List<TEntity> missingEntities = new();
+		List<TEntity> allBatchedEntities = batchedEntities
+			.Values
+			.SelectMany(entityList => entityList)
+			.Where(entity => entity.CardId != 0)
+			.ToList();
+
+		if (existingEntities.Any())
+		{
+			HashSet<TFilter> existingNames = existingEntities
+				.Select(filterExistingEntities)
+				.ToHashSet();
+
+			missingEntities.AddRange(allBatchedEntities
+				.Where(entity => !existingNames.Contains(filterExistingEntities(entity)))
+			);
+		}
+		else
+		{
+			missingEntities.AddRange(allBatchedEntities);
+		}
+
+		return missingEntities;
 	}
 }
