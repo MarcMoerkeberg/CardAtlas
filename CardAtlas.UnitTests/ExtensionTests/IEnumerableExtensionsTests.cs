@@ -321,4 +321,52 @@ class IEnumerableExtensionsTests
 		Assert.That(result, Is.Not.Null);
 		Assert.That(result, Is.EqualTo(targetCollection.First()));
 	}
+
+	[Test]
+	public void AssignParent_WithNoCards_ShouldReturnEmptySequence()
+	{
+		List<Card> cards = new();
+
+		IEnumerable<Card> result = cards.AssignParent();
+
+		Assert.IsEmpty(result);
+	}
+
+	[Test]
+	public void AssignParent_WithSingleCard_ShouldNotSetParent()
+	{
+		Card parentCard = CardDataHelper.CreateCard();
+		var cards = new List<Card> { parentCard };
+
+		cards.AssignParent();
+
+		Assert.That(cards.Count, Is.EqualTo(1));
+		Assert.That(
+			parentCard.ParentCard,
+			Is.Null,
+			"Card should have no parent, since there are 1 only card in the list."
+		);
+	}
+
+	[Test]
+	public void AssignParent_WithMultipleCards_ShouldSetFirstAsParentOnSubsequentCards()
+	{
+		Card parentCard = CardDataHelper.CreateCard(name: "ParentCard");
+		Card childCard = CardDataHelper.CreateCard(name: "ChildCard");
+		var cards = new List<Card> { parentCard, childCard };
+
+		cards.AssignParent();
+
+		Assert.That(cards.Count, Is.EqualTo(2));
+		Assert.That(
+			parentCard.ParentCard,
+			Is.Null,
+			"This card should have no parent, since it is the first element in the list."
+		);
+		Assert.That(
+			childCard.ParentCard,
+			Is.EqualTo(parentCard),
+			"This card should have a parent, since it is not the first card in the list."
+		);
+	}
 }
