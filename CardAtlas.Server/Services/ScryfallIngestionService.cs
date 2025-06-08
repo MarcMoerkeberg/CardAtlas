@@ -403,8 +403,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		int numberOfAffectedRows = await _artistRepository.Upsert(upsertionData);
 		await AssignArtistIdsOnBatchedCards();
-		_artistBatch.Clear();
 
+		_artistBatch.Clear();
 		return numberOfAffectedRows;
 	}
 
@@ -468,8 +468,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		IEnumerable<Card> updatedCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
 		AssignCardIdToBatchedEntities(updatedCards);
-		_cardBatch.Clear();
 
+		_cardBatch.Clear();
 		return updatedCards;
 	}
 
@@ -496,14 +496,11 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		IEnumerable<GameFormat> existingFormats = await _gameRepository.GetFormats(SourceType.Scryfall);
 		List<GameFormat> missingGameFormats = _gameFormatsBatch.FindMissingEntities(existingFormats);
 
-		int addedCount = missingGameFormats.Count > 0 ?
-			(await _gameRepository.Create(missingGameFormats)).Count()
-			: 0;
-
+		int addedFormatsCount = await _gameRepository.Create(missingGameFormats);
 		await AssignGameFormatIdsToLegalities();
-		_gameFormatsBatch.Clear();
 
-		return addedCount;
+		_gameFormatsBatch.Clear();
+		return addedFormatsCount;
 	}
 
 	/// <summary>
@@ -515,14 +512,11 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		IEnumerable<Keyword> existingKeywords = await _cardRepository.GetKeywords(SourceType.Scryfall);
 		List<Keyword> missingKeywords = _keywordsBatch.FindMissingEntities(existingKeywords);
 
-		int addedCount = missingKeywords.Count > 0
-			? (await _cardRepository.Create(missingKeywords)).Count()
-			: 0;
-
+		int addedKeywordsCount = await _cardRepository.Create(missingKeywords);
 		await AssignKeywordIdsToCardKeywords();
-		_keywordsBatch.Clear();
 
-		return addedCount;
+		_keywordsBatch.Clear();
+		return addedKeywordsCount;
 	}
 
 	/// <summary>
@@ -534,14 +528,11 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		IEnumerable<PromoType> existingPromoTypes = await _cardRepository.GetPromoTypes(SourceType.Scryfall);
 		List<PromoType> missingPromoTypes = _promoTypesBatch.FindMissingEntities(existingPromoTypes);
 
-		int addedCount = missingPromoTypes.Count > 0
-			? (await _cardRepository.Create(missingPromoTypes)).Count()
-			: 0;
-
+		int addedPromoTypesCount = await _cardRepository.Create(missingPromoTypes);
 		await AssignPromoTypesIdsToCardPromoTypes();
-		_promoTypesBatch.Clear();
 
-		return addedCount;
+		_promoTypesBatch.Clear();
+		return addedPromoTypesCount;
 	}
 
 	/// <summary>
@@ -639,12 +630,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			filterExistingEntities: cgp => (cgp.GamePlatformId, cgp.CardId)
 		);
 
-		int addedCount = missingPlatforms.Count > 0
-			? (await _cardRepository.Create(missingPlatforms)).Count()
-			: 0;
-		_cardGamePlatformBatch.Clear();
+		int addedPlatformsCount = await _cardRepository.Create(missingPlatforms);
 
-		return addedCount;
+		_cardGamePlatformBatch.Clear();
+		return addedPlatformsCount;
 	}
 
 	/// <summary>
@@ -660,12 +649,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			filterExistingEntities: cpf => (cpf.PrintFinishId, cpf.CardId)
 		);
 
-		int addedCount = missingPrintFinishes.Count > 0
-			? (await _cardRepository.Create(missingPrintFinishes)).Count()
-			: 0;
-		_cardPrintFinishBatch.Clear();
+		int addedPrintFinishesCount = await _cardRepository.Create(missingPrintFinishes);
 
-		return addedCount;
+		_cardPrintFinishBatch.Clear();
+		return addedPrintFinishesCount;
 	}
 
 	/// <summary>
@@ -690,10 +677,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			cardLegality => (cardLegality.CardId, cardLegality.GameFormatId),
 			_cardLegalityComparer
 		);
+
 		int upsertedCount = await _cardRepository.Upsert(upsertionData);
 
 		_cardLegalitiesBatch.Clear();
-
 		return upsertedCount;
 	}
 
@@ -712,12 +699,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			filterExistingEntities: ck => (ck.KeywordId, ck.CardId)
 		);
 
-		int addedCount = missingCardKeywords.Count > 0
-			? (await _cardRepository.Create(missingCardKeywords)).Count()
-			: 0;
-		_cardKeywordsBatch.Clear();
+		int addedKeywordsCount = await _cardRepository.Create(missingCardKeywords);
 
-		return addedCount;
+		_cardKeywordsBatch.Clear();
+		return addedKeywordsCount;
 	}
 
 	/// <summary>
@@ -735,11 +720,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			filterExistingEntities: cpt => (cpt.PromoTypeId, cpt.CardId)
 		);
 
-		int addedCount = missingCardPromoTypes.Count > 0
-			? (await _cardRepository.Create(missingCardPromoTypes)).Count()
-			: 0;
-		_cardPromoTypesBatch.Clear();
+		int addedPromoTypesCount = await _cardRepository.Create(missingCardPromoTypes);
 
-		return addedCount;
+		_cardPromoTypesBatch.Clear();
+		return addedPromoTypesCount;
 	}
 }
