@@ -27,22 +27,14 @@ public class GameRepository : IGameRepository
 		return addedGameType.Entity;
 	}
 
-	public async Task<IEnumerable<GameFormat>> Create(IEnumerable<GameFormat> formats)
+	public async Task<int> Create(IEnumerable<GameFormat> formats)
 	{
-		var addedFormats = new List<GameFormat>();
-		if (!formats.Any()) return addedFormats;
+		if (!formats.Any()) return 0;
 
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		await dbContext.AddRangeAsync(formats);
 
-		foreach (var format in formats)
-		{
-			EntityEntry<GameFormat> addedGameType = await dbContext.GameFormats.AddAsync(format);
-			addedFormats.Add(addedGameType.Entity);
-		}
-
-		await dbContext.SaveChangesAsync();
-
-		return addedFormats;
+		return await dbContext.SaveChangesAsync();
 	}
 
 	public async Task<IEnumerable<GameFormat>> GetFormats()

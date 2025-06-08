@@ -39,8 +39,8 @@ public interface ISetRepository
 	/// <summary>
 	/// Adds the provided <paramref name="sets"/> to the database.
 	/// </summary>
-	/// <returns>The added <see cref="Set"/> entities with identity.</returns>
-	Task<IEnumerable<Set>> Create(IEnumerable<Set> sets);
+	/// <returns>The number of added <see cref="Set"/> entities.</returns>
+	Task<int> Create(IEnumerable<Set> sets);
 
 	/// <summary>
 	/// Updates existing entity with changes from <paramref name="setWithChanges"/>.<br/>

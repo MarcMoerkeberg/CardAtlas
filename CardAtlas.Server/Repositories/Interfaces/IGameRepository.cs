@@ -33,8 +33,8 @@ public interface IGameRepository
 	/// <summary>
 	/// Creates a new <see cref="GameFormat"/> entry in the database for each <paramref name="formats"/>.
 	/// </summary>
-	/// <returns>The added <see cref="GameFormat"/> entities with identity.</returns>
-	Task<IEnumerable<GameFormat>> Create(IEnumerable<GameFormat> formats);
+	/// <returns>The number of added <see cref="GameFormat"/> entities.</returns>
+	Task<int> Create(IEnumerable<GameFormat> formats);
 
 	/// <summary>
 	/// Creates and updates <see cref="GameFormat"/> entities, based on the provided <paramref name="upsertionData"/>.

@@ -53,14 +53,14 @@ public class SetRepository : ISetRepository
 		return savedSet.Entity;
 	}
 
-	public async Task<IEnumerable<Set>> Create(IEnumerable<Set> sets)
+	public async Task<int> Create(IEnumerable<Set> sets)
 	{
+		if (!sets.Any()) return 0;
+
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		await dbContext.AddRangeAsync(sets);
 
-		await dbContext.Sets.AddRangeAsync(sets);
-		await dbContext.SaveChangesAsync();
-
-		return sets;
+		return await dbContext.SaveChangesAsync();
 	}
 
 	public async Task<Set> Get(int setId)

@@ -117,22 +117,14 @@ public class CardRepository : ICardRepository
 		return existingPrice;
 	}
 
-	public async Task<IEnumerable<CardPrintFinish>> Create(IEnumerable<CardPrintFinish> cardPrintFinishes)
+	public async Task<int> Create(IEnumerable<CardPrintFinish> cardPrintFinishes)
 	{
-		var addedCardPrintFinishes = new List<CardPrintFinish>();
-		if (!cardPrintFinishes.Any()) return addedCardPrintFinishes;
+		if (!cardPrintFinishes.Any()) return 0;
 
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		await dbContext.AddRangeAsync(cardPrintFinishes);
 
-		foreach (CardPrintFinish cardPrintFinish in cardPrintFinishes)
-		{
-			EntityEntry<CardPrintFinish> addedCardPrintFinish = await dbContext.CardPrintFinishes.AddAsync(cardPrintFinish);
-			addedCardPrintFinishes.Add(addedCardPrintFinish.Entity);
-		}
-
-		await dbContext.SaveChangesAsync();
-
-		return addedCardPrintFinishes;
+		return await dbContext.SaveChangesAsync();
 	}
 
 	public async Task<CardLegality> GetCardLegality(long cardLegalityId)
@@ -154,22 +146,14 @@ public class CardRepository : ICardRepository
 		return addedLegality.Entity;
 	}
 
-	public async Task<IEnumerable<CardLegality>> Create(IEnumerable<CardLegality> legalities)
+	public async Task<int> Create(IEnumerable<CardLegality> legalities)
 	{
-		var addedLegalities = new List<CardLegality>();
-		if (!legalities.Any()) return addedLegalities;
+		if (!legalities.Any()) return 0;
 
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		await dbContext.AddRangeAsync(legalities);
 
-		foreach (var legality in legalities)
-		{
-			EntityEntry<CardLegality> addedLegality = await dbContext.CardLegalities.AddAsync(legality);
-			addedLegalities.Add(addedLegality.Entity);
-		}
-
-		await dbContext.SaveChangesAsync();
-
-		return addedLegalities;
+		return await dbContext.SaveChangesAsync();
 	}
 
 	public async Task<CardLegality> Update(CardLegality legalityWithChanges)
@@ -233,21 +217,14 @@ public class CardRepository : ICardRepository
 		return addedKeyword.Entity;
 	}
 
-	public async Task<IEnumerable<Keyword>> Create(IEnumerable<Keyword> keywords)
+	public async Task<int> Create(IEnumerable<Keyword> keywords)
 	{
-		var addedKeywords = new List<Keyword>();
-		if (!keywords.Any()) return addedKeywords;
+		if (!keywords.Any()) return 0;
 
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		await dbContext.AddRangeAsync(keywords);
 
-		foreach (Keyword keywordToAdd in keywords)
-		{
-			EntityEntry<Keyword> addedKeyword = await dbContext.Keywords.AddAsync(keywordToAdd);
-			addedKeywords.Add(addedKeyword.Entity);
-		}
-		await dbContext.SaveChangesAsync();
-
-		return addedKeywords;
+		return await dbContext.SaveChangesAsync();
 	}
 
 	public async Task<CardKeyword> GetCardKeyword(long cardKeywordId)
@@ -269,21 +246,14 @@ public class CardRepository : ICardRepository
 		return addedCardKeyword.Entity;
 	}
 
-	public async Task<IEnumerable<CardKeyword>> Create(IEnumerable<CardKeyword> cardKeywords)
+	public async Task<int> Create(IEnumerable<CardKeyword> cardKeywords)
 	{
-		var addedCardKeywords = new List<CardKeyword>();
-		if (!cardKeywords.Any()) return addedCardKeywords;
+		if (!cardKeywords.Any()) return 0;
 
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		await dbContext.AddRangeAsync(cardKeywords);
 
-		foreach (CardKeyword cardKeyword in cardKeywords)
-		{
-			EntityEntry<CardKeyword> addedCardKeyword = await dbContext.CardKeywords.AddAsync(cardKeyword);
-			addedCardKeywords.Add(addedCardKeyword.Entity);
-		}
-		await dbContext.SaveChangesAsync();
-
-		return addedCardKeywords;
+		return await dbContext.SaveChangesAsync();
 	}
 
 	public async Task<CardKeyword> Update(CardKeyword cardKeywordWithChanges)
@@ -347,38 +317,24 @@ public class CardRepository : ICardRepository
 		return addedPromoType.Entity;
 	}
 
-	public async Task<IEnumerable<PromoType>> Create(IEnumerable<PromoType> promoTypes)
+	public async Task<int> Create(IEnumerable<PromoType> promoTypes)
 	{
-		List<PromoType> addedPromoTypes = new();
-		if (!promoTypes.Any()) return addedPromoTypes;
+		if (!promoTypes.Any()) return 0;
 
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		await dbContext.AddRangeAsync(promoTypes);
 
-		foreach (var promoType in promoTypes)
-		{
-			EntityEntry<PromoType> addedPromoType = await dbContext.AddAsync(promoType);
-			addedPromoTypes.Add(addedPromoType.Entity);
-		}
-		await dbContext.SaveChangesAsync();
-
-		return addedPromoTypes;
+		return await dbContext.SaveChangesAsync();
 	}
 
-	public async Task<IEnumerable<CardPromoType>> Create(IEnumerable<CardPromoType> cardPromoTypes)
+	public async Task<int> Create(IEnumerable<CardPromoType> cardPromoTypes)
 	{
-		List<CardPromoType> addedCardPromoTypes = new();
-		if (!cardPromoTypes.Any()) return addedCardPromoTypes;
+		if (!cardPromoTypes.Any()) return 0;
 
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		await dbContext.AddRangeAsync(cardPromoTypes);
 
-		foreach (var cardPromoType in cardPromoTypes)
-		{
-			EntityEntry<CardPromoType> addedCardPromoType = await dbContext.CardPromoTypes.AddAsync(cardPromoType);
-			addedCardPromoTypes.Add(addedCardPromoType.Entity);
-		}
-		await dbContext.SaveChangesAsync();
-
-		return addedCardPromoTypes;
+		return await dbContext.SaveChangesAsync();
 	}
 
 	public async Task<CardPromoType> GetCardPromoType(long cardPromoTypeId)
@@ -485,19 +441,14 @@ public class CardRepository : ICardRepository
 			.ToListAsync();
 	}
 
-	public async Task<IEnumerable<CardGamePlatform>> Create(IEnumerable<CardGamePlatform> platforms)
+	public async Task<int> Create(IEnumerable<CardGamePlatform> platforms)
 	{
+		if (!platforms.Any()) return 0;
+
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
-		List<CardGamePlatform> addedPlatforms = new();
+		await dbContext.AddRangeAsync(platforms);
 
-		foreach (var platform in platforms)
-		{
-			EntityEntry<CardGamePlatform> addedPlatform = await dbContext.CardGamePlatforms.AddAsync(platform);
-			addedPlatforms.Add(addedPlatform.Entity);
-		}
-		await dbContext.SaveChangesAsync();
-
-		return addedPlatforms;
+		return await dbContext.SaveChangesAsync();
 	}
 
 	public async Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes()
