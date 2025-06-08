@@ -168,24 +168,14 @@ public class CardRepository : ICardRepository
 		return legalityToUpdate;
 	}
 
-	public async Task<IEnumerable<CardLegality>> Update(IEnumerable<CardLegality> legalitiesWithChanges)
+	public async Task<int> Update(IEnumerable<CardLegality> legalitiesWithChanges)
 	{
-		var updatedCardLegalities = new List<CardLegality>();
-		if (!legalitiesWithChanges.Any()) return updatedCardLegalities;
+		if (!legalitiesWithChanges.Any()) return 0;
 
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		dbContext.UpdateRange(legalitiesWithChanges);
 
-		foreach (var legalityWithChanges in legalitiesWithChanges)
-		{
-			CardLegality legalityToUpdate = await dbContext.CardLegalities.SingleAsync(cardLegality => cardLegality.Id == legalityWithChanges.Id);
-
-			CardMapper.MergeProperties(legalityToUpdate, legalityWithChanges);
-			updatedCardLegalities.Add(legalityToUpdate);
-		}
-
-		await dbContext.SaveChangesAsync();
-
-		return updatedCardLegalities;
+		return await dbContext.SaveChangesAsync();
 	}
 
 	public async Task<IEnumerable<Keyword>> GetKeywords()
@@ -268,24 +258,14 @@ public class CardRepository : ICardRepository
 		return cardKeywordToUpdate;
 	}
 
-	public async Task<IEnumerable<CardKeyword>> Update(IEnumerable<CardKeyword> cardKeywordsWithChanges)
+	public async Task<int> Update(IEnumerable<CardKeyword> cardKeywordsWithChanges)
 	{
-		var updatedCardKeywords = new List<CardKeyword>();
-		if (!cardKeywordsWithChanges.Any()) return updatedCardKeywords;
+		if (!cardKeywordsWithChanges.Any()) return 0;
 
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		dbContext.UpdateRange(cardKeywordsWithChanges);
 
-		foreach (var cardKeywordWithChanges in cardKeywordsWithChanges)
-		{
-			CardKeyword cardKeywordToUpdate = await dbContext.CardKeywords.SingleAsync(cardKeyword => cardKeyword.Id == cardKeywordWithChanges.Id);
-
-			CardMapper.MergeProperties(cardKeywordToUpdate, cardKeywordWithChanges);
-			updatedCardKeywords.Add(cardKeywordWithChanges);
-		}
-
-		await dbContext.SaveChangesAsync();
-
-		return updatedCardKeywords;
+		return await dbContext.SaveChangesAsync();
 	}
 
 	public async Task<IEnumerable<PromoType>> GetPromoTypes()
@@ -346,23 +326,14 @@ public class CardRepository : ICardRepository
 			.SingleAsync(cardPromoType => cardPromoType.Id == cardPromoTypeId);
 	}
 
-	public async Task<IEnumerable<CardPromoType>> Update(IEnumerable<CardPromoType> cardPromoTypes)
+	public async Task<int> Update(IEnumerable<CardPromoType> cardPromoTypes)
 	{
-		List<CardPromoType> updatedCardPromoTypes = new();
-		if (!cardPromoTypes.Any()) return updatedCardPromoTypes;
+		if (!cardPromoTypes.Any()) return 0;
 
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		dbContext.UpdateRange(cardPromoTypes);
 
-		foreach (var cardPromoType in cardPromoTypes)
-		{
-			CardPromoType cardPromoTypeToUpdate = await dbContext.CardPromoTypes.SingleAsync(cardPromoType => cardPromoType.Id == cardPromoType.Id);
-
-			CardMapper.MergeProperties(cardPromoTypeToUpdate, cardPromoType);
-			updatedCardPromoTypes.Add(cardPromoTypeToUpdate);
-		}
-		await dbContext.SaveChangesAsync();
-
-		return updatedCardPromoTypes;
+		return await dbContext.SaveChangesAsync();
 	}
 
 	public async Task<int> Upsert(UpsertContainer<Card> upsertionData)

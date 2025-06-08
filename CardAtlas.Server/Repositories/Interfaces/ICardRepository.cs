@@ -258,7 +258,7 @@ public interface ICardRepository
 	/// </summary>
 	/// <returns>The updated <see cref="CardLegality"/> entities.</returns>
 	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-	Task<IEnumerable<CardLegality>> Update(IEnumerable<CardLegality> legalitiesWithChanges);
+	Task<int> Update(IEnumerable<CardLegality> legalitiesWithChanges);
 
 	/// <summary>
 	/// Updates the existing entity with changes from <paramref name="cardKeywordWithChanges"/>.
@@ -272,14 +272,14 @@ public interface ICardRepository
 	/// </summary>
 	/// <returns>The updated <see cref="CardKeyword"/> entites.</returns>
 	/// <exception cref="InvalidOperationException">Is thrown if none or more than one entity with the id property from the input is found.</exception>
-	Task<IEnumerable<CardKeyword>> Update(IEnumerable<CardKeyword> cardKeywordWithChanges);
+	Task<int> Update(IEnumerable<CardKeyword> cardKeywordWithChanges);
 
 	/// <summary>
 	/// Updates the existing entities with changes from <paramref name="cardPromoTypes"/>.
 	/// </summary>
 	/// <returns>The updated <see cref="CardPromoType"/> entities.</returns>
 	/// <exception cref="InvalidOperationException">Is thrown if none or more than one entity with the id property from the input is found.</exception>
-	Task<IEnumerable<CardPromoType>> Update(IEnumerable<CardPromoType> cardPromoTypes);
+	Task<int> Update(IEnumerable<CardPromoType> cardPromoTypes);
 
 	/// <summary>
 	/// Creates and updates <see cref="Card"/> entities, based on the provided <paramref name="upsertionData"/>.
