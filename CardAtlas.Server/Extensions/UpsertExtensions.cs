@@ -1,38 +1,39 @@
-﻿using CardAtlas.Server.Models.Internal;
+﻿using CardAtlas.Server.Models.Interfaces;
+using CardAtlas.Server.Models.Internal;
+using System.Numerics;
 
 namespace CardAtlas.Server.Extensions;
 
 public static class UpsertExtensions
 {
 	/// <summary>
-	/// Assigns the identifier from <paramref name="existingEntity"/> to <paramref name="newEntity"/>.
+	/// Compares the <paramref name="batchedEntities"/> to the <paramref name="existingEntities"/> and populates a <see cref="UpsertContainer{TEntity}"/> appropriately.
 	/// </summary>
-	public delegate void AssignId<TEntity>(TEntity newEntity, TEntity existingEntity);
-
-	/// <summary>
-	/// Compares the <paramref name="batchedData"/> to the <paramref name="existingData"/> and populates a <see cref="UpsertContainer{TEntity}"/> appropriately.
-	/// </summary>
-	/// <param name="lookupKey">The properties on which to compare existing to batched entities.</param>
-	/// <param name="assignId">Acion for assigning the identifier from existing entities to batched ones.</param>
+	/// <typeparam name="TEntity"></typeparam>
+	/// <typeparam name="TKey">The key to compare with existing entities (ex. cardId and imageTypeId).</typeparam>
+	/// <typeparam name="TEntityId">The Id type on TEntity. This is necessary to allow for dirrefent types of ids to be automatically assigned.</typeparam>
+	/// <param name="lookupKey">The properties on which to compare existing to batched entities. The types should match those on <typeparamref name="TKey"/>.</param>
 	/// <returns>Returns a populated <see cref="UpsertContainer{TEntity}"/> with data for upsertion.<br/>
 	/// Note that the container may be empty if no entities needs updating or inserting.</returns>
-	public static UpsertContainer<TEntity> ToUpsertData<TEntity, TKey>(
-		this IEnumerable<TEntity> batchedData,
-		IEnumerable<TEntity> existingData,
+	public static UpsertContainer<TEntity> ToUpsertData<TEntity, TKey, TEntityId>(
+		this IEnumerable<TEntity> batchedEntities,
+		IEnumerable<TEntity> existingEntities,
 		Func<TEntity, TKey> lookupKey,
-		IEqualityComparer<TEntity> comparer,
-		AssignId<TEntity> assignId)
-		where TEntity : class
+		IEqualityComparer<TEntity> comparer)
+		where TEntity : class, IIdable<TEntityId>
 		where TKey : notnull
+		where TEntityId : INumber<TEntityId>
 	{
 		var upsertContainer = new UpsertContainer<TEntity>();
-		Dictionary<TKey, TEntity> existingEntityLookup = existingData.ToDictionary(lookupKey);
+		Dictionary<TKey, TEntity> existingEntityLookup = existingEntities.ToDictionary(lookupKey);
 
-		foreach (TEntity batchedEntity in batchedData)
+		foreach (TEntity batchedEntity in batchedEntities)
 		{
-			if (existingEntityLookup.TryGetValue(lookupKey(batchedEntity), out TEntity? existingEntity))
+			TKey key = lookupKey(batchedEntity);
+
+			if (existingEntityLookup.TryGetValue(key, out TEntity? existingEntity))
 			{
-				assignId(batchedEntity, existingEntity);
+				batchedEntity.Id = existingEntity.Id;
 				if (comparer.Equals(existingEntity, batchedEntity)) continue;
 
 				upsertContainer.ToUpdate.Add(batchedEntity);
