@@ -394,12 +394,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private async Task<int> UpsertArtists()
 	{
 		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Select(a => a.ScryfallId!.Value));
-
-		UpsertContainer<Artist> upsertionData = _artistBatch.ToUpsertData<Artist, Guid, int>(
-			existingArtists,
-			artist => artist.ScryfallId!.Value,
-			_artistComparer
-		);
+		UpsertContainer<Artist> upsertionData = _artistBatch.ToUpsertData(existingArtists, _artistComparer);
 
 		int numberOfAffectedRows = await _artistRepository.Upsert(upsertionData);
 		await AssignArtistIdsOnBatchedCards();
@@ -577,15 +572,11 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		IEnumerable<long> cardIds = batchedImages.Select(image => image.CardId).Distinct();
 		IEnumerable<CardImage> existingImages = await _cardImageRepository.GetFromCardIds(cardIds);
-		UpsertContainer<CardImage> upsertionData = batchedImages.ToUpsertData<CardImage, (long, int), long>(
-			existingImages,
-			image => (image.CardId, image.ImageTypeId),
-			_imageComparer
-		);
+		UpsertContainer<CardImage> upsertionData = batchedImages.ToUpsertData(existingImages, _imageComparer);
 
 		int upsertedCount = await _cardImageRepository.Upsert(upsertionData);
-		_imageBatch.Clear();
 
+		_imageBatch.Clear();
 		return upsertedCount;
 	}
 
@@ -604,16 +595,11 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		IEnumerable<long> cardIds = batchedPrices.Select(image => image.CardId).Distinct();
 		IEnumerable<CardPrice> existingCardPrices = await _cardRepository.GetCardPrices(cardIds);
-
-		UpsertContainer<CardPrice> upsertionData = batchedPrices.ToUpsertData<CardPrice, (long, int, int), long>(
-			existingCardPrices,
-			cardPrice => (cardPrice.CardId, cardPrice.Vendor.Id, cardPrice.Currency.Id),
-			_priceComparer
-		);
+		UpsertContainer<CardPrice> upsertionData = batchedPrices.ToUpsertData(existingCardPrices, _priceComparer);
 
 		int upsertedCount = await _cardRepository.Upsert(upsertionData);
-		_cardPriceBatch.Clear();
 
+		_cardPriceBatch.Clear();
 		return upsertedCount;
 	}
 
@@ -671,12 +657,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		IEnumerable<long> cardIds = batchedCardLegalities.Select(cardLegality => cardLegality.CardId).Distinct();
 		IEnumerable<CardLegality> existingCardLegalities = await _cardRepository.GetCardLegalities(cardIds);
-
-		UpsertContainer<CardLegality> upsertionData = batchedCardLegalities.ToUpsertData<CardLegality, (long, long), long>(
-			existingCardLegalities,
-			cardLegality => (cardLegality.CardId, cardLegality.GameFormatId),
-			_cardLegalityComparer
-		);
+		UpsertContainer<CardLegality> upsertionData = batchedCardLegalities.ToUpsertData(existingCardLegalities, _cardLegalityComparer);
 
 		int upsertedCount = await _cardRepository.Upsert(upsertionData);
 

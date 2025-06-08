@@ -1,4 +1,7 @@
-﻿using CardAtlas.Server.Models.Interfaces;
+﻿using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Data.CardRelations;
+using CardAtlas.Server.Models.Data.Image;
+using CardAtlas.Server.Models.Interfaces;
 using CardAtlas.Server.Models.Internal;
 using System.Numerics;
 
@@ -46,4 +49,54 @@ public static class UpsertExtensions
 
 		return upsertContainer;
 	}
+
+	public static UpsertContainer<CardLegality> ToUpsertData(
+	this IEnumerable<CardLegality> batchedEntities,
+	IEnumerable<CardLegality> existingEntities,
+	IEqualityComparer<CardLegality> comparer)
+	{
+		return batchedEntities.ToUpsertData<CardLegality, (long, long), long>(
+			existingEntities,
+			cardLegality => (cardLegality.CardId, cardLegality.GameFormatId),
+			comparer
+		);
+	}
+
+	public static UpsertContainer<CardPrice> ToUpsertData(
+	this IEnumerable<CardPrice> batchedEntities,
+	IEnumerable<CardPrice> existingEntities,
+	IEqualityComparer<CardPrice> comparer)
+	{
+		return batchedEntities.ToUpsertData<CardPrice, (long, int, int), long>(
+			existingEntities,
+			cardPrice => (cardPrice.CardId, cardPrice.Vendor.Id, cardPrice.Currency.Id),
+			comparer
+		);
+	}
+
+	public static UpsertContainer<CardImage> ToUpsertData(
+	this IEnumerable<CardImage> batchedEntities,
+	IEnumerable<CardImage> existingEntities,
+	IEqualityComparer<CardImage> comparer)
+	{
+		return batchedEntities.ToUpsertData<CardImage, (long, int), long>(
+			existingEntities,
+			image => (image.CardId, image.ImageTypeId),
+			comparer
+		);
+	}
+
+	public static UpsertContainer<Artist> ToUpsertData(
+	this IEnumerable<Artist> batchedEntities,
+	IEnumerable<Artist> existingEntities,
+	IEqualityComparer<Artist> comparer)
+	{
+		return batchedEntities.ToUpsertData<Artist, Guid, int>(
+			existingEntities,
+			artist => artist.ScryfallId!.Value,
+			comparer
+		);
+	}
+
+
 }
