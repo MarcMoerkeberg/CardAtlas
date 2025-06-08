@@ -38,7 +38,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private HashSet<Card> _cardBatch = new();
 	private Dictionary<(Guid cardScryfallId, string cardName), List<CardImage>> _imageBatch = new();
 	private Dictionary<(Guid cardScryfallId, string cardName), Artist> _cardArtistBatch = new();
-	private Dictionary<Guid, Artist> _artistBatch = new();
+	private HashSet<Artist> _artistBatch = new();
 	private Dictionary<Guid, List<CardPrice>> _cardPriceBatch = new();
 	private Dictionary<Guid, List<CardGamePlatform>> _cardGamePlatformBatch = new();
 	private Dictionary<Guid, List<CardPrintFinish>> _cardPrintFinishBatch = new();
@@ -195,7 +195,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 				if (artist is null) continue;
 
 				_cardArtistBatch[(apiCard.Id, cardFace.Name)] = artist;
-				_artistBatch.TryAdd(artist.ScryfallId!.Value, artist);
+				_artistBatch.Add(artist);
 				artists.Add(artist);
 			}
 		}
@@ -206,7 +206,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			if (artist is not null)
 			{
 				_cardArtistBatch[(apiCard.Id, apiCard.Name)] = artist;
-				_artistBatch.TryAdd(artist.ScryfallId!.Value, artist);
+				_artistBatch.Add(artist);
 				artists.Add(artist);
 			}
 		}
@@ -358,6 +358,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return promoTypesOnCard;
 	}
 
+	/// <summary>
+	/// Commits all batched entities to the database.
+	/// </summary>
 	private async Task PersistBatchedData()
 	{
 		await UpsertArtists();
@@ -383,7 +386,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		);
 	}
 
-
 	/// <summary>
 	/// Inserts or updates <see cref="Artist"/> entities based on the current <see cref="_artistBatch"/>.<br/>
 	/// After upserting, it assigns the <see cref="Artist.Id"/> to the <see cref="Card.ArtistId"/> property of the current <see cref="_cardBatch"/> entities.
@@ -391,25 +393,13 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>The total number of inserted or updated <see cref="Artist"/> entities.</returns>
 	private async Task<int> UpsertArtists()
 	{
-		UpsertContainer<Artist> upsertionData = new();
-		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Keys);
-		Dictionary<Guid, Artist> artistLookup = existingArtists.ToDictionary(artist => artist.ScryfallId!.Value);
+		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Select(a => a.ScryfallId!.Value));
 
-		foreach ((Guid scryfallId, Artist batchedArtist) in _artistBatch)
-		{
-			if (artistLookup.TryGetValue(scryfallId, out Artist? existingArtist))
-			{
-				batchedArtist.Id = existingArtist.Id;
-
-				if (_artistComparer.Equals(existingArtist, batchedArtist)) continue;
-
-				upsertionData.ToUpdate.Add(batchedArtist);
-			}
-			else
-			{
-				upsertionData.ToInsert.Add(batchedArtist);
-			}
-		}
+		UpsertContainer<Artist> upsertionData = _artistBatch.ToUpsertData<Artist, Guid, int>(
+			existingArtists,
+			artist => artist.ScryfallId!.Value,
+			_artistComparer
+		);
 
 		int numberOfAffectedRows = await _artistRepository.Upsert(upsertionData);
 		await AssignArtistIdsOnBatchedCards();
@@ -424,7 +414,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// </summary>
 	private async Task AssignArtistIdsOnBatchedCards()
 	{
-		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Keys);
+		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Select(artist => artist.ScryfallId!.Value));
 		Dictionary<Guid, Artist> artistLookup = existingArtists.ToDictionary(artist => artist.ScryfallId!.Value);
 
 		foreach (Card batchedCard in _cardBatch)
@@ -475,6 +465,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		}
 
 		await _cardRepository.Upsert(upsertionData);
+
 		IEnumerable<Card> updatedCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
 		AssignCardIdToBatchedEntities(updatedCards);
 		_cardBatch.Clear();
@@ -482,15 +473,18 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return updatedCards;
 	}
 
-	private void AssignCardIdToBatchedEntities(IEnumerable<Card> cardsWithIdentity)
+	/// <summary>
+	/// Assigns <see cref="Card.Id"/> from the provided <paramref name="cards"/> to the batched entities with relations to <see cref="Card"/>.
+	/// </summary>
+	private void AssignCardIdToBatchedEntities(IEnumerable<Card> cards)
 	{
-		_imageBatch.AssignCardIdToEntities(cardsWithIdentity);
-		_cardPriceBatch.AssignCardIdToEntities(cardsWithIdentity);
-		_cardGamePlatformBatch.AssignCardIdToEntities(cardsWithIdentity);
-		_cardPrintFinishBatch.AssignCardIdToEntities(cardsWithIdentity);
-		_cardLegalitiesBatch.AssignCardIdToEntities(cardsWithIdentity);
-		_cardKeywordsBatch.AssignCardIdToEntities(cardsWithIdentity);
-		_cardPromoTypesBatch.AssignCardIdToEntities(cardsWithIdentity);
+		_imageBatch.AssignCardIdToEntities(cards);
+		_cardPriceBatch.AssignCardIdToEntities(cards);
+		_cardGamePlatformBatch.AssignCardIdToEntities(cards);
+		_cardPrintFinishBatch.AssignCardIdToEntities(cards);
+		_cardLegalitiesBatch.AssignCardIdToEntities(cards);
+		_cardKeywordsBatch.AssignCardIdToEntities(cards);
+		_cardPromoTypesBatch.AssignCardIdToEntities(cards);
 	}
 
 	/// <summary>
@@ -584,7 +578,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>The total number of inserted or updated <see cref="CardImage"/> entities.</returns>
 	private async Task<int> UpsertImages()
 	{
-		UpsertContainer<CardImage> upsertionData = new();
 		List<CardImage> batchedImages = _imageBatch
 			.Values
 			.SelectMany(imageList => imageList)
@@ -593,25 +586,11 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		IEnumerable<long> cardIds = batchedImages.Select(image => image.CardId).Distinct();
 		IEnumerable<CardImage> existingImages = await _cardImageRepository.GetFromCardIds(cardIds);
-		Dictionary<(long cardId, ImageTypeKind imageType), CardImage> existingImagesLookup = existingImages.ToDictionary(
-			image => (image.CardId, image.Type),
-			image => image
+		UpsertContainer<CardImage> upsertionData = batchedImages.ToUpsertData<CardImage, (long, int), long>(
+			existingImages,
+			image => (image.CardId, image.ImageTypeId),
+			_imageComparer
 		);
-
-		foreach (CardImage batchedImage in batchedImages)
-		{
-			if (existingImagesLookup.TryGetValue((batchedImage.CardId, (ImageTypeKind)batchedImage.ImageTypeId), out CardImage? existingImage))
-			{
-				batchedImage.Id = existingImage.Id;
-				if (_imageComparer.Equals(existingImage, batchedImage)) continue;
-
-				upsertionData.ToUpdate.Add(batchedImage);
-			}
-			else
-			{
-				upsertionData.ToInsert.Add(batchedImage);
-			}
-		}
 
 		int upsertedCount = await _cardImageRepository.Upsert(upsertionData);
 		_imageBatch.Clear();
@@ -626,7 +605,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <returns>The total number of inserted or updated <see cref="CardPrice"/> entities.</returns>
 	private async Task<int> UpsertCardPrices()
 	{
-		UpsertContainer<CardPrice> upsertionData = new();
 		List<CardPrice> batchedPrices = _cardPriceBatch
 			.Values
 			.SelectMany(cardPriceList => cardPriceList)
@@ -635,25 +613,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		IEnumerable<long> cardIds = batchedPrices.Select(image => image.CardId).Distinct();
 		IEnumerable<CardPrice> existingCardPrices = await _cardRepository.GetCardPrices(cardIds);
-		Dictionary<(long cardId, VendorType vendorType, CurrencyType currencyType), CardPrice> existingPricesLookup = existingCardPrices.ToDictionary(
-			cardPrice => (cardPrice.CardId, cardPrice.Vendor.Type, cardPrice.Currency.Type),
-			cardPrice => cardPrice
+
+		UpsertContainer<CardPrice> upsertionData = batchedPrices.ToUpsertData<CardPrice, (long, int, int), long>(
+			existingCardPrices,
+			cardPrice => (cardPrice.CardId, cardPrice.Vendor.Id, cardPrice.Currency.Id),
+			_priceComparer
 		);
-
-		foreach (CardPrice batchedCardPrice in batchedPrices)
-		{
-			if (existingPricesLookup.TryGetValue((batchedCardPrice.CardId, (VendorType)batchedCardPrice.VendorId, (CurrencyType)batchedCardPrice.CurrencyId), out CardPrice? existingCardPrice))
-			{
-				batchedCardPrice.Id = existingCardPrice.Id;
-				if (_priceComparer.Equals(existingCardPrice, batchedCardPrice)) continue;
-
-				upsertionData.ToUpdate.Add(batchedCardPrice);
-			}
-			else
-			{
-				upsertionData.ToInsert.Add(batchedCardPrice);
-			}
-		}
 
 		int upsertedCount = await _cardRepository.Upsert(upsertionData);
 		_cardPriceBatch.Clear();
@@ -703,9 +668,13 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return addedCount;
 	}
 
+	/// <summary>
+	/// Inserts or updates <see cref="CardLegality"/> entities based on the current <see cref="_cardLegalitiesBatch"/>.<br/>
+	/// Skips any images with a <see cref="CardPrice.CardId"/> of 0.
+	/// </summary>
+	/// <returns>The total number of inserted or updated <see cref="CardLegality"/> entities.</returns>
 	private async Task<int> UpsertCardLegalities()
 	{
-		UpsertContainer<CardLegality> upsertionData = new();
 		List<CardLegality> batchedCardLegalities = _cardLegalitiesBatch
 			.Values
 			.SelectMany(cardLegalityTupleList => cardLegalityTupleList)
@@ -715,27 +684,14 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		IEnumerable<long> cardIds = batchedCardLegalities.Select(cardLegality => cardLegality.CardId).Distinct();
 		IEnumerable<CardLegality> existingCardLegalities = await _cardRepository.GetCardLegalities(cardIds);
-		Dictionary<(long cardId, int gameFormatId), CardLegality> existingLegalitiesLookup = existingCardLegalities.ToDictionary(
+
+		UpsertContainer<CardLegality> upsertionData = batchedCardLegalities.ToUpsertData<CardLegality, (long, long), long>(
+			existingCardLegalities,
 			cardLegality => (cardLegality.CardId, cardLegality.GameFormatId),
-			cardLegality => cardLegality
+			_cardLegalityComparer
 		);
-
-		foreach (CardLegality batchedLegality in batchedCardLegalities)
-		{
-			if (existingLegalitiesLookup.TryGetValue((batchedLegality.CardId, batchedLegality.GameFormatId), out CardLegality? existingCardPrice))
-			{
-				batchedLegality.Id = existingCardPrice.Id;
-				if (_cardLegalityComparer.Equals(existingCardPrice, batchedLegality)) continue;
-
-				upsertionData.ToUpdate.Add(batchedLegality);
-			}
-			else
-			{
-				upsertionData.ToInsert.Add(batchedLegality);
-			}
-		}
-
 		int upsertedCount = await _cardRepository.Upsert(upsertionData);
+
 		_cardLegalitiesBatch.Clear();
 
 		return upsertedCount;
