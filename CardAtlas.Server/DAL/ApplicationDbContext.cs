@@ -41,4 +41,5 @@ public class ApplicationDbContext : DbContext
 	public DbSet<CardKeyword> CardKeywords { get; set; }
 	public DbSet<PromoType> PromoTypes { get; set; }
 	public DbSet<CardPromoType> CardPromoTypes { get; set; }
+	public DbSet<CardArtist> CardArtists { get; set; }
 }

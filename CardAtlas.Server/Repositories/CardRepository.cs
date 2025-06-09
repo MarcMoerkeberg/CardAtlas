@@ -528,4 +528,25 @@ public class CardRepository : ICardRepository
 			.Where(cardPromoType => cardIds.Contains(cardPromoType.CardId))
 			.ToListAsync();
 	}
+
+	public async Task<IEnumerable<CardArtist>> GetCardArtists(IEnumerable<long> cardIds)
+	{
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+		return await dbContext.CardArtists
+			.AsNoTracking()
+			.Where(cardArtist => cardIds.Contains(cardArtist.CardId))
+			.ToListAsync();
+	}
+
+	public async Task<int> Create(IEnumerable<CardArtist> cardArtists)
+	{
+		if (!cardArtists.Any()) return 0;
+
+		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
+		await dbContext.AddRangeAsync(cardArtists);
+
+		return await dbContext.SaveChangesAsync();
+
+	}
 }

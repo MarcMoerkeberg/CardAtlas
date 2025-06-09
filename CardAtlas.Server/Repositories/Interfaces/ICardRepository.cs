@@ -155,6 +155,11 @@ public interface ICardRepository
 	Task<IEnumerable<CardPrintFinish>> GetCardPrintFinishes(IEnumerable<long> cardIds);
 
 	/// <summary>
+	/// Returns all <see cref="CardArtist"/> entities associated with the <paramref name="cardIds"/> from the database.
+	/// </summary>
+	Task<IEnumerable<CardArtist>> GetCardArtists(IEnumerable<long> cardIds);
+
+	/// <summary>
 	/// Adds the provided <paramref name="card"/> to the database.
 	/// </summary>
 	/// <returns>The added <see cref="Card"/> with identity.</returns>
@@ -231,6 +236,12 @@ public interface ICardRepository
 	/// </summary>
 	/// <returns>The number of added <see cref="CardGamePlatform"/> entities.</returns>
 	Task<int> Create(IEnumerable<CardGamePlatform> cardGamePlatforms);
+
+	/// <summary>
+	/// Adds the provided <paramref name="cardArtists"/> to the database.
+	/// </summary>
+	/// <returns>The number of added <see cref="CardArtist"/> entities.</returns>
+	Task<int> Create(IEnumerable<CardArtist> cardArtists);
 
 	/// <summary>
 	/// Updates existing entity with changes from <paramref name="cardWithChanges"/>.<br/>

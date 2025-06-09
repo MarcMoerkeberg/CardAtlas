@@ -37,8 +37,8 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private Dictionary<Guid, Set> _setLookup = new();
 	private HashSet<Card> _cardBatch = new();
 	private Dictionary<(Guid cardScryfallId, string cardName), List<CardImage>> _imageBatch = new();
-	private Dictionary<(Guid cardScryfallId, string cardName), Artist> _cardArtistBatch = new();
 	private HashSet<Artist> _artistBatch = new();
+	private Dictionary<(Guid cardScryfallId, string cardName), List<(Guid artistScryfallId, CardArtist cardArtist)>> _cardArtistBatch = new();
 	private Dictionary<Guid, List<CardPrice>> _cardPriceBatch = new();
 	private Dictionary<Guid, List<CardGamePlatform>> _cardGamePlatformBatch = new();
 	private Dictionary<Guid, List<CardPrintFinish>> _cardPrintFinishBatch = new();
@@ -194,21 +194,26 @@ public class ScryfallIngestionService : IScryfallIngestionService
 				Artist? artist = ArtistMapper.MapArtist(cardFace);
 				if (artist is null) continue;
 
-				_cardArtistBatch[(apiCard.Id, cardFace.Name)] = artist;
+				CardArtist cardArtist = ArtistMapper.MapCardArtist(artist);
+
+				_cardArtistBatch[(apiCard.Id, cardFace.Name)] = new List<(Guid artistScryfallId, CardArtist cardArtist)>
+				{
+					(artist.ScryfallId!.Value, cardArtist)
+				};
+
 				_artistBatch.Add(artist);
 				artists.Add(artist);
 			}
 		}
 		else
 		{
-			Artist? artist = ArtistMapper.MapArtist(apiCard);
+			artists = ArtistMapper.MapArtist(apiCard);
+			if (artists is { Count: 0 }) return artists;
 
-			if (artist is not null)
-			{
-				_cardArtistBatch[(apiCard.Id, apiCard.Name)] = artist;
-				_artistBatch.Add(artist);
-				artists.Add(artist);
-			}
+			_cardArtistBatch[(apiCard.Id, apiCard.Name)] = artists
+				.Select(artist => (artist.ScryfallId!.Value, ArtistMapper.MapCardArtist(artist)))
+				.ToList();
+			artists.ForEach(artist => _artistBatch.Add(artist));
 		}
 
 		return artists;
@@ -363,14 +368,14 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// </summary>
 	private async Task PersistBatchedData()
 	{
-		await UpsertArtists();
-
 		Task<IEnumerable<Card>> upsertedCardsTask = UpsertCards();
+
 		await Task.WhenAll(
 			upsertedCardsTask,
 			CreateMissingGameFormats(),
 			CreateMissingKeywords(),
-			CreateMissingPromoTypes()
+			CreateMissingPromoTypes(),
+			UpsertArtists()
 		);
 
 		IEnumerable<Card> updatedCards = await upsertedCardsTask;
@@ -382,52 +387,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			CreateMissingCardPrintFinishes(updatedCards),
 			UpsertCardLegalities(),
 			CreateMissingCardKeywords(updatedCards),
-			CreateMissingCardPromoTypes(updatedCards)
+			CreateMissingCardPromoTypes(updatedCards),
+			CreateMissingCardArtists(updatedCards)
 		);
-	}
-
-	/// <summary>
-	/// Inserts or updates <see cref="Artist"/> entities based on the current <see cref="_artistBatch"/>.<br/>
-	/// After upserting, it assigns the <see cref="Artist.Id"/> to the <see cref="Card.ArtistId"/> property of the current <see cref="_cardBatch"/> entities.
-	/// </summary>
-	/// <returns>The total number of inserted or updated <see cref="Artist"/> entities.</returns>
-	private async Task<int> UpsertArtists()
-	{
-		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Select(a => a.ScryfallId!.Value));
-		UpsertContainer<Artist> upsertionData = _artistBatch.ToUpsertData(existingArtists, _artistComparer);
-
-		int numberOfAffectedRows = await _artistRepository.Upsert(upsertionData);
-		await AssignArtistIdsOnBatchedCards();
-
-		_artistBatch.Clear();
-		return numberOfAffectedRows;
-	}
-
-	/// <summary>
-	/// Assigns <see cref="Artist.Id"/> to <see cref="Card"/> entities in the current <see cref="_cardBatch"/>.<br/>
-	/// Assigns <see cref="Artist.DefaultId"/> to <see cref="Card"/> entity if no matching <see cref="Artist"/> is found in <see cref="_cardArtistBatch"/> or in the db.
-	/// </summary>
-	private async Task AssignArtistIdsOnBatchedCards()
-	{
-		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Select(artist => artist.ScryfallId!.Value));
-		Dictionary<Guid, Artist> artistLookup = existingArtists.ToDictionary(artist => artist.ScryfallId!.Value);
-
-		foreach (Card batchedCard in _cardBatch)
-		{
-			if (batchedCard.ScryfallId.HasValue &&
-				_cardArtistBatch.TryGetValue((batchedCard.ScryfallId.Value, batchedCard.Name), out Artist? batchedArtist) &&
-				batchedArtist.ScryfallId.HasValue &&
-				artistLookup.TryGetValue(batchedArtist.ScryfallId.Value, out Artist? existingArtist))
-			{
-				batchedCard.ArtistId = existingArtist.Id;
-			}
-			else
-			{
-				batchedCard.ArtistId = Artist.DefaultId;
-			}
-		}
-
-		_cardArtistBatch.Clear();
 	}
 
 	/// <summary>
@@ -439,13 +401,12 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		IEnumerable<Card> existingCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
 		UpsertContainer<Card> upsertionData = new();
-		Dictionary<(Guid Value, string), Card> cardLookup = existingCards.ToDictionary(card => (card.ScryfallId!.Value, card.Name));
+		Dictionary<(Guid scryfallId, string cardName, string? parentCardName), Card> cardLookup = existingCards.ToDictionary(card => (card.ScryfallId!.Value, card.Name, card.ParentCard?.Name));
 
 		foreach (Card batchedCard in _cardBatch)
 		{
-			if (cardLookup.TryGetValue((batchedCard.ScryfallId!.Value, batchedCard.Name), out Card? existingCard))
+			if (cardLookup.TryGetValue((batchedCard.ScryfallId!.Value, batchedCard.Name, batchedCard.ParentCard?.Name), out Card? existingCard))
 			{
-				batchedCard.ArtistId = existingCard.ArtistId;
 				batchedCard.ParentCardId = existingCard.ParentCardId;
 				batchedCard.Id = existingCard.Id;
 
@@ -480,6 +441,13 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_cardLegalitiesBatch.AssignCardIdToEntities(cards);
 		_cardKeywordsBatch.AssignCardIdToEntities(cards);
 		_cardPromoTypesBatch.AssignCardIdToEntities(cards);
+
+		Dictionary<(Guid, string), List<CardArtist>> flattenedCardArtistBatch = _cardArtistBatch.ToDictionary(
+			batch => batch.Key,
+			batch => batch.Value.Select(tuple => tuple.cardArtist).ToList()
+		);
+
+		flattenedCardArtistBatch.AssignCardIdToEntities(cards);
 	}
 
 	/// <summary>
@@ -531,6 +499,25 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	}
 
 	/// <summary>
+	/// Inserts or updates <see cref="Artist"/> entities based on the current <see cref="_artistBatch"/>.<br/>
+	/// After upserting, it assigns the <see cref="Artist.Id"/> to the <see cref="Card.ArtistId"/> property of the current <see cref="_cardBatch"/> entities.
+	/// </summary>
+	/// <returns>The total number of inserted or updated <see cref="Artist"/> entities.</returns>
+	private async Task<int> UpsertArtists()
+	{
+		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Select(a => a.ScryfallId!.Value));
+		UpsertContainer<Artist> upsertionData = _artistBatch
+			.DistinctBy(artist => artist.ScryfallId)
+			.ToUpsertData(existingArtists, _artistComparer);
+
+		int numberOfAffectedRows = await _artistRepository.Upsert(upsertionData);
+		await AssignArtistIdsToCardArtists();
+
+		_artistBatch.Clear();
+		return numberOfAffectedRows;
+	}
+
+	/// <summary>
 	/// Assigns the <see cref="CardLegality.GameFormatId"/> on batched (non-persisted) entities in <see cref="_cardLegalitiesBatch"/>.
 	/// </summary>
 	private async Task AssignGameFormatIdsToLegalities() =>
@@ -556,6 +543,25 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			await _cardRepository.GetPromoTypes(SourceType.Scryfall),
 			(cardPromoType, id) => cardPromoType.PromoTypeId = id
 		);
+
+
+	/// <summary>
+	/// Assigns <see cref="Artist.Id"/> to <see cref="Card"/> entities in the current <see cref="_cardBatch"/>.<br/>
+	/// Assigns <see cref="Artist.DefaultId"/> to <see cref="Card"/> entity if no matching <see cref="Artist"/> is found in <see cref="_cardArtistBatch"/> or in the db.
+	/// </summary>
+	private async Task AssignArtistIdsToCardArtists()
+	{
+		IEnumerable<Guid> artistScryfallIds = _artistBatch.Select(artist => artist.ScryfallId!.Value).Distinct();
+		IEnumerable<Artist> existingArtists = await _artistRepository.Get(artistScryfallIds);
+		Dictionary<Guid, Artist> artistLookup = existingArtists.ToDictionary(artist => artist.ScryfallId!.Value);
+
+		foreach ((Guid artistScryfallId, CardArtist batchedCardArtist) in _cardArtistBatch.Values.SelectMany(tuple => tuple))
+		{
+			if (!artistLookup.TryGetValue(artistScryfallId, out Artist? existingArtist)) continue;
+
+			batchedCardArtist.ArtistId = existingArtist.Id;
+		}
+	}
 
 	/// <summary>
 	/// Inserts or updates <see cref="CardImage"/> entities based on the current<see cref="_imageBatch"/>.<br/>
@@ -705,5 +711,46 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		_cardPromoTypesBatch.Clear();
 		return addedPromoTypesCount;
+	}
+
+	/// <summary>
+	/// Adds all missing <see cref="CardArtist"/> entities to the database from <see cref="_cardArtistBatch"/>.<br/>
+	/// <see cref="CardArtist"/> represents the relationship between <see cref="Artist"/> and <see cref="Card"/> entities.
+	/// </summary>
+	/// <returns>The number of added <see cref="CardArtist"/> entities.</returns>
+	private async Task<int> CreateMissingCardArtists(IEnumerable<Card> existingCards)
+	{
+		IEnumerable<CardArtist> existingCardArtists = await _cardRepository.GetCardArtists(existingCards.Select(card => card.Id));
+		List<CardArtist> missingCardArtists = GetMissingCardArtists(existingCardArtists);
+
+		int addedCardArtistCount = await _cardRepository.Create(missingCardArtists);
+
+		_cardArtistBatch.Clear();
+		return addedCardArtistCount;
+	}
+
+	private List<CardArtist> GetMissingCardArtists(IEnumerable<CardArtist> existing)
+	{
+		List<CardArtist> missingCardArtists = new();
+		if (_cardArtistBatch is { Count: 0 }) return missingCardArtists;
+
+		Dictionary<(long CardId, int ArtistId), CardArtist> existingLookup = existing.ToDictionary(ca => (ca.CardId, ca.ArtistId));
+		IEnumerable<CardArtist> batchedCardArtists = _cardArtistBatch
+			.SelectMany(batch => batch.Value)
+			.Select(tuple => tuple.cardArtist);
+
+		if (!existing.Any())
+		{
+			return batchedCardArtists.ToList();
+		}
+
+		foreach (CardArtist cardArtist in batchedCardArtists)
+		{
+			if (existingLookup.TryGetValue((cardArtist.CardId, cardArtist.ArtistId), out CardArtist? existingCardArtist)) continue;
+
+			missingCardArtists.Add(cardArtist);
+		}
+
+		return missingCardArtists;
 	}
 }

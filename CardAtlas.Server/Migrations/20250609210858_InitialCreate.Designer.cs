@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CardAtlas.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250524191816_InitialCreate")]
+    [Migration("20250609210858_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -41,16 +41,14 @@ namespace CardAtlas.Server.Migrations
                     b.Property<Guid?>("ScryfallId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("SourceId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Artists");
+                    b.HasIndex("SourceId");
 
-                    b.HasData(
-                        new
-                        {
-                            Id = -1,
-                            Name = "Unknown - Default artist"
-                        });
+                    b.ToTable("Artists");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Card", b =>
@@ -60,9 +58,6 @@ namespace CardAtlas.Server.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<int>("ArtistId")
-                        .HasColumnType("int");
 
                     b.Property<bool>("CanBeFoundInBoosters")
                         .HasColumnType("bit");
@@ -161,8 +156,6 @@ namespace CardAtlas.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ArtistId");
-
                     b.HasIndex("FrameLayoutId");
 
                     b.HasIndex("LanguageId");
@@ -174,6 +167,29 @@ namespace CardAtlas.Server.Migrations
                     b.HasIndex("SetId");
 
                     b.ToTable("Cards");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardArtist", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("ArtistId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("CardId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArtistId");
+
+                    b.HasIndex("CardId");
+
+                    b.ToTable("CardArtists");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardGamePlatform", b =>
@@ -1318,14 +1334,19 @@ namespace CardAtlas.Server.Migrations
                         });
                 });
 
-            modelBuilder.Entity("CardAtlas.Server.Models.Data.Card", b =>
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Artist", b =>
                 {
-                    b.HasOne("CardAtlas.Server.Models.Data.Artist", "Artist")
-                        .WithMany("Cards")
-                        .HasForeignKey("ArtistId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("CardAtlas.Server.Models.Data.Source", "Source")
+                        .WithMany()
+                        .HasForeignKey("SourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("Source");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.Card", b =>
+                {
                     b.HasOne("CardAtlas.Server.Models.Data.FrameLayout", "FrameLayout")
                         .WithMany("Cards")
                         .HasForeignKey("FrameLayoutId")
@@ -1354,8 +1375,6 @@ namespace CardAtlas.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Artist");
-
                     b.Navigation("FrameLayout");
 
                     b.Navigation("Language");
@@ -1365,6 +1384,25 @@ namespace CardAtlas.Server.Migrations
                     b.Navigation("Rarity");
 
                     b.Navigation("Set");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardArtist", b =>
+                {
+                    b.HasOne("CardAtlas.Server.Models.Data.Artist", "Artist")
+                        .WithMany("CardArtists")
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CardAtlas.Server.Models.Data.Card", "Card")
+                        .WithMany("CardArtists")
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Artist");
+
+                    b.Navigation("Card");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.CardRelations.CardGamePlatform", b =>
@@ -1594,11 +1632,13 @@ namespace CardAtlas.Server.Migrations
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Artist", b =>
                 {
-                    b.Navigation("Cards");
+                    b.Navigation("CardArtists");
                 });
 
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Card", b =>
                 {
+                    b.Navigation("CardArtists");
+
                     b.Navigation("CardGamePlatforms");
 
                     b.Navigation("CardKeywords");

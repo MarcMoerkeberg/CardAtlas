@@ -69,7 +69,7 @@ public static class UpsertExtensions
 	{
 		return batchedEntities.ToUpsertData<CardPrice, (long, int, int), long>(
 			existingEntities,
-			cardPrice => (cardPrice.CardId, cardPrice.Vendor.Id, cardPrice.Currency.Id),
+			cardPrice => (cardPrice.CardId, cardPrice.VendorId, cardPrice.CurrencyId),
 			comparer
 		);
 	}

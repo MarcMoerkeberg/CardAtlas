@@ -105,7 +105,6 @@ public static class CardMapper
 			LanguageId = (int)GetLanguageType(apiCard),
 
 			SetId = set.Id,
-			ArtistId = Artist.DefaultId,
 		};
 	}
 
@@ -195,7 +194,6 @@ public static class CardMapper
 		target.IsTextless = source.IsTextless;
 		target.IsWotcOfficial = source.IsWotcOfficial;
 		target.SetId = source.SetId;
-		target.ArtistId = source.ArtistId;
 		target.RarityId = source.RarityId;
 		target.LanguageId = source.LanguageId;
 		target.ColorIdentity = source.ColorIdentity;

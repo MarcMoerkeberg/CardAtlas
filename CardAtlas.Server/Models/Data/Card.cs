@@ -68,9 +68,8 @@ public class Card : INameable
 	public Set Set { get; set; } = null!;
 	public required int SetId { get; set; }
 
-	[ForeignKey("ArtistId")]
-	public Artist Artist { get; set; } = null!;
-	public required int ArtistId { get; set; }
+	[InverseProperty("Card")]
+	public ICollection<CardArtist> CardArtists { get; set; } = new HashSet<CardArtist>();
 
 	[InverseProperty("Card")]
 	public ICollection<CardImage> Images { get; set; } = new HashSet<CardImage>();

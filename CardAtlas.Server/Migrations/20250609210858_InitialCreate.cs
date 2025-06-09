@@ -14,20 +14,6 @@ namespace CardAtlas.Server.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Artists",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ScryfallId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Artists", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Currencies",
                 columns: table => new
                 {
@@ -199,6 +185,27 @@ namespace CardAtlas.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Artists",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ScryfallId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    SourceId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Artists", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Artists_Sources_SourceId",
+                        column: x => x.SourceId,
+                        principalTable: "Sources",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "GameFormats",
                 columns: table => new
                 {
@@ -328,7 +335,6 @@ namespace CardAtlas.Server.Migrations
                     IsTextless = table.Column<bool>(type: "bit", nullable: false),
                     IsWotcOfficial = table.Column<bool>(type: "bit", nullable: false),
                     SetId = table.Column<int>(type: "int", nullable: false),
-                    ArtistId = table.Column<int>(type: "int", nullable: false),
                     RarityId = table.Column<int>(type: "int", nullable: false),
                     LanguageId = table.Column<int>(type: "int", nullable: false),
                     ColorIdentity = table.Column<string>(type: "nvarchar(9)", maxLength: 9, nullable: false),
@@ -338,12 +344,6 @@ namespace CardAtlas.Server.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Cards", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Cards_Artists_ArtistId",
-                        column: x => x.ArtistId,
-                        principalTable: "Artists",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Cards_Cards_ParentCardId",
                         column: x => x.ParentCardId,
@@ -371,6 +371,32 @@ namespace CardAtlas.Server.Migrations
                         name: "FK_Cards_Sets_SetId",
                         column: x => x.SetId,
                         principalTable: "Sets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CardArtists",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CardId = table.Column<long>(type: "bigint", nullable: false),
+                    ArtistId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CardArtists", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CardArtists_Artists_ArtistId",
+                        column: x => x.ArtistId,
+                        principalTable: "Artists",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CardArtists_Cards_CardId",
+                        column: x => x.CardId,
+                        principalTable: "Cards",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -599,11 +625,6 @@ namespace CardAtlas.Server.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Artists",
-                columns: new[] { "Id", "Name", "ScryfallId" },
-                values: new object[] { -1, "Unknown - Default artist", null });
-
-            migrationBuilder.InsertData(
                 table: "Currencies",
                 columns: new[] { "Id", "Name" },
                 values: new object[,]
@@ -794,6 +815,21 @@ namespace CardAtlas.Server.Migrations
                 values: new object[] { -1, null, null, null, "Defaul", false, false, false, null, "Unknown - Default set", 0, null, null, null, -1, -1 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Artists_SourceId",
+                table: "Artists",
+                column: "SourceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CardArtists_ArtistId",
+                table: "CardArtists",
+                column: "ArtistId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CardArtists_CardId",
+                table: "CardArtists",
+                column: "CardId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CardGamePlatforms_CardId",
                 table: "CardGamePlatforms",
                 column: "CardId");
@@ -889,11 +925,6 @@ namespace CardAtlas.Server.Migrations
                 column: "PromoTypeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Cards_ArtistId",
-                table: "Cards",
-                column: "ArtistId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Cards_FrameLayoutId",
                 table: "Cards",
                 column: "FrameLayoutId");
@@ -948,6 +979,9 @@ namespace CardAtlas.Server.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "CardArtists");
+
+            migrationBuilder.DropTable(
                 name: "CardGamePlatforms");
 
             migrationBuilder.DropTable(
@@ -967,6 +1001,9 @@ namespace CardAtlas.Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "CardPromoTypes");
+
+            migrationBuilder.DropTable(
+                name: "Artists");
 
             migrationBuilder.DropTable(
                 name: "GamePlatforms");
@@ -1003,9 +1040,6 @@ namespace CardAtlas.Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "PromoTypes");
-
-            migrationBuilder.DropTable(
-                name: "Artists");
 
             migrationBuilder.DropTable(
                 name: "FrameLayouts");

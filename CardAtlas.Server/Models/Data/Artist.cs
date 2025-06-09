@@ -1,4 +1,6 @@
-﻿using CardAtlas.Server.Models.Interfaces;
+﻿using CardAtlas.Server.Models.Data.CardRelations;
+using CardAtlas.Server.Models.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -16,8 +18,15 @@ public class Artist : IIdable<int>
 	[MaxLength(100)]
 	public required string Name { get; set; }
 
+	[ForeignKey("SourceId")]
+	[DeleteBehavior(DeleteBehavior.Restrict)]
+	public Source Source { get; set; } = null!;
+	public required int SourceId { get; set; }
+	[NotMapped]
+	public SourceType SourceType => Source.Type;
+
 	[InverseProperty("Artist")]
-	public ICollection<Card> Cards { get; set; } = new HashSet<Card>();
+	public ICollection<CardArtist> CardArtists { get; set; } = new HashSet<CardArtist>();
 
 	[NotMapped]
 	public const int DefaultId = -1;

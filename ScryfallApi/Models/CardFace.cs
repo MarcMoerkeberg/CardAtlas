@@ -6,7 +6,7 @@ namespace ScryfallApi.Models;
 public class CardFace
 {
 	[JsonPropertyName("artist")]
-	public string? Artist { get; set; }
+	public string? ArtistName { get; set; }
 
 	[JsonPropertyName("artist_id")]
 	public Guid? ArtistId { get; set; }
