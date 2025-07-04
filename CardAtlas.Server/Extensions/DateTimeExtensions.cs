@@ -10,6 +10,7 @@ public static class DateTimeExtensions
 	public static DateTime Truncate(this DateTime target, TimeSpan scale)
 	{
 		if (scale <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(scale), "Must be greater than zero.");
+		if (scale.Ticks < 10) return new DateTime(target.Ticks);
 
 		return target.AddTicks(-(target.Ticks % scale.Ticks));
 	}
