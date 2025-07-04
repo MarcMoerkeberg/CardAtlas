@@ -97,6 +97,7 @@ public static class CardMapper
 			IsReprint = apiCard.IsReprint,
 			IsTextless = apiCard.IsTextlessPrint,
 			IsWotcOfficial = true,
+			CreatedDate = DateTime.UtcNow.Truncate(TimeSpan.FromSeconds(1)),
 
 			ColorIdentity = string.Join(',', apiCard.ColorIdentity),
 
@@ -314,7 +315,7 @@ public static class CardMapper
 		return apiCard.Keywords
 			.Select(keyword => new Keyword
 			{
-				Name = keyword,
+				Name = keyword.CapitalizeFirstLetter(),
 				SourceId = (int)SourceType.Scryfall,
 			})
 			.ToList();

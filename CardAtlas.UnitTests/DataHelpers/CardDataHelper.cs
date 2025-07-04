@@ -48,6 +48,7 @@ public static class CardDataHelper
 		IsReprint = false,
 		IsTextless = false,
 		IsWotcOfficial = true,
+		CreatedDate = DateTime.UtcNow
 	};
 
 	public static CardFace CreateCardFace(string name = "Card name") => new CardFace

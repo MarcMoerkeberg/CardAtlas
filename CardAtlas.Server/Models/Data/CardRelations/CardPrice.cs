@@ -11,10 +11,10 @@ public class CardPrice : ICardRelateable, IIdable<long>
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 	public long Id { get; set; }
 
-	[Precision(8, 2)]
+	[Precision(10, 2)]
 	public decimal? Price { get; set; }
 
-	[Precision(8, 2)]
+	[Precision(10, 2)]
 	public decimal? FoilPrice { get; set; }
 
 	[ForeignKey("VendorId")]

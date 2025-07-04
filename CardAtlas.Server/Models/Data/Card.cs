@@ -19,7 +19,7 @@ public class Card : INameable
 	public required string Name { get; set; }
 
 	[MinLength(1)]
-	[MaxLength(800)]
+	[MaxLength(1500)]
 	public string? OracleText { get; set; }
 
 	[MinLength(1)]
@@ -46,7 +46,7 @@ public class Card : INameable
 	public string? Toughness { get; set; }
 
 	[MinLength(1)]
-	[MaxLength(3)]
+	[MaxLength(6)]
 	public string? Loyalty { get; set; }
 
 	[MinLength(1)]
@@ -124,4 +124,7 @@ public class Card : INameable
 
 	[InverseProperty("ParentCard")]
 	public ICollection<Card> ChildCards { get; set; } = new HashSet<Card>();
+
+	public required DateTime CreatedDate { get; set; }
+	public DateTime? LastUpdatedDate { get; set; }
 }

@@ -315,14 +315,14 @@ namespace CardAtlas.Server.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ScryfallId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    OracleText = table.Column<string>(type: "nvarchar(800)", maxLength: 800, nullable: true),
+                    OracleText = table.Column<string>(type: "nvarchar(1500)", maxLength: 1500, nullable: true),
                     TypeLine = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: true),
                     FlavorText = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     ManaCost = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     ConvertedManaCost = table.Column<decimal>(type: "decimal(8,1)", precision: 8, scale: 1, nullable: true),
                     Power = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: true),
                     Toughness = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: true),
-                    Loyalty = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: true),
+                    Loyalty = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: true),
                     CollectorNumber = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
                     ReleaseDate = table.Column<DateOnly>(type: "date", nullable: false),
                     IsOnReservedList = table.Column<bool>(type: "bit", nullable: false),
@@ -339,7 +339,9 @@ namespace CardAtlas.Server.Migrations
                     LanguageId = table.Column<int>(type: "int", nullable: false),
                     ColorIdentity = table.Column<string>(type: "nvarchar(9)", maxLength: 9, nullable: false),
                     FrameLayoutId = table.Column<int>(type: "int", nullable: false),
-                    ParentCardId = table.Column<long>(type: "bigint", nullable: true)
+                    ParentCardId = table.Column<long>(type: "bigint", nullable: true),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastUpdatedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -542,8 +544,8 @@ namespace CardAtlas.Server.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Price = table.Column<decimal>(type: "decimal(8,2)", precision: 8, scale: 2, nullable: true),
-                    FoilPrice = table.Column<decimal>(type: "decimal(8,2)", precision: 8, scale: 2, nullable: true),
+                    Price = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: true),
+                    FoilPrice = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: true),
                     VendorId = table.Column<int>(type: "int", nullable: false),
                     PurchaseUri = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CurrencyId = table.Column<int>(type: "int", nullable: false),

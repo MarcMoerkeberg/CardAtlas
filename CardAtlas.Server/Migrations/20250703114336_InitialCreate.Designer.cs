@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CardAtlas.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250609210858_InitialCreate")]
+    [Migration("20250703114336_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -76,6 +76,9 @@ namespace CardAtlas.Server.Migrations
                         .HasPrecision(8, 1)
                         .HasColumnType("decimal(8,1)");
 
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("FlavorText")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -110,9 +113,12 @@ namespace CardAtlas.Server.Migrations
                     b.Property<int>("LanguageId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Loyalty")
-                        .HasMaxLength(3)
-                        .HasColumnType("nvarchar(3)");
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
 
                     b.Property<string>("ManaCost")
                         .HasMaxLength(50)
@@ -124,8 +130,8 @@ namespace CardAtlas.Server.Migrations
                         .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("OracleText")
-                        .HasMaxLength(800)
-                        .HasColumnType("nvarchar(800)");
+                        .HasMaxLength(1500)
+                        .HasColumnType("nvarchar(1500)");
 
                     b.Property<long?>("ParentCardId")
                         .HasColumnType("bigint");
@@ -281,12 +287,12 @@ namespace CardAtlas.Server.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal?>("FoilPrice")
-                        .HasPrecision(8, 2)
-                        .HasColumnType("decimal(8,2)");
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<decimal?>("Price")
-                        .HasPrecision(8, 2)
-                        .HasColumnType("decimal(8,2)");
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<string>("PurchaseUri")
                         .HasColumnType("nvarchar(max)");
