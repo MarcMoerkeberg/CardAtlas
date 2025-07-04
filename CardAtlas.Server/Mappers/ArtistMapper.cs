@@ -16,13 +16,15 @@ public static class ArtistMapper
 		List<Artist> artists = new();
 		if (apiCard.ArtistIds is not { Length: > 0 } || string.IsNullOrWhiteSpace(apiCard.ArtistName)) return artists;
 
+		string[] artistNames = apiCard.ArtistName.Split('&');
+
 		for (int i = 0; i < apiCard.ArtistIds.Length; i++)
 		{
 			string artistName = apiCard.ArtistName.Split('&')[i];
 
 			artists.Add(new Artist
 			{
-				Name = artistName,
+				Name = artistNames[i],
 				ScryfallId = apiCard.ArtistIds[i],
 				SourceId = (int)SourceType.Scryfall
 			});
