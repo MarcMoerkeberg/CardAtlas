@@ -20,14 +20,32 @@ public static class ArtistMapper
 
 		for (int i = 0; i < apiCard.ArtistIds.Length; i++)
 		{
-			string artistName = apiCard.ArtistName.Split('&')[i];
-
 			artists.Add(new Artist
 			{
 				Name = artistNames[i],
 				ScryfallId = apiCard.ArtistIds[i],
 				SourceId = (int)SourceType.Scryfall
 			});
+		}
+
+		return artists;
+	}
+
+	/// <summary>
+	/// Maps <paramref name="cardFaces"/> into <see cref="Artist"/> entities.
+	/// </summary>
+	/// <returns>A new list of <see cref="Artist"/> entities. The list may be empty if <paramref name="cardFaces"/> have insufficient artist information.</returns>
+	public static List<Artist> MapArtist(IEnumerable<CardFace> cardFaces)
+	{
+		List<Artist> artists = new();
+		if (!cardFaces.Any()) return artists;
+
+		foreach (CardFace cardFace in cardFaces)
+		{
+			Artist? artist = MapArtist(cardFace);
+			if (artist is null) continue;
+
+			artists.Add(artist);
 		}
 
 		return artists;
