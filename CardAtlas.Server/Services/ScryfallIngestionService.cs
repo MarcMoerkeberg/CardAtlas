@@ -401,7 +401,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		IEnumerable<Card> existingCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
 		UpsertContainer<Card> upsertionData = new();
-		Dictionary<(Guid scryfallId, string cardName, string? parentCardName), Card> cardLookup = existingCards.ToDictionary(card => (card.ScryfallId!.Value, card.Name, card.ParentCard?.Name));
+		Dictionary<(Guid scryfallId, string cardName, string? parentCardName), Card> cardLookup = existingCards.ToDictionary(card => (card.ScryfallId!.Value, card.Name, card.ParentCard?.Name));//ParentCardName is required due to cardnames not being unique as art card dfcs have the same name as the actual card.
 
 		foreach (Card batchedCard in _cardBatch)
 		{
@@ -729,20 +729,27 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return addedCardArtistCount;
 	}
 
-	private List<CardArtist> GetMissingCardArtists(IEnumerable<CardArtist> existing)
+	/// <summary>
+	/// Finds all batched <see cref="CardArtist"/> which currently does not exist in the <paramref name="existingCardArtists"/>.
+	/// </summary>
+	/// <returns>All batched <see cref="CardArtist"/> entities which does not have a match in <paramref name="existingCardArtists"/>.<br/><br/>
+	/// List may be empty if all batched artists already exists.<br/>
+	/// List is all batched entities, if no <paramref name="existingCardArtists"/> is provided.</returns>
+	private List<CardArtist> GetMissingCardArtists(IEnumerable<CardArtist> existingCardArtists)
 	{
 		List<CardArtist> missingCardArtists = new();
 		if (_cardArtistBatch is { Count: 0 }) return missingCardArtists;
 
-		Dictionary<(long CardId, int ArtistId), CardArtist> existingLookup = existing.ToDictionary(ca => (ca.CardId, ca.ArtistId));
 		IEnumerable<CardArtist> batchedCardArtists = _cardArtistBatch
 			.SelectMany(batch => batch.Value)
 			.Select(tuple => tuple.cardArtist);
 
-		if (!existing.Any())
+		if (!existingCardArtists.Any())
 		{
 			return batchedCardArtists.ToList();
 		}
+
+		Dictionary<(long CardId, int ArtistId), CardArtist> existingLookup = existingCardArtists.ToDictionary(ca => (ca.CardId, ca.ArtistId));
 
 		foreach (CardArtist cardArtist in batchedCardArtists)
 		{
