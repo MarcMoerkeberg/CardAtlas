@@ -10,7 +10,7 @@ public class GameFormatComparer : IEqualityComparer<GameFormat>
 		if (x is null || y is null) return false;
 
 		return x.Id == y.Id
-			&& string.Equals(x.Name, y.Name)
+			&& string.Equals(x.Name, y.Name, StringComparison.OrdinalIgnoreCase)
 			&& string.Equals(x.Description, y.Description)
 			&& x.SourceId == y.SourceId;
 	}

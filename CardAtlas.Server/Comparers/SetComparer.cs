@@ -11,7 +11,7 @@ public class SetComparer : IEqualityComparer<Set>
 
 		return x.Id == y.Id
 			&& x.ScryfallId == y.ScryfallId
-			&& string.Equals(x.Name, y.Name)
+			&& string.Equals(x.Name, y.Name, StringComparison.OrdinalIgnoreCase)
 			&& string.Equals(x.Code, y.Code)
 			&& string.Equals(x.MtgoCode, y.MtgoCode)
 			&& string.Equals(x.ArenaCode, y.ArenaCode)

@@ -11,7 +11,7 @@ public class KeywordComparer : IEqualityComparer<Keyword>
 
 		return x.Id == y.Id
 			&& x.SourceId == y.SourceId
-			&& string.Equals(x.Name, y.Name)
+			&& string.Equals(x.Name, y.Name, StringComparison.OrdinalIgnoreCase)
 			&& string.Equals(x.ReminderText, y.ReminderText)
 			&& string.Equals(x.Description, y.Description);
 	}

@@ -11,7 +11,7 @@ public class ArtistComparer : IEqualityComparer<Artist>
 
 		return x.ScryfallId == y.ScryfallId
 			&& x.Id == y.Id
-			&& string.Equals(x.Name, y.Name);
+			&& string.Equals(x.Name, y.Name, StringComparison.OrdinalIgnoreCase);
 	}
 
 	public int GetHashCode(Artist obj)
@@ -23,5 +23,4 @@ public class ArtistComparer : IEqualityComparer<Artist>
 
 		return hash.ToHashCode();
 	}
-
 }

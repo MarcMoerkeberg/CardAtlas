@@ -11,8 +11,7 @@ public class PromoTypeComparer : IEqualityComparer<PromoType>
 
 		return x.Id == y.Id
 			&& x.SourceId == y.SourceId
-			&& string.Equals(x.Name, y.Name)
-			&& string.Equals(x.SourceId, y.SourceId);
+			&& string.Equals(x.Name, y.Name, StringComparison.OrdinalIgnoreCase);
 	}
 
 	public int GetHashCode(PromoType obj)

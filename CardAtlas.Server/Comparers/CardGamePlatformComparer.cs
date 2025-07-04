@@ -10,8 +10,8 @@ public class CardGamePlatformComparer : IEqualityComparer<CardGamePlatform>
 		if (x is null || y is null) return false;
 
 		return x.Id == y.Id
-			&& string.Equals(x.GamePlatformId, y.GamePlatformId)
-			&& string.Equals(x.CardId, y.CardId);
+			&& x.GamePlatformId == y.GamePlatformId
+			&& x.CardId == y.CardId;
 	}
 
 	public int GetHashCode(CardGamePlatform obj)
