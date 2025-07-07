@@ -183,9 +183,13 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <see cref="Artist"/> entities are batched based with composite key of <see cref="Card.Id"/> and <see cref="Card.Name"/>.
 	/// </summary>
 	/// <returns>A read-only list of <see cref="Artist"/>. Returns an empty list if the <paramref name="apiCard"/> has no images yet.</returns>
-	private IReadOnlyList<Artist> BatchArtistsAndCardRelations(ApiCard apiCard)
+	private (
+		IReadOnlyList<Artist> artists,
+		IReadOnlyDictionary<(Guid cardScryfallId, string cardName), List<(Guid artistScryfallId, CardArtist cardArtist)>> cardArtistRelations
+		) BatchArtistsAndCardRelations(ApiCard apiCard)
 	{
-		List<Artist> artists = new();
+		List<Artist> batchedArtists = new();
+		Dictionary<(Guid cardScryfallId, string cardName), List<(Guid artistScryfallId, CardArtist cardArtist)>> batchedRelations = new();
 
 		if (apiCard.CardFaces is { Length: > 0 })
 		{
@@ -196,27 +200,25 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 				CardArtist cardArtist = ArtistMapper.MapCardArtist(artist);
 
-				_cardArtistBatch[(apiCard.Id, cardFace.Name)] = new List<(Guid artistScryfallId, CardArtist cardArtist)>
+				batchedRelations[(apiCard.Id, cardFace.Name)] = new List<(Guid artistScryfallId, CardArtist cardArtist)>
 				{
 					(artist.ScryfallId!.Value, cardArtist)
 				};
 
-				_artistBatch.Add(artist);
-				artists.Add(artist);
+				batchedArtists.Add(artist);
 			}
 		}
 		else
 		{
-			artists = ArtistMapper.MapArtist(apiCard);
-			if (artists is { Count: 0 }) return artists;
+			batchedArtists = ArtistMapper.MapArtists(apiCard);
+			if (batchedArtists is { Count: 0 }) return (batchedArtists, batchedRelations);
 
-			_cardArtistBatch[(apiCard.Id, apiCard.Name)] = artists
+			batchedRelations[(apiCard.Id, apiCard.Name)] = batchedArtists
 				.Select(artist => (artist.ScryfallId!.Value, ArtistMapper.MapCardArtist(artist)))
 				.ToList();
-			artists.ForEach(artist => _artistBatch.Add(artist));
 		}
 
-		return artists;
+		return (batchedArtists, batchedRelations);
 	}
 
 	/// <summary>
@@ -224,45 +226,40 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <see cref="CardImage"/> entities are batched based with composite key of <see cref="Card.Id"/> and <see cref="Card.Name"/>.
 	/// </summary>
 	/// <returns>A read-only list of <see cref="CardImage"/>. Returns an empty list if the <paramref name="apiCard"/> has no images yet.</returns>
-	private IReadOnlyList<CardImage> BatchCardImages(ApiCard apiCard)
+	private IReadOnlyDictionary<(Guid cardScryfallId, string cardName), List<CardImage>> BatchCardImages(ApiCard apiCard)
 	{
-		List<CardImage> cardImages = new();
+		Dictionary<(Guid cardScryfallId, string cardName), List<CardImage>> batchedImages = new();
 
 		if (apiCard.CardFaces is { Length: > 0 })
 		{
 			foreach (CardFace cardFace in apiCard.CardFaces)
 			{
-				List<CardImage> apiCardImages = CardImageMapper.MapCardImages(apiCard, cardFace);
-
-				_imageBatch[(apiCard.Id, cardFace.Name)] = apiCardImages;
-				cardImages.AddRange(apiCardImages);
+				batchedImages[(apiCard.Id, cardFace.Name)] = CardImageMapper.MapCardImages(apiCard, cardFace);
 			}
 		}
 		else
 		{
-			List<CardImage> apiCardImages = CardImageMapper.MapCardImages(apiCard);
-
-			_imageBatch[(apiCard.Id, apiCard.Name)] = apiCardImages;
-			cardImages.AddRange(apiCardImages);
+			batchedImages[(apiCard.Id, apiCard.Name)] = CardImageMapper.MapCardImages(apiCard);
 		}
 
-		return cardImages;
+		return batchedImages;
 	}
 
 	/// <summary>
 	/// Batches <see cref="CardPrice"/> entities from price information on <paramref name="apiCard"/>.
 	/// </summary>
 	/// <returns>A read-only list of <see cref="CardPrice"/>. Returns an empty list if the <paramref name="apiCard"/> has no pricing information.</returns>
-	private IReadOnlyList<CardPrice> BatchCardPrices(ApiCard apiCard)
+	private IReadOnlyDictionary<Guid, List<CardPrice>> BatchCardPrices(ApiCard apiCard)
 	{
-		List<CardPrice> pricesToUpsert = CardPriceMapper.MapCardPrices(apiCard);
+		Dictionary<Guid, List<CardPrice>> batchedPrices = new();
+		List<CardPrice> mappedPrices = CardPriceMapper.MapCardPrices(apiCard);
 
-		if (pricesToUpsert is { Count: > 0 })
+		if (mappedPrices is { Count: > 0 })
 		{
-			_cardPriceBatch[apiCard.Id] = pricesToUpsert;
+			batchedPrices[apiCard.Id] = mappedPrices;
 		}
 
-		return pricesToUpsert;
+		return batchedPrices;
 	}
 
 	/// <summary>
@@ -270,32 +267,34 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <see cref="CardGamePlatform"/> represents relations between <see cref="Card"/> and <see cref="GamePlatform"/> entities.
 	/// </summary>
 	/// <returns>A read-only list of <see cref="CardGamePlatform"/>. Returns an empty list if the <paramref name="apiCard"/> has no "game" information.</returns>
-	private IReadOnlyList<CardGamePlatform> BatchCardGamePlatform(ApiCard apiCard)
+	private IReadOnlyDictionary<Guid, List<CardGamePlatform>> BatchCardGamePlatform(ApiCard apiCard)
 	{
-		List<CardGamePlatform> cardGamePlatformsToUpsert = GameMapper.MapCardGamePlatform(apiCard);
+		Dictionary<Guid, List<CardGamePlatform>> batchedGamePlatforms = new();
+		List<CardGamePlatform> mappedGamePlatforms = GameMapper.MapCardGamePlatform(apiCard);
 
-		if (cardGamePlatformsToUpsert is { Count: > 0 })
+		if (mappedGamePlatforms is { Count: > 0 })
 		{
-			_cardGamePlatformBatch[apiCard.Id] = cardGamePlatformsToUpsert;
+			_cardGamePlatformBatch[apiCard.Id] = mappedGamePlatforms;
 		}
 
-		return cardGamePlatformsToUpsert;
+		return batchedGamePlatforms;
 	}
 
 	/// <summary>
 	/// Batches <see cref="CardPrintFinish"/> entities from print information on <paramref name="apiCard"/>.
 	/// </summary>
 	/// <returns>A read-only list of <see cref="CardPrintFinish"/>. Returns an empty list if the <paramref name="apiCard"/> has no print finish entries.</returns>
-	private IReadOnlyList<CardPrintFinish> BatchPrintFinishes(ApiCard apiCard)
+	private IReadOnlyDictionary<Guid, List<CardPrintFinish>> BatchPrintFinishes(ApiCard apiCard)
 	{
+		Dictionary<Guid, List<CardPrintFinish>> batchedPrintFinishes = new();
 		List<CardPrintFinish> apiPrintFinishes = CardMapper.MapCardPrintFinishes(apiCard);
 
 		if (apiPrintFinishes is { Count: > 0 })
 		{
-			_cardPrintFinishBatch[apiCard.Id] = apiPrintFinishes;
+			batchedPrintFinishes[apiCard.Id] = apiPrintFinishes;
 		}
 
-		return apiPrintFinishes;
+		return batchedPrintFinishes;
 	}
 
 	/// <summary>
@@ -304,19 +303,22 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// </summary>
 	/// <param name="apiCard"></param>
 	/// <returns>A read-only list of <see cref="CardLegality"/>. Returns an empty list if the <paramref name="apiCard"/> has no logality information.</returns>
-	private IReadOnlyList<(string formatName, CardLegality legality)> BatchGameFormatsAndLegalities(ApiCard apiCard)
+	private (
+		IReadOnlySet<GameFormat> gameFormats,
+		IReadOnlyDictionary<Guid, List<(string formatName, CardLegality legality)>> cardLegalities
+		) BatchGameFormatsAndLegalities(ApiCard apiCard)
 	{
-		IEnumerable<GameFormat> formatsOnCard = GameMapper.MapGameFormat(apiCard);
-		_gameFormatsBatch.UnionWith(formatsOnCard.Except(_gameFormatsBatch, _gameFormatComparer));
+		HashSet<GameFormat> batchedGameFormats = GameMapper.MapGameFormat(apiCard).ToHashSet();
+		Dictionary<Guid, List<(string formatName, CardLegality legality)>> batchedCardLegalities = new();
 
 		List<(string formatName, CardLegality legality)> cardLegalities = CardMapper.MapCardLegalities(apiCard, _gameFormatsBatch);
 
 		if (cardLegalities is { Count: > 0 })
 		{
-			_cardLegalitiesBatch[apiCard.Id] = cardLegalities;
+			batchedCardLegalities[apiCard.Id] = cardLegalities;
 		}
 
-		return cardLegalities;
+		return (batchedGameFormats, batchedCardLegalities);
 	}
 
 	/// <summary>
@@ -324,21 +326,24 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <see cref="CardKeyword"/> represents relations between <see cref="Card"/> and <see cref="Keyword"/> entities.
 	/// </summary>
 	/// <returns>A read-only list of <see cref="CardKeyword"/>. Returns an empty list if the <paramref name="apiCard"/> has no keywords.</returns>
-	private IReadOnlyList<(string keywordName, CardKeyword cardKeyword)> BatchKeywordsAndCardRelations(ApiCard apiCard)
+	private (
+		IReadOnlySet<Keyword> keywords,
+		IReadOnlyDictionary<Guid, List<(string keywordName, CardKeyword cardKeyword)>> cardKeywords
+		) BatchKeywordsAndCardRelations(ApiCard apiCard)
 	{
-		if (apiCard.Keywords is not { Length: > 0 }) return new List<(string keywordName, CardKeyword cardKeyword)>();
+		HashSet<Keyword> batchedKeywords = new();
+		Dictionary<Guid, List<(string keywordName, CardKeyword cardKeyword)>> batchedCardKeywords = new();
+		if (apiCard.Keywords is not { Length: > 0 }) return (batchedKeywords, batchedCardKeywords);
 
-		IEnumerable<Keyword> apiCardKeywords = CardMapper.MapKeywords(apiCard);
-		_keywordsBatch.UnionWith(apiCardKeywords.Except(_keywordsBatch, _keywordComparer));
+		batchedKeywords = CardMapper.MapKeywords(apiCard).ToHashSet();
+		List<(string keywordName, CardKeyword cardKeyword)> mappedCardKeywords = CardMapper.MapCardKeywords(apiCard, batchedKeywords);
 
-		List<(string keywordName, CardKeyword cardKeyword)> keywordsOnCard = CardMapper.MapCardKeywords(apiCard, _keywordsBatch);
-
-		if (keywordsOnCard is { Count: > 0 })
+		if (mappedCardKeywords is { Count: > 0 })
 		{
-			_cardKeywordsBatch[apiCard.Id] = keywordsOnCard;
+			batchedCardKeywords[apiCard.Id] = mappedCardKeywords;
 		}
 
-		return keywordsOnCard;
+		return (batchedKeywords, batchedCardKeywords);
 	}
 
 	/// <summary>
@@ -346,21 +351,24 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <see cref="CardPromoType"/> represents relations between <see cref="Card"/> and <see cref="PromoType"/> entities.
 	/// </summary>
 	/// <returns>A read-only list of <see cref="CardPromoType"/>. Returns an empty list if the <paramref name="apiCard"/> has no promo types.</returns>
-	private IReadOnlyList<(string promoTypeName, CardPromoType cardPromoType)> BatchPromoTypesAndCardRelations(ApiCard apiCard)
+	private (
+		IReadOnlySet<PromoType> promoTypes,
+		IReadOnlyDictionary<Guid, List<(string promoTypeName, CardPromoType cardPromoType)>> cardPromoTypes
+		) BatchPromoTypesAndCardRelations(ApiCard apiCard)
 	{
-		if (apiCard.PromoTypes is not { Length: > 0 }) return new List<(string promoTypeName, CardPromoType cardPromoType)>();
+		HashSet<PromoType> batchedPromoTypes = new();
+		Dictionary<Guid, List<(string promoTypeName, CardPromoType cardPromoType)>> batchedCardPromoTypes = new();
+		if (apiCard.PromoTypes is not { Length: > 0 }) return (batchedPromoTypes, batchedCardPromoTypes);
 
-		IEnumerable<PromoType> apiCardPromoTypes = CardMapper.MapPromoTypes(apiCard);
-		_promoTypesBatch.UnionWith(apiCardPromoTypes.Except(_promoTypesBatch, _promoTypeComparer));
-
-		List<(string promoTypeName, CardPromoType cardPromoType)> promoTypesOnCard = CardMapper.MapCardPromoTypes(apiCard, apiCardPromoTypes);
+		batchedPromoTypes = CardMapper.MapPromoTypes(apiCard).ToHashSet();
+		List<(string promoTypeName, CardPromoType cardPromoType)> promoTypesOnCard = CardMapper.MapCardPromoTypes(apiCard, batchedPromoTypes);
 
 		if (promoTypesOnCard is { Count: > 0 })
 		{
-			_cardPromoTypesBatch[apiCard.Id] = promoTypesOnCard;
+			batchedCardPromoTypes[apiCard.Id] = promoTypesOnCard;
 		}
 
-		return promoTypesOnCard;
+		return (batchedPromoTypes, batchedCardPromoTypes);
 	}
 
 	/// <summary>

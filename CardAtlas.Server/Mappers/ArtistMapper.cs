@@ -11,7 +11,7 @@ public static class ArtistMapper
 	/// Maps the artist information on <paramref name="apiCard"/> to new <see cref="Artist"/> entities.
 	/// </summary>
 	/// <returns>A <see cref="Artist"/> entity for each on the card. List may be empty if <paramref name="apiCard"/> have insufficient artist information.</returns>
-	public static List<Artist> MapArtist(ApiCard apiCard)
+	public static List<Artist> MapArtists(ApiCard apiCard)
 	{
 		List<Artist> artists = new();
 		if (apiCard.ArtistIds is not { Length: > 0 } || string.IsNullOrWhiteSpace(apiCard.ArtistName)) return artists;
