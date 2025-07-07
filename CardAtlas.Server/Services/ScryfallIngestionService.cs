@@ -8,6 +8,7 @@ using CardAtlas.Server.Repositories.Interfaces;
 using CardAtlas.Server.Services.Interfaces;
 using ScryfallApi;
 using ScryfallApi.Models.Types;
+using System.Threading.Channels;
 using ApiCard = ScryfallApi.Models.Card;
 using ApiSet = ScryfallApi.Models.Set;
 using CardFace = ScryfallApi.Models.CardFace;
@@ -34,6 +35,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly ISetRepository _setRepository;
 
 	//Batching data
+	private const int _batchCapacity = 2000;
 	private Dictionary<Guid, Set> _setLookup = new();
 	private HashSet<Card> _cardBatch = new();
 	private Dictionary<(Guid cardScryfallId, string cardName), List<CardImage>> _imageBatch = new();
@@ -119,19 +121,83 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	public async Task UpsertCardCollectionAsync()
 	{
 		//TODO: Add logging (maybe a db table entry for history) in controller to see that this method was called.
-		await UpsertAndCacheSetEntities();
+		await UpsertAndCacheSetEntitiesAsync();
 
-		await foreach (ApiCard apiCard in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
-		{
-			BatchCardData(apiCard);
-
-			if (_cardBatch.Count >= 2000)
+		var workerChannel = Channel.CreateBounded<ApiCard>(
+			new BoundedChannelOptions(_batchCapacity)
 			{
-				await PersistBatchedData();
+				FullMode = BoundedChannelFullMode.Wait,
+				SingleReader = false,
+				SingleWriter = true,
 			}
+		);
+
+		var persistingChannel = Channel.CreateUnbounded<IngestionBatch>(
+			new UnboundedChannelOptions
+			{
+				SingleReader = true,
+				SingleWriter = false,
+			}
+		);
+
+		var producer = Task.Run(async () =>
+		{
+			await foreach (var card in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
+			{
+				await workerChannel.Writer.WriteAsync(card);
+			}
+
+			workerChannel.Writer.Complete();
+		});
+
+		var persister = Task.Run(async () =>
+		{
+			await foreach (IngestionBatch batch in persistingChannel.Reader.ReadAllAsync())
+			{
+				await PersistBatchedData(batch);
+			}
+		});
+
+		int workerCount = Math.Max(1, Environment.ProcessorCount - 1);
+
+		Task[] consumers = Enumerable.Range(0, workerCount)
+			.Select(_ => Task.Run(async () =>
+			{
+				var batch = new IngestionBatch(_artistComparer, _gameFormatComparer, _keywordComparer, _promoTypeComparer);
+				int batchCount = 0;
+
+				await foreach (ApiCard apiCard in workerChannel.Reader.ReadAllAsync())
+				{
+					IngestionBatch batchedDataOnCard = BatchCardData(apiCard);
+
+					batch.Merge(batchedDataOnCard);
+					batchCount++;
+
+					if (batchCount >= _batchCapacity)
+					{
+						await persistingChannel.Writer.WriteAsync(batch);
+						batch = new IngestionBatch(_artistComparer, _gameFormatComparer, _keywordComparer, _promoTypeComparer);
+						batchCount = 0;
+					}
+				}
+
+				if (batchCount > 0)
+				{
+					await persistingChannel.Writer.WriteAsync(batch);
+				}
+			}))
+			.ToArray();
+
+		try
+		{
+			await Task.WhenAll(producer, Task.WhenAll(consumers));
+		}
+		finally
+		{
+			persistingChannel.Writer.Complete();
 		}
 
-		await PersistBatchedData();
+		await persister;
 	}
 
 	/// <summary>
@@ -190,7 +256,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		Set set = _setLookup[apiCard.SetId];
 		List<Card> mappedCards = CardMapper.MapCard(apiCard, set);
 
-		_cardBatch.UnionWith(mappedCards);
 		return mappedCards;
 	}
 
@@ -327,7 +392,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		HashSet<GameFormat> batchedGameFormats = GameMapper.MapGameFormat(apiCard).ToHashSet();
 		Dictionary<Guid, List<(string formatName, CardLegality legality)>> batchedCardLegalities = new();
 
-		List<(string formatName, CardLegality legality)> cardLegalities = CardMapper.MapCardLegalities(apiCard, _gameFormatsBatch);
+		List<(string formatName, CardLegality legality)> cardLegalities = CardMapper.MapCardLegalities(apiCard, batchedGameFormats);
 
 		if (cardLegalities is { Count: > 0 })
 		{
@@ -390,7 +455,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <summary>
 	/// Commits all batched entities to the database.
 	/// </summary>
-	private async Task PersistBatchedData()
+	private async Task PersistBatchedData(IngestionBatch? batch = null)
 	{
 		Task<IEnumerable<Card>> upsertedCardsTask = UpsertCards();
 
