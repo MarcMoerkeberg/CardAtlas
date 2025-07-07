@@ -20,7 +20,7 @@ namespace CardAtlas.Server.Controllers
 		[HttpGet]
 		public async Task<IEnumerable<Card>> Get()
 		{
-			await _scryfallInjectionService.UpsertCardCollection();
+			await _scryfallInjectionService.UpsertCardCollectionAsync();
 			throw new NotImplementedException();
 		}
 

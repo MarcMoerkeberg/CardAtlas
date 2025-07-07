@@ -84,7 +84,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_setRepository = setRepository;
 	}
 
-	public async Task<int> UpsertSets()
+	public async Task<int> UpsertSetsAsync()
 	{
 		UpsertContainer<Set> upsertionData = new();
 		IEnumerable<ApiSet> apiSets = await _scryfallApi.GetSets();
@@ -116,7 +116,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		return affectedNumberOfRows;
 	}
 
-	public async Task UpsertCardCollection()
+	public async Task UpsertCardCollectionAsync()
 	{
 		//TODO: Add logging (maybe a db table entry for history) in controller to see that this method was called.
 		await UpsertAndCacheSetEntities();
@@ -138,9 +138,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// Upserts <see cref="Set"/> entities from Scryfall API and caches them in the <see cref="_setLookup"/> for batching <see cref="Card"/> entities.<br/>
 	/// Should be called once before upserting <see cref="Card"/> entities.
 	/// </summary>
-	private async Task UpsertAndCacheSetEntities()
+	private async Task UpsertAndCacheSetEntitiesAsync()
 	{
-		await UpsertSets();
+		await UpsertSetsAsync();
 		IEnumerable<Set> allScryfallSets = await _setRepository.Get(SourceType.Scryfall);
 		_setLookup = allScryfallSets
 			.Where(set => set.ScryfallId.HasValue)
