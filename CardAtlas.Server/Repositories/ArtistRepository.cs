@@ -50,7 +50,7 @@ public class ArtistRepository : IArtistRepository
 			.SingleAsync(artist => artist.Id == artistId);
 	}
 
-	public async Task<IEnumerable<Artist>> Get(IEnumerable<Guid> scryfallIds)
+	public async Task<List<Artist>> Get(IEnumerable<Guid> scryfallIds)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 

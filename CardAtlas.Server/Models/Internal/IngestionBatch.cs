@@ -1,4 +1,5 @@
-﻿using CardAtlas.Server.Models.Data;
+﻿using CardAtlas.Server.Extensions;
+using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Image;
 
@@ -26,6 +27,13 @@ public class IngestionBatch
 	public IEnumerable<Guid> CardScryfallIds => Cards
 		.Where(card => card.ScryfallId is not null)
 		.Select(card => card.ScryfallId!.Value);
+
+	/// <summary>
+	/// The <see cref="Artist.ScryfallId"/> off every artist in this batch where it has a value.
+	/// </summary>
+	public IEnumerable<Guid> ArtistScryfallIds => Artists
+		.Where(artist => artist.ScryfallId is not null)
+		.Select(artist => artist.ScryfallId!.Value);
 
 	public IngestionBatch(
 		IEqualityComparer<Artist> artistComparer,
@@ -158,4 +166,19 @@ public class IngestionBatch
 			promoTypes,
 			(cardPromoType, id) => cardPromoType.PromoTypeId = id
 		);
+
+	/// <summary>
+	/// Assigns the <see cref="Artist.Id"/> from the provided <paramref name="artists"/> to entities with relations to <see cref="Artist"/>.
+	/// </summary>
+	public void AssignArtistIdToEntities(IEnumerable<Artist> artists)
+	{
+		Dictionary<Guid, Artist> artistLookup = artists.ToDictionary(artist => artist.ScryfallId!.Value);
+
+		foreach ((Guid artistScryfallId, CardArtist batchedCardArtist) in CardArtistRelations.Values.SelectMany(tuple => tuple))
+		{
+			if (!artistLookup.TryGetValue(artistScryfallId, out Artist? existingArtist)) continue;
+
+			batchedCardArtist.ArtistId = existingArtist.Id;
+		}
+	}
 }

@@ -23,7 +23,7 @@ namespace CardAtlas.Server.Repositories.Interfaces
 		/// Returns the <see cref="Artist"/> entities from the db with the specified <paramref name="scryfallIds"/>.
 		/// </summary>
 		/// <returns>A list of <see cref="Artist"/> entities with the specified <paramref name="scryfallIds"/>.</returns>
-		Task<IEnumerable<Artist>> Get(IEnumerable<Guid> scryfallIds);
+		Task<List<Artist>> Get(IEnumerable<Guid> scryfallIds);
 
 		/// <summary>
 		/// Adds the provided <paramref name="artist"/> to the database.

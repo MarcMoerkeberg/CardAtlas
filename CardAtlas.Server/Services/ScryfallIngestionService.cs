@@ -515,7 +515,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			CreateMissingGameFormats(batch),
 			CreateMissingKeywords(batch),
 			CreateMissingPromoTypes(batch),
-			UpsertArtists()
+			UpsertArtists(batch)
 		);
 
 		List<Card> updatedCards = await upsertedCardsTask;
@@ -636,36 +636,28 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// After upserting, it assigns the <see cref="Artist.Id"/> to the <see cref="Card.ArtistId"/> property of the current <see cref="_cardBatch"/> entities.
 	/// </summary>
 	/// <returns>The total number of inserted or updated <see cref="Artist"/> entities.</returns>
-	private async Task<int> UpsertArtists()
+	private async Task<int> UpsertArtists(IngestionBatch batch)
 	{
-		IEnumerable<Artist> existingArtists = await _artistRepository.Get(_artistBatch.Select(a => a.ScryfallId!.Value));
-		UpsertContainer<Artist> upsertionData = _artistBatch
+		int numberOfAffectedRows = 0;
+		List<Artist> existingArtists = await _artistRepository.Get(batch.ArtistScryfallIds);
+		UpsertContainer<Artist> upsertionData = batch.Artists
 			.DistinctBy(artist => artist.ScryfallId)
 			.ToUpsertData(existingArtists, _artistComparer);
 
-		int numberOfAffectedRows = await _artistRepository.Upsert(upsertionData);
-		await AssignArtistIdsToCardArtists();
 
-		_artistBatch.Clear();
-		return numberOfAffectedRows;
-	}
-
-	/// <summary>
-	/// Assigns <see cref="Artist.Id"/> to <see cref="Card"/> entities in the current <see cref="_cardBatch"/>.<br/>
-	/// Assigns <see cref="Artist.DefaultId"/> to <see cref="Card"/> entity if no matching <see cref="Artist"/> is found in <see cref="_cardArtistBatch"/> or in the db.
-	/// </summary>
-	private async Task AssignArtistIdsToCardArtists()
-	{
-		IEnumerable<Guid> artistScryfallIds = _artistBatch.Select(artist => artist.ScryfallId!.Value).Distinct();
-		IEnumerable<Artist> existingArtists = await _artistRepository.Get(artistScryfallIds);
-		Dictionary<Guid, Artist> artistLookup = existingArtists.ToDictionary(artist => artist.ScryfallId!.Value);
-
-		foreach ((Guid artistScryfallId, CardArtist batchedCardArtist) in _cardArtistBatch.Values.SelectMany(tuple => tuple))
+		if (upsertionData.ToInsert.Count > 0 || upsertionData.ToUpdate.Count > 0)
 		{
-			if (!artistLookup.TryGetValue(artistScryfallId, out Artist? existingArtist)) continue;
+			numberOfAffectedRows = await _artistRepository.Upsert(upsertionData);
 
-			batchedCardArtist.ArtistId = existingArtist.Id;
+			if (upsertionData.ToInsert.Count > 0)
+	{
+				existingArtists = await _artistRepository.Get(batch.ArtistScryfallIds);
+			}
 		}
+
+		batch.AssignArtistIdToEntities(existingArtists);
+
+		return numberOfAffectedRows;
 	}
 
 	/// <summary>
