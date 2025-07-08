@@ -6,19 +6,19 @@ namespace CardAtlas.Server.Models.Internal;
 
 public class IngestionBatch
 {
-	public HashSet<Card> CardBatch { get; set; } = new();
-	public HashSet<Artist> ArtistBatch { get; set; } = new();
-	public HashSet<GameFormat> GameFormatsBatch { get; set; } = new();
-	public HashSet<Keyword> KeywordsBatch { get; set; } = new();
-	public HashSet<PromoType> PromoTypesBatch { get; set; } = new();
-	public Dictionary<(Guid cardScryfallId, string cardName), List<CardImage>> ImageBatch { get; set; } = new();
-	public Dictionary<(Guid cardScryfallId, string cardName), List<(Guid artistScryfallId, CardArtist cardArtist)>> CardArtistBatch { get; set; } = new();
-	public Dictionary<Guid, List<CardPrice>> CardPriceBatch { get; set; } = new();
-	public Dictionary<Guid, List<CardGamePlatform>> CardGamePlatformBatch { get; set; } = new();
-	public Dictionary<Guid, List<CardPrintFinish>> CardPrintFinishBatch { get; set; } = new();
-	public Dictionary<Guid, List<(string formatName, CardLegality legality)>> CardLegalitiesBatch { get; set; } = new();
-	public Dictionary<Guid, List<(string keywordName, CardKeyword cardKeyword)>> CardKeywordsBatch { get; set; } = new();
-	public Dictionary<Guid, List<(string promoTypeName, CardPromoType cardPromoType)>> CardPromoTypesBatch { get; set; } = new();
+	public HashSet<Card> Cards { get; set; } = new();
+	public HashSet<Artist> Artists { get; set; }
+	public HashSet<GameFormat> GameFormats { get; set; }
+	public HashSet<Keyword> Keywords { get; set; }
+	public HashSet<PromoType> PromoTypes { get; set; }
+	public Dictionary<(Guid cardScryfallId, string cardName), List<CardImage>> Images { get; set; } = new();
+	public Dictionary<(Guid cardScryfallId, string cardName), List<(Guid artistScryfallId, CardArtist cardArtist)>> CardArtistRelations { get; set; } = new();
+	public Dictionary<Guid, List<CardPrice>> CardPrices { get; set; } = new();
+	public Dictionary<Guid, List<CardGamePlatform>> CardGamePlatformRelations { get; set; } = new();
+	public Dictionary<Guid, List<CardPrintFinish>> CardPrintFinishRelations { get; set; } = new();
+	public Dictionary<Guid, List<(string formatName, CardLegality legality)>> CardLegalityRelations { get; set; } = new();
+	public Dictionary<Guid, List<(string keywordName, CardKeyword cardKeyword)>> CardKeywordRelations { get; set; } = new();
+	public Dictionary<Guid, List<(string promoTypeName, CardPromoType cardPromoType)>> CardPromoTypeRelations { get; set; } = new();
 
 	public IngestionBatch(
 		IEqualityComparer<Artist> artistComparer,
@@ -26,75 +26,81 @@ public class IngestionBatch
 		IEqualityComparer<Keyword> keywordComparer,
 		IEqualityComparer<PromoType> promoTypeComparer)
 	{
-		ArtistBatch = new HashSet<Artist>(artistComparer);
-		GameFormatsBatch = new HashSet<GameFormat>(gameFormatComparer);
-		KeywordsBatch = new HashSet<Keyword>(keywordComparer);
-		PromoTypesBatch = new HashSet<PromoType>(promoTypeComparer);
+		Artists = new HashSet<Artist>(artistComparer);
+		GameFormats = new HashSet<GameFormat>(gameFormatComparer);
+		Keywords = new HashSet<Keyword>(keywordComparer);
+		PromoTypes = new HashSet<PromoType>(promoTypeComparer);
 	}
 
+	/// <summary>
+	/// Flushes all batched entities.
+	/// </summary>
 	public void Flush()
 	{
-		CardBatch.Clear();
-		ImageBatch.Clear();
-		ArtistBatch.Clear();
-		CardArtistBatch.Clear();
-		CardPriceBatch.Clear();
-		CardGamePlatformBatch.Clear();
-		CardPrintFinishBatch.Clear();
-		GameFormatsBatch.Clear();
-		CardLegalitiesBatch.Clear();
-		KeywordsBatch.Clear();
-		CardKeywordsBatch.Clear();
-		PromoTypesBatch.Clear();
-		CardPromoTypesBatch.Clear();
+		Cards.Clear();
+		Images.Clear();
+		Artists.Clear();
+		CardArtistRelations.Clear();
+		CardPrices.Clear();
+		CardGamePlatformRelations.Clear();
+		CardPrintFinishRelations.Clear();
+		GameFormats.Clear();
+		CardLegalityRelations.Clear();
+		Keywords.Clear();
+		CardKeywordRelations.Clear();
+		PromoTypes.Clear();
+		CardPromoTypeRelations.Clear();
 	}
 
+	/// <summary>
+	/// Merges the provided <paramref name="batch"/> into the existing batched entities.
+	/// </summary>
 	public void Merge(IngestionBatch batch)
 	{
-		CardBatch.UnionWith(batch.CardBatch);
-		ArtistBatch.UnionWith(batch.ArtistBatch);
-		GameFormatsBatch.UnionWith(batch.GameFormatsBatch);
-		KeywordsBatch.UnionWith(batch.KeywordsBatch);
-		PromoTypesBatch.UnionWith(batch.PromoTypesBatch);
+		Cards.UnionWith(batch.Cards);
+		Artists.UnionWith(batch.Artists);
+		GameFormats.UnionWith(batch.GameFormats);
+		Keywords.UnionWith(batch.Keywords);
+		PromoTypes.UnionWith(batch.PromoTypes);
 
-		foreach ((var key, var value) in batch.ImageBatch)
+		foreach ((var key, var value) in batch.Images)
 		{
-			ImageBatch[key] = value;
+			Images[key] = value;
 		}
 
-		foreach ((var key, var value) in batch.CardArtistBatch)
+		foreach ((var key, var value) in batch.CardArtistRelations)
 		{
-			CardArtistBatch[key] = value;
+			CardArtistRelations[key] = value;
 		}
 
-		foreach ((var key, var value) in batch.CardPriceBatch)
+		foreach ((var key, var value) in batch.CardPrices)
 		{
-			CardPriceBatch[key] = value;
+			CardPrices[key] = value;
 		}
 
-		foreach ((var key, var value) in batch.CardGamePlatformBatch)
+		foreach ((var key, var value) in batch.CardGamePlatformRelations)
 		{
-			CardGamePlatformBatch[key] = value;
+			CardGamePlatformRelations[key] = value;
 		}
 
-		foreach ((var key, var value) in batch.CardPrintFinishBatch)
+		foreach ((var key, var value) in batch.CardPrintFinishRelations)
 		{
-			CardPrintFinishBatch[key] = value;
+			CardPrintFinishRelations[key] = value;
 		}
 
-		foreach ((var key, var value) in batch.CardLegalitiesBatch)
+		foreach ((var key, var value) in batch.CardLegalityRelations)
 		{
-			CardLegalitiesBatch[key] = value;
+			CardLegalityRelations[key] = value;
 		}
 
-		foreach ((var key, var value) in batch.CardKeywordsBatch)
+		foreach ((var key, var value) in batch.CardKeywordRelations)
 		{
-			CardKeywordsBatch[key] = value;
+			CardKeywordRelations[key] = value;
 		}
 
-		foreach ((var key, var value) in batch.CardPromoTypesBatch)
+		foreach ((var key, var value) in batch.CardPromoTypeRelations)
 		{
-			CardPromoTypesBatch[key] = value;
+			CardPromoTypeRelations[key] = value;
 		}
 	}
 }
