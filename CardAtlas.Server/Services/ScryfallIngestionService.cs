@@ -123,8 +123,38 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		//TODO: Add logging (maybe a db table entry for history) in controller to see that this method was called.
 		await UpsertAndCacheSetEntitiesAsync();
 
+		var (workerChannel, persisterChannel) = CreateChannels(_batchCapacity);
+
+		Task producer = ProduceCardsAsync(workerChannel.Writer);
+		Task persister = PersistBatchesAsync(persisterChannel.Reader);
+		Task[] consumers = ConsumeCardsAsync(
+			reader: workerChannel.Reader,
+			batchWriter: persisterChannel.Writer,
+			workerCount: Math.Max(1, Environment.ProcessorCount - 1),
+			_batchCapacity
+		);
+
+		try
+		{
+			await Task.WhenAll(producer, Task.WhenAll(consumers));
+		}
+		finally
+		{
+			persisterChannel.Writer.Complete();
+		}
+
+		await persister;
+	}
+
+	/// <summary>
+	/// Creates producing, consuming and persisting data.
+	/// </summary>
+	/// <param name="batchCapacity">The number of <see cref="ApiCard"/> entities parsed in the worker channel, before batch is comitted to the persisting channel.</param>
+	/// <returns>2 channels; One for parsing data and one for persisting data after it has been batched.</returns>
+	private static (Channel<ApiCard> workerChannel, Channel<IngestionBatch> persisterChannel) CreateChannels(int batchCapacity = _batchCapacity)
+	{
 		var workerChannel = Channel.CreateBounded<ApiCard>(
-			new BoundedChannelOptions(_batchCapacity)
+			new BoundedChannelOptions(batchCapacity)
 			{
 				FullMode = BoundedChannelFullMode.Wait,
 				SingleReader = false,
@@ -140,42 +170,58 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			}
 		);
 
-		var producer = Task.Run(async () =>
+		return (workerChannel, persistingChannel);
+	}
+
+	/// <summary>
+	/// Adds a single task to the writer, which get's all <see cref="ApiCard"/> entities from Scryfall.<br/>
+	/// Sets <paramref name="writer"/> as complete, when no more cards is available.
+	/// </summary>
+	/// <param name="writer">The channelwriter that should get all the card data.</param>
+	/// <returns>A task which writes all available <see cref="ApiCard"/> entities to the provided channel.</returns>
+	private Task ProduceCardsAsync(ChannelWriter<ApiCard> writer)
+	{
+		return Task.Run(async () =>
 		{
-			await foreach (var card in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
+			await foreach (ApiCard card in _scryfallApi.GetBulkCardDataAsync(BulkDataType.AllCards))
 			{
-				await workerChannel.Writer.WriteAsync(card);
+				await writer.WriteAsync(card);
 			}
 
-			workerChannel.Writer.Complete();
+			writer.Complete();
 		});
+	}
 
-		var persister = Task.Run(async () =>
-		{
-			await foreach (IngestionBatch batch in persistingChannel.Reader.ReadAllAsync())
-			{
-				await PersistBatchedData(batch);
-			}
-		});
-
-		int workerCount = Math.Max(1, Environment.ProcessorCount - 1);
-
-		Task[] consumers = Enumerable.Range(0, workerCount)
+	/// <summary>
+	/// Creaes a <see cref="Task"/> for parsing cards in the <paramref name="reader"/> channel and batching them into the <paramref name="batchWriter"/> channel.
+	/// </summary>
+	/// <param name="reader">Reads <see cref="ApiCard"/> entities from this channel.</param>
+	/// <param name="batchWriter">Writes the parsed and batched <see cref="ApiCard"/> to the channel.</param>
+	/// <param name="workerCount">Creates a task for the number of workers.</param>
+	/// <param name="batchCapacity">The number of batching cycles, before writing them to <paramref name="batchWriter"/>.</param>
+	/// <returns>A task which batches <see cref="ApiCard"/> entities for each <paramref name="workerCount"/>.</returns>
+	private Task[] ConsumeCardsAsync(
+		ChannelReader<ApiCard> reader,
+		ChannelWriter<IngestionBatch> batchWriter,
+		int workerCount,
+		int batchCapacity = _batchCapacity)
+	{
+		return Enumerable.Range(0, workerCount)
 			.Select(_ => Task.Run(async () =>
 			{
 				var batch = new IngestionBatch(_artistComparer, _gameFormatComparer, _keywordComparer, _promoTypeComparer);
 				int batchCount = 0;
 
-				await foreach (ApiCard apiCard in workerChannel.Reader.ReadAllAsync())
+				await foreach (ApiCard apiCard in reader.ReadAllAsync())
 				{
 					IngestionBatch batchedDataOnCard = BatchCardData(apiCard);
 
 					batch.Merge(batchedDataOnCard);
 					batchCount++;
 
-					if (batchCount >= _batchCapacity)
+					if (batchCount >= batchCapacity)
 					{
-						await persistingChannel.Writer.WriteAsync(batch);
+						await batchWriter.WriteAsync(batch);
 						batch = new IngestionBatch(_artistComparer, _gameFormatComparer, _keywordComparer, _promoTypeComparer);
 						batchCount = 0;
 					}
@@ -183,21 +229,26 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 				if (batchCount > 0)
 				{
-					await persistingChannel.Writer.WriteAsync(batch);
+					await batchWriter.WriteAsync(batch);
 				}
 			}))
 			.ToArray();
+	}
 
-		try
+	/// <summary>
+	/// Persists batched <see cref="ApiCard"/> entites to the database.
+	/// </summary>
+	/// <param name="reader"></param>
+	/// <returns>A task that consumes all <see cref="IngestionBatch"/> entities in the provided <paramref name="reader"/> channel.</returns>
+	private Task PersistBatchesAsync(ChannelReader<IngestionBatch> reader)
+	{
+		return Task.Run(async () =>
 		{
-			await Task.WhenAll(producer, Task.WhenAll(consumers));
-		}
-		finally
-		{
-			persistingChannel.Writer.Complete();
-		}
-
-		await persister;
+			await foreach (IngestionBatch batch in reader.ReadAllAsync())
+			{
+				await PersistBatchedData(batch);
+			}
+		});
 	}
 
 	/// <summary>
