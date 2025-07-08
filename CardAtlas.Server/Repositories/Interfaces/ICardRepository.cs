@@ -27,7 +27,7 @@ public interface ICardRepository
 	/// </summary>
 	/// <returns>The <see cref="Card"/> instances with the specified <paramref name="scryfallIds"/> or null if no match is found.</returns>
 	/// <exception cref="InvalidOperationException">Is thrown if no or more than one entity with that id is found.</exception>
-	Task<IEnumerable<Card>> Get(IEnumerable<Guid> scryfallIds);
+	Task<List<Card>> Get(IEnumerable<Guid> scryfallIds);
 
 	/// <summary>
 	/// Returns the <see cref="CardPrice"/> with the specified <paramref name="priceId"/>.

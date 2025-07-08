@@ -65,7 +65,7 @@ public class CardRepository : ICardRepository
 			.ToListAsync();
 	}
 
-	public async Task<IEnumerable<Card>> Get(IEnumerable<Guid> scryfallIds)
+	public async Task<List<Card>> Get(IEnumerable<Guid> scryfallIds)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
