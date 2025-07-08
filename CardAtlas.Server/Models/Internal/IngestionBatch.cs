@@ -20,6 +20,13 @@ public class IngestionBatch
 	public Dictionary<Guid, List<(string keywordName, CardKeyword cardKeyword)>> CardKeywordRelations { get; set; } = new();
 	public Dictionary<Guid, List<(string promoTypeName, CardPromoType cardPromoType)>> CardPromoTypeRelations { get; set; } = new();
 
+	/// <summary>
+	/// The <see cref="Card.ScryfallId"/> off every card in this batch where it has a value.
+	/// </summary>
+	public IEnumerable<Guid> CardScryfallIds => Cards
+		.Where(card => card.ScryfallId is not null)
+		.Select(card => card.ScryfallId!.Value);
+
 	public IngestionBatch(
 		IEqualityComparer<Artist> artistComparer,
 		IEqualityComparer<GameFormat> gameFormatComparer,
@@ -103,4 +110,26 @@ public class IngestionBatch
 			CardPromoTypeRelations[key] = value;
 		}
 	}
+
+	/// <summary>
+	/// Assigns <see cref="Card.Id"/> from the provided <paramref name="cards"/> to the batched entities with relations to <see cref="Card"/>.
+	/// </summary>
+	public void AssignCardIdToEntities(IEnumerable<Card> cards)
+	{
+		Images.AssignCardIdToEntities(cards);
+		CardPrices.AssignCardIdToEntities(cards);
+		CardGamePlatformRelations.AssignCardIdToEntities(cards);
+		CardPrintFinishRelations.AssignCardIdToEntities(cards);
+		CardLegalityRelations.AssignCardIdToEntities(cards);
+		CardKeywordRelations.AssignCardIdToEntities(cards);
+		CardPromoTypeRelations.AssignCardIdToEntities(cards);
+
+		Dictionary<(Guid, string), List<CardArtist>> flattenedCardArtistBatch = CardArtistRelations.ToDictionary(
+			batch => batch.Key,
+			batch => batch.Value.Select(tuple => tuple.cardArtist).ToList()
+		);
+
+		flattenedCardArtistBatch.AssignCardIdToEntities(cards);
+	}
+
 }

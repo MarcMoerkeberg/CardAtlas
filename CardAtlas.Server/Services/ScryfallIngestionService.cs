@@ -506,9 +506,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <summary>
 	/// Commits all batched entities to the database.
 	/// </summary>
-	private async Task PersistBatchedData(IngestionBatch? batch = null)
+	private async Task PersistBatchedData(IngestionBatch batch)
 	{
-		Task<IEnumerable<Card>> upsertedCardsTask = UpsertCards();
+		Task<List<Card>> upsertedCardsTask = UpsertCards(batch);
 
 		await Task.WhenAll(
 			upsertedCardsTask,
@@ -518,7 +518,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			UpsertArtists()
 		);
 
-		IEnumerable<Card> updatedCards = await upsertedCardsTask;
+		List<Card> updatedCards = await upsertedCardsTask;
 
 		await Task.WhenAll(
 			UpsertImages(),
@@ -537,13 +537,13 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// After upserting, it assigns the <see cref="Card.Id"/> to the <see cref="CardImage.CardId"/> property of the current <see cref="_imageBatch"/> entities.
 	/// </summary>
 	/// <returns>All upserted <see cref="Card"/> entities.</returns>
-	private async Task<IEnumerable<Card>> UpsertCards()
+	private async Task<List<Card>> UpsertCards(IngestionBatch batch)
 	{
-		IEnumerable<Card> existingCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
+		List<Card> existingCards = await _cardRepository.Get(batch.CardScryfallIds);
 		UpsertContainer<Card> upsertionData = new();
 		Dictionary<(Guid scryfallId, string cardName, string? parentCardName), Card> cardLookup = existingCards.ToDictionary(card => (card.ScryfallId!.Value, card.Name, card.ParentCard?.Name));//ParentCardName is required due to cardnames not being unique as art card dfcs have the same name as the actual card.
 
-		foreach (Card batchedCard in _cardBatch)
+		foreach (Card batchedCard in batch.Cards)
 		{
 			if (cardLookup.TryGetValue((batchedCard.ScryfallId!.Value, batchedCard.Name, batchedCard.ParentCard?.Name), out Card? existingCard))
 			{
@@ -562,32 +562,10 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		await _cardRepository.Upsert(upsertionData);
 
-		IEnumerable<Card> updatedCards = await _cardRepository.Get(_cardBatch.Select(card => card.ScryfallId!.Value));
-		AssignCardIdToBatchedEntities(updatedCards);
+		List<Card> updatedCards = await _cardRepository.Get(batch.CardScryfallIds);
+		batch.AssignCardIdToEntities(updatedCards);
 
-		_cardBatch.Clear();
 		return updatedCards;
-	}
-
-	/// <summary>
-	/// Assigns <see cref="Card.Id"/> from the provided <paramref name="cards"/> to the batched entities with relations to <see cref="Card"/>.
-	/// </summary>
-	private void AssignCardIdToBatchedEntities(IEnumerable<Card> cards)
-	{
-		_imageBatch.AssignCardIdToEntities(cards);
-		_cardPriceBatch.AssignCardIdToEntities(cards);
-		_cardGamePlatformBatch.AssignCardIdToEntities(cards);
-		_cardPrintFinishBatch.AssignCardIdToEntities(cards);
-		_cardLegalitiesBatch.AssignCardIdToEntities(cards);
-		_cardKeywordsBatch.AssignCardIdToEntities(cards);
-		_cardPromoTypesBatch.AssignCardIdToEntities(cards);
-
-		Dictionary<(Guid, string), List<CardArtist>> flattenedCardArtistBatch = _cardArtistBatch.ToDictionary(
-			batch => batch.Key,
-			batch => batch.Value.Select(tuple => tuple.cardArtist).ToList()
-		);
-
-		flattenedCardArtistBatch.AssignCardIdToEntities(cards);
 	}
 
 	/// <summary>
