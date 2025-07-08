@@ -132,4 +132,30 @@ public class IngestionBatch
 		flattenedCardArtistBatch.AssignCardIdToEntities(cards);
 	}
 
+	/// <summary>
+	/// Assigns the <see cref="GameFormat.Id"/> from the provided <paramref name="gameFormats"/> to entities with relations to <see cref="GameFormat"/>.
+	/// </summary>
+	public void AssignGameFormatIdToEntities(IEnumerable<GameFormat> gameFormats) =>
+		CardLegalityRelations.AssignRelationalIdToEntities(
+			gameFormats,
+			(cardLegality, id) => cardLegality.GameFormatId = id
+		);
+
+	/// <summary>
+	/// Assigns the <see cref="Keyword.Id"/> from the provided <paramref name="keywords"/> to entities with relations to <see cref="Keyword"/>.
+	/// </summary>
+	public void AssignKeywordIdToEntities(IEnumerable<Keyword> keywords) =>
+		CardKeywordRelations.AssignRelationalIdToEntities(
+			keywords,
+			(cardKeyword, id) => cardKeyword.KeywordId = id
+		);
+
+	/// <summary>
+	/// Assigns the <see cref="PromoType.Id"/> from the provided <paramref name="promoTypes"/> to entities with relations to <see cref="PromoType"/>.
+	/// </summary>
+	public void AssignPromoTypesIdToEntities(IEnumerable<PromoType> promoTypes) =>
+		CardPromoTypeRelations.AssignRelationalIdToEntities(
+			promoTypes,
+			(cardPromoType, id) => cardPromoType.PromoTypeId = id
+		);
 }

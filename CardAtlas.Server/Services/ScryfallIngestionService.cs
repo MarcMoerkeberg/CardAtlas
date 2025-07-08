@@ -512,9 +512,9 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		await Task.WhenAll(
 			upsertedCardsTask,
-			CreateMissingGameFormats(),
-			CreateMissingKeywords(),
-			CreateMissingPromoTypes(),
+			CreateMissingGameFormats(batch),
+			CreateMissingKeywords(batch),
+			CreateMissingPromoTypes(batch),
 			UpsertArtists()
 		);
 
@@ -572,15 +572,20 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// Creates <see cref="GameFormat"/> entities from <see cref="_gameFormatsBatch"/> if they do not have an existing naming match in the db.
 	/// </summary>
 	/// <returns>The number of added <see cref="GameFormat"/> entities.</returns>
-	private async Task<int> CreateMissingGameFormats()
+	private async Task<int> CreateMissingGameFormats(IngestionBatch batch)
 	{
-		IEnumerable<GameFormat> existingFormats = await _gameRepository.GetFormats(SourceType.Scryfall);
-		List<GameFormat> missingGameFormats = _gameFormatsBatch.FindMissingEntities(existingFormats);
+		int addedFormatsCount = 0;
+		List<GameFormat> existingFormats = await _gameRepository.GetFormats(SourceType.Scryfall);
+		List<GameFormat> missingGameFormats = batch.GameFormats.FindMissingEntities(existingFormats);
 
-		int addedFormatsCount = await _gameRepository.Create(missingGameFormats);
-		await AssignGameFormatIdsToLegalities();
+		if (missingGameFormats.Count > 0)
+		{
+			addedFormatsCount = await _gameRepository.Create(missingGameFormats);
+			existingFormats = await _gameRepository.GetFormats(SourceType.Scryfall);
+		}
 
-		_gameFormatsBatch.Clear();
+		batch.AssignGameFormatIdToEntities(existingFormats);
+
 		return addedFormatsCount;
 	}
 
@@ -588,15 +593,20 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// Creates <see cref="Keyword"/> entities from <see cref="_keywordsBatch"/> if they do not have an existing naming match in the db.
 	/// </summary>
 	/// <returns>The number of added <see cref="Keyword"/> entities.</returns>
-	private async Task<int> CreateMissingKeywords()
+	private async Task<int> CreateMissingKeywords(IngestionBatch batch)
 	{
-		IEnumerable<Keyword> existingKeywords = await _cardRepository.GetKeywords(SourceType.Scryfall);
-		List<Keyword> missingKeywords = _keywordsBatch.FindMissingEntities(existingKeywords);
+		int addedKeywordsCount = 0;
+		List<Keyword> existingKeywords = await _cardRepository.GetKeywords(SourceType.Scryfall);
+		List<Keyword> missingKeywords = batch.Keywords.FindMissingEntities(existingKeywords);
 
-		int addedKeywordsCount = await _cardRepository.Create(missingKeywords);
-		await AssignKeywordIdsToCardKeywords();
+		if (missingKeywords.Count > 0)
+		{
+			addedKeywordsCount = await _cardRepository.Create(missingKeywords);
+			existingKeywords = await _cardRepository.GetKeywords(SourceType.Scryfall);
+		}
 
-		_keywordsBatch.Clear();
+		batch.AssignKeywordIdToEntities(existingKeywords);
+
 		return addedKeywordsCount;
 	}
 
@@ -604,15 +614,20 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// Creates <see cref="PromoType"/> entities from <see cref="_promoTypesBatch"/> if they do not have an existing naming match in the db.
 	/// </summary>
 	/// <returns>The number of added <see cref="PromoType"/> entities.</returns>
-	private async Task<int> CreateMissingPromoTypes()
+	private async Task<int> CreateMissingPromoTypes(IngestionBatch batch)
 	{
-		IEnumerable<PromoType> existingPromoTypes = await _cardRepository.GetPromoTypes(SourceType.Scryfall);
-		List<PromoType> missingPromoTypes = _promoTypesBatch.FindMissingEntities(existingPromoTypes);
+		int addedPromoTypesCount = 0;
+		List<PromoType> existingPromoTypes = await _cardRepository.GetPromoTypes(SourceType.Scryfall);
+		List<PromoType> missingPromoTypes = batch.PromoTypes.FindMissingEntities(existingPromoTypes);
 
-		int addedPromoTypesCount = await _cardRepository.Create(missingPromoTypes);
-		await AssignPromoTypesIdsToCardPromoTypes();
+		if (missingPromoTypes.Count > 0)
+		{
+			addedPromoTypesCount = await _cardRepository.Create(missingPromoTypes);
+			existingPromoTypes = await _cardRepository.GetPromoTypes(SourceType.Scryfall);
+		}
 
-		_promoTypesBatch.Clear();
+		batch.AssignPromoTypesIdToEntities(existingPromoTypes);
+
 		return addedPromoTypesCount;
 	}
 
@@ -634,34 +649,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		_artistBatch.Clear();
 		return numberOfAffectedRows;
 	}
-
-	/// <summary>
-	/// Assigns the <see cref="CardLegality.GameFormatId"/> on batched (non-persisted) entities in <see cref="_cardLegalitiesBatch"/>.
-	/// </summary>
-	private async Task AssignGameFormatIdsToLegalities() =>
-		_cardLegalitiesBatch.AssignRelationalIdToEntities(
-			await _gameRepository.GetFormats(SourceType.Scryfall),
-			(legality, id) => legality.GameFormatId = id
-		);
-
-	/// <summary>
-	/// Assigns the <see cref="CardKeyword.KeywordId"/> on batched (non-persisted) entities in <see cref="_cardKeywordsBatch"/>.
-	/// </summary>
-	private async Task AssignKeywordIdsToCardKeywords() =>
-		_cardKeywordsBatch.AssignRelationalIdToEntities(
-			await _cardRepository.GetKeywords(SourceType.Scryfall),
-			(cardKeyword, id) => cardKeyword.KeywordId = id
-		);
-
-	/// <summary>
-	/// Assigns the <see cref="CardPromoType.PromoTypeId"/> on batched (non-persisted) entities in <see cref="_cardPromoTypesBatch"/>.
-	/// </summary>
-	private async Task AssignPromoTypesIdsToCardPromoTypes() =>
-		_cardPromoTypesBatch.AssignRelationalIdToEntities(
-			await _cardRepository.GetPromoTypes(SourceType.Scryfall),
-			(cardPromoType, id) => cardPromoType.PromoTypeId = id
-		);
-
 
 	/// <summary>
 	/// Assigns <see cref="Artist.Id"/> to <see cref="Card"/> entities in the current <see cref="_cardBatch"/>.<br/>
