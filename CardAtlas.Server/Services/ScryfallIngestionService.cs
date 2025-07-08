@@ -271,27 +271,27 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	{
 		IngestionBatch batch = new(_artistComparer, _gameFormatComparer, _keywordComparer, _promoTypeComparer);
 
-		batch.CardBatch.UnionWith(BatchCards(apiCard));
-		batch.ImageBatch.Union(BatchCardImages(apiCard));
-		batch.CardPriceBatch.Union(BatchCardPrices(apiCard));
-		batch.CardGamePlatformBatch.Union(BatchCardGamePlatform(apiCard));
-		batch.CardPrintFinishBatch.Union(BatchPrintFinishes(apiCard));
+		batch.Cards.UnionWith(BatchCards(apiCard));
+		batch.Images.Union(BatchCardImages(apiCard));
+		batch.CardPrices.Union(BatchCardPrices(apiCard));
+		batch.CardGamePlatformRelations.Union(BatchCardGamePlatform(apiCard));
+		batch.CardPrintFinishRelations.Union(BatchPrintFinishes(apiCard));
 
 		var (artists, cardArtistRelations) = BatchArtistsAndCardRelations(apiCard);
-		batch.ArtistBatch.UnionWith(artists);
-		batch.CardArtistBatch.Union(cardArtistRelations);
+		batch.Artists.UnionWith(artists);
+		batch.CardArtistRelations.Union(cardArtistRelations);
 
 		var (gameFormats, cardLegalities) = BatchGameFormatsAndLegalities(apiCard);
-		batch.GameFormatsBatch.UnionWith(gameFormats);
-		batch.CardLegalitiesBatch.Union(cardLegalities);
+		batch.GameFormats.UnionWith(gameFormats);
+		batch.CardLegalityRelations.Union(cardLegalities);
 
 		var (keywords, cardKeywords) = BatchKeywordsAndCardRelations(apiCard);
-		batch.KeywordsBatch.UnionWith(keywords);
-		batch.CardKeywordsBatch.Union(cardKeywords);
+		batch.Keywords.UnionWith(keywords);
+		batch.CardKeywordRelations.Union(cardKeywords);
 
 		var (promoTypes, cardPromoTypes) = BatchPromoTypesAndCardRelations(apiCard);
-		batch.PromoTypesBatch.UnionWith(promoTypes);
-		batch.CardPromoTypesBatch.Union(cardPromoTypes);
+		batch.PromoTypes.UnionWith(promoTypes);
+		batch.CardPromoTypeRelations.Union(cardPromoTypes);
 
 		return batch;
 	}
