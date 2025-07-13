@@ -528,7 +528,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			UpsertCardLegalities(batch),
 			CreateMissingCardKeywords(batch),
 			CreateMissingCardPromoTypes(batch),
-			CreateMissingCardArtists(updatedCards)
+			CreateMissingCardArtists(batch)
 		);
 	}
 
@@ -795,46 +795,18 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <see cref="CardArtist"/> represents the relationship between <see cref="Artist"/> and <see cref="Card"/> entities.
 	/// </summary>
 	/// <returns>The number of added <see cref="CardArtist"/> entities.</returns>
-	private async Task<int> CreateMissingCardArtists(IEnumerable<Card> existingCards)
+	private async Task<int> CreateMissingCardArtists(IngestionBatch batch)
 	{
-		IEnumerable<CardArtist> existingCardArtists = await _cardRepository.GetCardArtists(existingCards.Select(card => card.Id));
-		List<CardArtist> missingCardArtists = GetMissingCardArtists(existingCardArtists);
-
-		int addedCardArtistCount = await _cardRepository.Create(missingCardArtists);
-
-		_cardArtistBatch.Clear();
-		return addedCardArtistCount;
-	}
-
-	/// <summary>
-	/// Finds all batched <see cref="CardArtist"/> which currently does not exist in the <paramref name="existingCardArtists"/>.
-	/// </summary>
-	/// <returns>All batched <see cref="CardArtist"/> entities which does not have a match in <paramref name="existingCardArtists"/>.<br/><br/>
-	/// List may be empty if all batched artists already exists.<br/>
-	/// List is all batched entities, if no <paramref name="existingCardArtists"/> is provided.</returns>
-	private List<CardArtist> GetMissingCardArtists(IEnumerable<CardArtist> existingCardArtists)
-	{
-		List<CardArtist> missingCardArtists = new();
-		if (_cardArtistBatch is { Count: 0 }) return missingCardArtists;
-
-		IEnumerable<CardArtist> batchedCardArtists = _cardArtistBatch
-			.SelectMany(batch => batch.Value)
+		IEnumerable<CardArtist> existingCardArtists = await _cardRepository.GetCardArtists(batch.CardIds);
+		IEnumerable<CardArtist> batchedCardArtists = batch.CardArtistRelations
+			.SelectMany(kvp => kvp.Value)
 			.Select(tuple => tuple.cardArtist);
 
-		if (!existingCardArtists.Any())
-		{
-			return batchedCardArtists.ToList();
-		}
+		List<CardArtist> missingCardArtists = batchedCardArtists.FindMissingEntities(
+			existingEntities: existingCardArtists,
+			filterExistingEntities: cardArtist => (cardArtist.CardId, cardArtist.ArtistId)
+		);
 
-		Dictionary<(long CardId, int ArtistId), CardArtist> existingLookup = existingCardArtists.ToDictionary(ca => (ca.CardId, ca.ArtistId));
-
-		foreach (CardArtist cardArtist in batchedCardArtists)
-		{
-			if (existingLookup.TryGetValue((cardArtist.CardId, cardArtist.ArtistId), out CardArtist? existingCardArtist)) continue;
-
-			missingCardArtists.Add(cardArtist);
-		}
-
-		return missingCardArtists;
+		return await _cardRepository.Create(missingCardArtists);
 	}
 }
