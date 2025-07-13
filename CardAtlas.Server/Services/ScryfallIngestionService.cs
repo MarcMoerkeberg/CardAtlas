@@ -521,13 +521,13 @@ public class ScryfallIngestionService : IScryfallIngestionService
 		List<Card> updatedCards = await upsertedCardsTask;
 
 		await Task.WhenAll(
-			UpsertImages(),
-			UpsertCardPrices(),
-			CreateMissingCardGamePlatforms(updatedCards),
-			CreateMissingCardPrintFinishes(updatedCards),
-			UpsertCardLegalities(),
-			CreateMissingCardKeywords(updatedCards),
-			CreateMissingCardPromoTypes(updatedCards),
+			UpsertImages(batch),
+			UpsertCardPrices(batch),
+			CreateMissingCardGamePlatforms(batch),
+			CreateMissingCardPrintFinishes(batch),
+			UpsertCardLegalities(batch),
+			CreateMissingCardKeywords(batch),
+			CreateMissingCardPromoTypes(batch),
 			CreateMissingCardArtists(updatedCards)
 		);
 	}
@@ -665,21 +665,19 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// Skips any images with a <see cref="CardImage.CardId"/> of 0.
 	/// </summary>
 	/// <returns>The total number of inserted or updated <see cref="CardImage"/> entities.</returns>
-	private async Task<int> UpsertImages()
+	private async Task<int> UpsertImages(IngestionBatch batch)
 	{
-		List<CardImage> batchedImages = _imageBatch
+		List<CardImage> batchedImages = batch.Images
 			.Values
 			.SelectMany(imageList => imageList)
 			.Where(image => image.CardId != 0)
 			.ToList();
 
-		IEnumerable<long> cardIds = batchedImages.Select(image => image.CardId).Distinct();
-		IEnumerable<CardImage> existingImages = await _cardImageRepository.GetFromCardIds(cardIds);
+		IEnumerable<CardImage> existingImages = await _cardImageRepository.GetFromCardIds(batch.CardIds);
 		UpsertContainer<CardImage> upsertionData = batchedImages.ToUpsertData(existingImages, _imageComparer);
 
 		int upsertedCount = await _cardImageRepository.Upsert(upsertionData);
 
-		_imageBatch.Clear();
 		return upsertedCount;
 	}
 
@@ -688,21 +686,19 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// Skips any images with a <see cref="CardPrice.CardId"/> of 0.
 	/// </summary>
 	/// <returns>The total number of inserted or updated <see cref="CardPrice"/> entities.</returns>
-	private async Task<int> UpsertCardPrices()
+	private async Task<int> UpsertCardPrices(IngestionBatch batch)
 	{
-		List<CardPrice> batchedPrices = _cardPriceBatch
+		List<CardPrice> batchedPrices = batch.CardPrices
 			.Values
 			.SelectMany(cardPriceList => cardPriceList)
 			.Where(cardPrice => cardPrice.CardId != 0)
 			.ToList();
 
-		IEnumerable<long> cardIds = batchedPrices.Select(image => image.CardId).Distinct();
-		IEnumerable<CardPrice> existingCardPrices = await _cardRepository.GetCardPrices(cardIds);
+		IEnumerable<CardPrice> existingCardPrices = await _cardRepository.GetCardPrices(batch.CardIds);
 		UpsertContainer<CardPrice> upsertionData = batchedPrices.ToUpsertData(existingCardPrices, _priceComparer);
 
 		int upsertedCount = await _cardRepository.Upsert(upsertionData);
 
-		_cardPriceBatch.Clear();
 		return upsertedCount;
 	}
 
@@ -711,18 +707,15 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <see cref="CardGamePlatform"/> represents the relationship between <see cref="GamePlatform"/> and <see cref="Card"/> entities.
 	/// </summary>
 	/// <returns>The number of added <see cref="CardGamePlatform"/> entities.</returns>
-	private async Task<int> CreateMissingCardGamePlatforms(IEnumerable<Card> existingCards)
+	private async Task<int> CreateMissingCardGamePlatforms(IngestionBatch batch)
 	{
-		IEnumerable<CardGamePlatform> existingPlatforms = await _cardRepository.GetCardGamePlatforms(existingCards.Select(card => card.Id));
-		List<CardGamePlatform> missingPlatforms = _cardGamePlatformBatch.FindMissingEntities(
+		IEnumerable<CardGamePlatform> existingPlatforms = await _cardRepository.GetCardGamePlatforms(batch.CardIds);
+		List<CardGamePlatform> missingPlatforms = batch.CardGamePlatformRelations.FindMissingEntities(
 			existingEntities: existingPlatforms,
 			filterExistingEntities: cgp => (cgp.GamePlatformId, cgp.CardId)
 		);
 
-		int addedPlatformsCount = await _cardRepository.Create(missingPlatforms);
-
-		_cardGamePlatformBatch.Clear();
-		return addedPlatformsCount;
+		return await _cardRepository.Create(missingPlatforms);
 	}
 
 	/// <summary>
@@ -730,18 +723,15 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <see cref="CardPrintFinish"/> represents the relationship between <see cref="PrintFinish"/> and <see cref="Card"/> entities.
 	/// </summary>
 	/// <returns>The number of added <see cref="CardPrintFinish"/> entities.</returns>
-	private async Task<int> CreateMissingCardPrintFinishes(IEnumerable<Card> existingCards)
+	private async Task<int> CreateMissingCardPrintFinishes(IngestionBatch batch)
 	{
-		IEnumerable<CardPrintFinish> existingPrintFinishes = await _cardRepository.GetCardPrintFinishes(existingCards.Select(card => card.Id));
-		List<CardPrintFinish> missingPrintFinishes = _cardPrintFinishBatch.FindMissingEntities(
+		IEnumerable<CardPrintFinish> existingPrintFinishes = await _cardRepository.GetCardPrintFinishes(batch.CardIds);
+		List<CardPrintFinish> missingPrintFinishes = batch.CardPrintFinishRelations.FindMissingEntities(
 			existingEntities: existingPrintFinishes,
 			filterExistingEntities: cpf => (cpf.PrintFinishId, cpf.CardId)
 		);
 
-		int addedPrintFinishesCount = await _cardRepository.Create(missingPrintFinishes);
-
-		_cardPrintFinishBatch.Clear();
-		return addedPrintFinishesCount;
+		return await _cardRepository.Create(missingPrintFinishes);
 	}
 
 	/// <summary>
@@ -749,23 +739,19 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// Skips any images with a <see cref="CardPrice.CardId"/> of 0.
 	/// </summary>
 	/// <returns>The total number of inserted or updated <see cref="CardLegality"/> entities.</returns>
-	private async Task<int> UpsertCardLegalities()
+	private async Task<int> UpsertCardLegalities(IngestionBatch batch)
 	{
-		List<CardLegality> batchedCardLegalities = _cardLegalitiesBatch
+		List<CardLegality> batchedCardLegalities = batch.CardLegalityRelations
 			.Values
 			.SelectMany(cardLegalityTupleList => cardLegalityTupleList)
 			.Select(tuple => tuple.legality)
 			.Where(cardLegality => cardLegality.CardId != 0 && cardLegality.GameFormatId != 0)
 			.ToList();
 
-		IEnumerable<long> cardIds = batchedCardLegalities.Select(cardLegality => cardLegality.CardId).Distinct();
-		IEnumerable<CardLegality> existingCardLegalities = await _cardRepository.GetCardLegalities(cardIds);
+		List<CardLegality> existingCardLegalities = await _cardRepository.GetCardLegalities(batch.CardIds);
 		UpsertContainer<CardLegality> upsertionData = batchedCardLegalities.ToUpsertData(existingCardLegalities, _cardLegalityComparer);
 
-		int upsertedCount = await _cardRepository.Upsert(upsertionData);
-
-		_cardLegalitiesBatch.Clear();
-		return upsertedCount;
+		return await _cardRepository.Upsert(upsertionData); ;
 	}
 
 	/// <summary>
@@ -773,20 +759,17 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <see cref="CardKeyword"/> represents the relationship between <see cref="Keyword"/> and <see cref="Card"/> entities.
 	/// </summary>
 	/// <returns>The number of added <see cref="CardKeyword"/> entities.</returns>
-	private async Task<int> CreateMissingCardKeywords(IEnumerable<Card> existingCards)
+	private async Task<int> CreateMissingCardKeywords(IngestionBatch batch)
 	{
-		IEnumerable<CardKeyword> existingCardKeywords = await _cardRepository.GetCardKeywords(existingCards.Select(card => card.Id));
+		List<CardKeyword> existingCardKeywords = await _cardRepository.GetCardKeywords(batch.CardIds);
 
-		List<CardKeyword> missingCardKeywords = _cardKeywordsBatch.FindMissingEntities(
+		List<CardKeyword> missingCardKeywords = batch.CardKeywordRelations.FindMissingEntities(
 			existingEntities: existingCardKeywords,
 			omitDefaultValues: ck => ck.KeywordId != 0 && ck.CardId != 0,
 			filterExistingEntities: ck => (ck.KeywordId, ck.CardId)
 		);
 
-		int addedKeywordsCount = await _cardRepository.Create(missingCardKeywords);
-
-		_cardKeywordsBatch.Clear();
-		return addedKeywordsCount;
+		return await _cardRepository.Create(missingCardKeywords);
 	}
 
 	/// <summary>
@@ -794,20 +777,17 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// <see cref="CardPromoType"/> represents the relationship between <see cref="PromoType"/> and <see cref="Card"/> entities.
 	/// </summary>
 	/// <returns>The number of added <see cref="CardKeyword"/> entities.</returns>
-	private async Task<int> CreateMissingCardPromoTypes(IEnumerable<Card> existingCards)
+	private async Task<int> CreateMissingCardPromoTypes(IngestionBatch batch)
 	{
-		IEnumerable<CardPromoType> existingCardPromoTypes = await _cardRepository.GetCardPromoTypes(existingCards.Select(card => card.Id));
+		List<CardPromoType> existingCardPromoTypes = await _cardRepository.GetCardPromoTypes(batch.CardIds);
 
-		List<CardPromoType> missingCardPromoTypes = _cardPromoTypesBatch.FindMissingEntities(
+		List<CardPromoType> missingCardPromoTypes = batch.CardPromoTypeRelations.FindMissingEntities(
 			existingEntities: existingCardPromoTypes,
 			omitDefaultValues: cpt => cpt.PromoTypeId != 0 && cpt.CardId != 0,
 			filterExistingEntities: cpt => (cpt.PromoTypeId, cpt.CardId)
 		);
 
-		int addedPromoTypesCount = await _cardRepository.Create(missingCardPromoTypes);
-
-		_cardPromoTypesBatch.Clear();
-		return addedPromoTypesCount;
+		return await _cardRepository.Create(missingCardPromoTypes);
 	}
 
 	/// <summary>
