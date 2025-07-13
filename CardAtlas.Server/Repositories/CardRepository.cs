@@ -466,7 +466,7 @@ public class CardRepository : ICardRepository
 			.ToListAsync();
 	}
 
-	public async Task<IEnumerable<CardLegality>> GetCardLegalities(IEnumerable<long> cardIds)
+	public async Task<List<CardLegality>> GetCardLegalities(IEnumerable<long> cardIds)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -496,7 +496,7 @@ public class CardRepository : ICardRepository
 			.ToListAsync();
 	}
 
-	public async Task<IEnumerable<CardKeyword>> GetCardKeywords(IEnumerable<long> cardIds)
+	public async Task<List<CardKeyword>> GetCardKeywords(IEnumerable<long> cardIds)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 
@@ -518,7 +518,7 @@ public class CardRepository : ICardRepository
 			.ToListAsync();
 	}
 
-	public async Task<IEnumerable<CardPromoType>> GetCardPromoTypes(IEnumerable<long> cardIds)
+	public async Task<List<CardPromoType>> GetCardPromoTypes(IEnumerable<long> cardIds)
 	{
 		using ApplicationDbContext dbContext = _dbContextFactory.CreateDbContext();
 

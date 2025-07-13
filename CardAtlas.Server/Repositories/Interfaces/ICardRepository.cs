@@ -57,7 +57,7 @@ public interface ICardRepository
 	/// <summary>
 	/// Returns all <see cref="CardLegality"/> entities associated with the <paramref name="cardIds"/> from the database.
 	/// </summary>
-	Task<IEnumerable<CardLegality>> GetCardLegalities(IEnumerable<long> cardIds);
+	Task<List<CardLegality>> GetCardLegalities(IEnumerable<long> cardIds);
 
 	/// <summary>
 	/// Returns all <see cref="Keyword"/> entities from the database.
@@ -85,7 +85,7 @@ public interface ICardRepository
 	/// <summary>
 	/// Returns all <see cref="CardKeyword"/> entities associated with the <paramref name="cardIds"/> from the database.
 	/// </summary>
-	Task<IEnumerable<CardKeyword>> GetCardKeywords(IEnumerable<long> cardIds);
+	Task<List<CardKeyword>> GetCardKeywords(IEnumerable<long> cardIds);
 
 	/// <summary>
 	/// Return all <see cref="PromoType"/> entities from the database.
@@ -112,7 +112,7 @@ public interface ICardRepository
 	/// <summary>
 	/// Returns all <see cref="CardPromoType"/> entities associated with the <paramref name="cardIds"/> from the database.
 	/// </summary>
-	Task<IEnumerable<CardPromoType>> GetCardPromoTypes(IEnumerable<long> cardIds);
+	Task<List<CardPromoType>> GetCardPromoTypes(IEnumerable<long> cardIds);
 
 	/// <summary>
 	/// Returns all <see cref="CardPrice"/> entities from the database.
@@ -301,7 +301,7 @@ public interface ICardRepository
 	/// <summary>
 	/// Creates and updates <see cref="Card"/> entities, based on the provided <paramref name="upsertionData"/>.
 	/// </summary>
-	/// <returns>The total number of inserted or updated <see cref="Card"/> entities.</returns>
+	/// <returns>The total number of inserted or updated <see cref="CardLegality"/> entities.</returns>
 	Task<int> Upsert(UpsertContainer<CardLegality> upsertionData);
 
 	/// <summary>
