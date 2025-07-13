@@ -199,4 +199,31 @@ public static class ScryfallIngestionExtensions
 
 		return missingEntities.ToList();
 	}
+
+	/// <summary>
+	/// Finds entities in <paramref name="batchedEntities"/> that are not in <paramref name="existingEntities"/>.
+	/// </summary>
+	/// <param name="filterExistingEntities">Filter for comparing properties between existing and new entities.</param>
+	/// <returns>Returns a new list of all missing entities - Ie. Entities in <paramref name="batchedEntities"/> that are not in <paramref name="existingEntities"/>.</returns>
+	public static List<TEntity> FindMissingEntities<TEntity, TFilter>(
+	this IEnumerable<TEntity> batchedEntities,
+	IEnumerable<TEntity> existingEntities,
+	Func<TEntity, TFilter> filterExistingEntities)
+	where TFilter : notnull
+	{
+		if (!existingEntities.Any())
+		{
+			return batchedEntities.ToList();
+		}
+
+		HashSet<TFilter> existingEntitiesFilter = existingEntities
+			.Select(filterExistingEntities)
+			.ToHashSet();
+
+		IEnumerable<TEntity> missingEntities = batchedEntities.Where(batchedEntity =>
+			!existingEntitiesFilter.Contains(filterExistingEntities(batchedEntity))
+		);
+
+		return missingEntities.ToList();
+	}
 }
