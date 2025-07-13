@@ -406,7 +406,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 
 		if (mappedGamePlatforms is { Count: > 0 })
 		{
-			_cardGamePlatformBatch[apiCard.Id] = mappedGamePlatforms;
+			batchedGamePlatforms[apiCard.Id] = mappedGamePlatforms;
 		}
 
 		return batchedGamePlatforms;
