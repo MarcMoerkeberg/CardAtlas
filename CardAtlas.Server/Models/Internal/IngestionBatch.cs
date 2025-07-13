@@ -13,6 +13,7 @@ public class IngestionBatch
 	public HashSet<Keyword> Keywords { get; set; }
 	public HashSet<PromoType> PromoTypes { get; set; }
 	public Dictionary<(Guid cardScryfallId, string cardName), List<CardImage>> Images { get; set; } = new();
+	//key tuple is needed because cardscryfallid is not unique. value tuple is needed to assign artist id.
 	public Dictionary<(Guid cardScryfallId, string cardName), List<(Guid artistScryfallId, CardArtist cardArtist)>> CardArtistRelations { get; set; } = new();
 	public Dictionary<Guid, List<CardPrice>> CardPrices { get; set; } = new();
 	public Dictionary<Guid, List<CardGamePlatform>> CardGamePlatformRelations { get; set; } = new();
@@ -34,6 +35,11 @@ public class IngestionBatch
 	public IEnumerable<Guid> ArtistScryfallIds => Artists
 		.Where(artist => artist.ScryfallId is not null)
 		.Select(artist => artist.ScryfallId!.Value);
+
+	/// <summary>
+	/// Is null if referenced before populating via <see cref="AssignCardIdToEntities"/>.
+	/// </summary>
+	public HashSet<long> CardIds { get; private set; } = new();
 
 	public IngestionBatch(
 		IEqualityComparer<Artist> artistComparer,
@@ -65,6 +71,7 @@ public class IngestionBatch
 		CardKeywordRelations.Clear();
 		PromoTypes.Clear();
 		CardPromoTypeRelations.Clear();
+		CardIds.Clear();
 	}
 
 	/// <summary>
@@ -131,6 +138,7 @@ public class IngestionBatch
 		CardLegalityRelations.AssignCardIdToEntities(cards);
 		CardKeywordRelations.AssignCardIdToEntities(cards);
 		CardPromoTypeRelations.AssignCardIdToEntities(cards);
+		CardIds = cards.Select(card => card.Id).ToHashSet();
 
 		Dictionary<(Guid, string), List<CardArtist>> flattenedCardArtistBatch = CardArtistRelations.ToDictionary(
 			batch => batch.Key,
