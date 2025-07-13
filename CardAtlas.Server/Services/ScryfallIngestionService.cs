@@ -17,7 +17,9 @@ namespace CardAtlas.Server.Services;
 
 public class ScryfallIngestionService : IScryfallIngestionService
 {
-	//Dependencies
+	private const int _batchCapacity = 2000;
+	private Dictionary<Guid, Set> _setLookup = new();
+
 	private readonly IArtistRepository _artistRepository;
 	private readonly ICardImageRepository _cardImageRepository;
 	private readonly ICardRepository _cardRepository;
@@ -33,23 +35,6 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	private readonly IEqualityComparer<PromoType> _promoTypeComparer;
 	private readonly IScryfallApi _scryfallApi;
 	private readonly ISetRepository _setRepository;
-
-	//Batching data
-	private const int _batchCapacity = 2000;
-	private Dictionary<Guid, Set> _setLookup = new();
-	private HashSet<Card> _cardBatch = new();
-	private Dictionary<(Guid cardScryfallId, string cardName), List<CardImage>> _imageBatch = new();
-	private HashSet<Artist> _artistBatch = new();
-	private Dictionary<(Guid cardScryfallId, string cardName), List<(Guid artistScryfallId, CardArtist cardArtist)>> _cardArtistBatch = new();
-	private Dictionary<Guid, List<CardPrice>> _cardPriceBatch = new();
-	private Dictionary<Guid, List<CardGamePlatform>> _cardGamePlatformBatch = new();
-	private Dictionary<Guid, List<CardPrintFinish>> _cardPrintFinishBatch = new();
-	private HashSet<GameFormat> _gameFormatsBatch = new();
-	private Dictionary<Guid, List<(string formatName, CardLegality legality)>> _cardLegalitiesBatch = new();
-	private HashSet<Keyword> _keywordsBatch = new();
-	private Dictionary<Guid, List<(string keywordName, CardKeyword cardKeyword)>> _cardKeywordsBatch = new();
-	private HashSet<PromoType> _promoTypesBatch = new();
-	private Dictionary<Guid, List<(string promoTypeName, CardPromoType cardPromoType)>> _cardPromoTypesBatch = new();
 
 	public ScryfallIngestionService(
 		IArtistRepository artistRepository,
@@ -508,17 +493,13 @@ public class ScryfallIngestionService : IScryfallIngestionService
 	/// </summary>
 	private async Task PersistBatchedData(IngestionBatch batch)
 	{
-		Task<List<Card>> upsertedCardsTask = UpsertCards(batch);
-
 		await Task.WhenAll(
-			upsertedCardsTask,
+			UpsertCards(batch),
 			CreateMissingGameFormats(batch),
 			CreateMissingKeywords(batch),
 			CreateMissingPromoTypes(batch),
 			UpsertArtists(batch)
 		);
-
-		List<Card> updatedCards = await upsertedCardsTask;
 
 		await Task.WhenAll(
 			UpsertImages(batch),
@@ -650,7 +631,7 @@ public class ScryfallIngestionService : IScryfallIngestionService
 			numberOfAffectedRows = await _artistRepository.Upsert(upsertionData);
 
 			if (upsertionData.ToInsert.Count > 0)
-	{
+			{
 				existingArtists = await _artistRepository.Get(batch.ArtistScryfallIds);
 			}
 		}
