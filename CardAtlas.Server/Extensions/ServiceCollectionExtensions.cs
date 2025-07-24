@@ -188,6 +188,9 @@ public static class ServiceCollectionExtensions
 		}
 	}
 
+	/// <summary>
+	/// Configures identity services for user and role management within the application.
+	/// </summary>
 	public static void AddIdentityConfiguration(this IServiceCollection services)
 	{
 		services.AddIdentity<User, IdentityRole>(options =>
