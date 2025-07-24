@@ -1,6 +1,8 @@
-﻿namespace CardAtlas.Server.Services.Interfaces;
+﻿using CardAtlas.Server.Models.DTOs.Request;
+
+namespace CardAtlas.Server.Services.Interfaces;
 
 public interface IAuthenticationService
 {
-	Task CreateUserAsync();
+	Task CreateUserAsync(SignUpDTO signUpDTO);
 }

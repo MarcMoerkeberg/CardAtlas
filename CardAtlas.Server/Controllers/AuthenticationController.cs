@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using CardAtlas.Server.Models.DTOs.Request;
 using CardAtlas.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,9 +24,9 @@ namespace CardAtlas.Server.Controllers
 		}
 
 		[HttpPost]
-		public async Task<string> SignUp(object userInformation)
+		public async Task<string> SignUp(SignUpDTO signUpDTO)
 		{
-			await _authenticationService.CreateUserAsync();
+			await _authenticationService.CreateUserAsync(signUpDTO);
 
 			throw new NotImplementedException();
 		}
