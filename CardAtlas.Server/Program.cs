@@ -12,12 +12,15 @@ builder.Services.AddSwagger();
 builder.Services.AddDatabaseContext();
 builder.Services.AddDependencyInjection();
 builder.Services.AddGlobalExceptionHandling();
+builder.Services.AddAuthentication();
+builder.Services.AddIdentityConfiguration();
 
 WebApplication app = builder.Build();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapFallbackToFile("/index.html");

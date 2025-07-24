@@ -3,10 +3,12 @@ using Asp.Versioning.ApiExplorer;
 using CardAtlas.Server.DAL;
 using CardAtlas.Server.Exceptions;
 using CardAtlas.Server.Helpers;
+using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Resources;
 using CardAtlas.Server.Resources.Errors;
 using Hellang.Middleware.ProblemDetails;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -184,5 +186,23 @@ public static class ServiceCollectionExtensions
 				services.AddScoped(@interface, comparer);
 			}
 		}
+	}
+
+	public static void AddIdentityConfiguration(this IServiceCollection services)
+	{
+		services.AddIdentity<User, IdentityRole>(options =>
+		{
+			options.Password.RequireDigit = true;
+			options.Password.RequireLowercase = true;
+			options.Password.RequireUppercase = true;
+			options.Password.RequireNonAlphanumeric = true;
+			options.Password.RequiredLength = 8;
+
+			options.User.RequireUniqueEmail = true;
+
+			options.SignIn.RequireConfirmedEmail = false;
+		})
+		.AddEntityFrameworkStores<ApplicationDbContext>()
+		.AddDefaultTokenProviders();
 	}
 }

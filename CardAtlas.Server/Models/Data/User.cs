@@ -1,5 +1,8 @@
-﻿namespace CardAtlas.Server.Models.Data;
+﻿using Microsoft.AspNetCore.Identity;
 
-public class User
+namespace CardAtlas.Server.Models.Data;
+
+public class User : IdentityUser
 {
+	public required string DisplayName { get; init; }
 }
