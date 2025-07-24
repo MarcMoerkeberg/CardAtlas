@@ -1,4 +1,6 @@
 ﻿using CardAtlas.Server.Models.Data.Base;
+using CardAtlas.Server.Models.Internal;
+using Microsoft.AspNetCore.Identity;
 
 namespace CardAtlas.Server.Helpers;
 
@@ -11,33 +13,52 @@ public static class EntityConfigurationHelper
 	/// <typeparam name="TEntity"></typeparam>
 	/// <typeparam name="TEnum"></typeparam>
 	/// <returns>An <see cref="IEnumerable{T}"/> of <typeparamref name="TEntity"/> with the properties of <see cref="TypeEntity{TEnum}"/> populated by values of <typeparamref name="TEnum"/>.</returns>
-	/// <exception cref="Exception"/>
-	public static IEnumerable<TEntity> GetEnumSeedData<TEntity, TEnum>() 
+	/// <exception cref="ArgumentException"/>
+	public static List<TEntity> GetEnumSeedData<TEntity, TEnum>()
 		where TEntity : TypeEntity<TEnum>
 		where TEnum : struct, Enum
 	{
-		try
+		TEnum[] enumValues = Enum.GetValues<TEnum>();
+		if (enumValues is not { Length: > 0 })
 		{
-			var seedData = Enum
-				.GetValues<TEnum>()
-				.Cast<TEnum>()
-				.Select(enumInstance =>
-				{
-					//Uses reflection to create instance of TEntity because of required properties on TypeEntity<TEnum> so TEntity cannot satisfy new() constraint.
-					TEntity seedDataEntry = (TEntity)Activator.CreateInstance(typeof(TEntity))!;
-
-					seedDataEntry.Id = Convert.ToInt32(enumInstance);
-					seedDataEntry.Name = enumInstance.ToString();
-
-					return seedDataEntry;
-				})
-				.ToList();
-
-				return seedData;
+			throw new ArgumentException($"No values found for enum type {typeof(TEnum).Name}. Ensure enum is defined and has values.");
 		}
-		catch (Exception ex)
+
+		List<TEntity> seedData = new(enumValues.Length);
+
+		foreach (TEnum enumValue in enumValues)
 		{
-			throw new Exception($"An error occurred while seeding data to {nameof(TEntity)} with {nameof(TEnum)}.", ex);
+			TEntity seedDataEntry = Activator.CreateInstance<TEntity>();
+			if (seedDataEntry is null) continue;
+
+			seedDataEntry.Id = Convert.ToInt32(enumValue);
+			seedDataEntry.Name = Enum.GetName(typeof(TEnum), enumValue)!;
+
+			seedData.Add(seedDataEntry);
 		}
+
+		return seedData;
+	}
+
+	/// <summary>
+	/// Generatates an <see cref="IdentityRole"/> for every role in <see cref="Roles"/>.
+	/// </summary>
+	/// <returns>A list of new <see cref="IdentityRole"/>.</returns>
+	public static List<IdentityRole> GetIdentitySeedData()
+	{
+		List<IdentityRole> roles = new(Roles.AllRoles.Length);
+
+		foreach (string roleName in Roles.AllRoles)
+		{
+			if (string.IsNullOrWhiteSpace(roleName)) continue;
+
+			roles.Add(new IdentityRole
+			{
+				Name = roleName,
+				NormalizedName = roleName.ToUpper()
+			});
+		}
+
+		return roles;
 	}
 }
