@@ -329,7 +329,7 @@ class IEnumerableExtensionsTests
 
 		IEnumerable<Card> result = cards.AssignParent();
 
-		Assert.IsEmpty(result);
+		Assert.That(result, Is.Empty);
 	}
 
 	[Test]
