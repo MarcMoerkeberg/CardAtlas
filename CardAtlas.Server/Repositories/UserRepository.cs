@@ -3,6 +3,7 @@ using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Security.Claims;
 
 namespace CardAtlas.Server.Repositories;
 
@@ -43,5 +44,27 @@ public class UserRepository : IUserRepository
 
 		await transaction.CommitAsync();
 		return IdentityResult.Success;
+	}
+
+	public async Task<List<Claim>?> GetClaimsAsync(string userEmail)
+	{
+		User? user = await _userManager.FindByEmailAsync(userEmail);
+
+		return user is null
+			? null
+			: await GetClaimsAsync(user);
+	}
+
+	public async Task<List<Claim>> GetClaimsAsync(User user)
+	{
+		List<Claim> claims = new() { new Claim(ClaimTypes.Name, user.Email!) };
+
+		IList<string> roles = await _userManager.GetRolesAsync(user);
+		foreach (string role in roles)
+		{
+			claims.Add(new Claim(ClaimTypes.Role, role));
+		}
+
+		return claims;
 	}
 }
