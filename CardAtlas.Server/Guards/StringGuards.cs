@@ -1,6 +1,6 @@
 ﻿namespace CardAtlas.Server.Guards;
 
-public static class StringGuards
+public static class StringGuards//TODO: Add tests
 {
 	/// <summary>
 	/// Evalueates wether the <paramref name="input"/> contains special characters.

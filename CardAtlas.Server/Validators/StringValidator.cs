@@ -3,7 +3,7 @@ using CardAtlas.Server.Models.DTOs.Request;
 
 namespace CardAtlas.Server.Validators;
 
-public static class StringValidator
+public static class StringValidator//TODO: Add tests
 {
 	/// <summary>
 	/// Validates wether the password in the <paramref name="signUpDTO"/> conforms to the businessrules of a valid password.

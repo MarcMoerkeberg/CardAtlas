@@ -21,7 +21,7 @@ public static class AuthenticationHelper
 	/// Generates a <see cref="JwtSecurityToken"/> from the <paramref name="userClaims"/> and <paramref name="appSettings"/>.
 	/// </summary>
 	/// <returns>A new <see cref="JwtSecurityToken"/> populated with the <paramref name="userClaims"/> and <paramref name="appSettings"/>.</returns>
-	public static JwtSecurityToken GenerateSecurityToken(IEnumerable<Claim> userClaims, AppSettings appSettings)
+	public static JwtSecurityToken GenerateSecurityToken(IEnumerable<Claim> userClaims, AppSettings appSettings)//TODO: add tests
 	{
 		return new JwtSecurityToken(
 			issuer: appSettings.AppName,
