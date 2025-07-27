@@ -6,8 +6,8 @@ using CardAtlas.Server.Helpers;
 using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Resources;
-using CardAtlas.Server.Resources.Errors;
 using Hellang.Middleware.ProblemDetails;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +33,7 @@ public static class ServiceCollectionExtensions
 			.ValidateDataAnnotations()
 			.ValidateOnStart()
 			.Services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IOptions<AppSettings>>().Value!);
-		}
+	}
 
 	/// <summary>
 	/// Adds the database context and connection for <see cref="ApplicationDbContext"/>.
@@ -44,13 +44,13 @@ public static class ServiceCollectionExtensions
 		{
 			AppSettings appSettings = serviceProvider.GetRequiredService<AppSettings>();
 
-		options.UseSqlServer(appSettings.ConnectionStrings.Database, sqlServerOptions =>
-			sqlServerOptions.EnableRetryOnFailure(
-				maxRetryCount: 5,
-				maxRetryDelay: TimeSpan.FromSeconds(20),
-				errorNumbersToAdd: null
-			)
-		);
+			options.UseSqlServer(appSettings.ConnectionStrings.Database, sqlServerOptions =>
+				sqlServerOptions.EnableRetryOnFailure(
+					maxRetryCount: 5,
+					maxRetryDelay: TimeSpan.FromSeconds(20),
+					errorNumbersToAdd: null
+				)
+			);
 		};
 
 		services.AddDbContextFactory<ApplicationDbContext>(dbContextOptions, lifetime: ServiceLifetime.Scoped);
@@ -66,23 +66,23 @@ public static class ServiceCollectionExtensions
 
 		services.AddSingleton<IConfigureOptions<SwaggerGenOptions>>(serviceProvider =>
 			new ConfigureOptions<SwaggerGenOptions>(options =>
-		{
+			{
 				var apiDescProvider = serviceProvider.GetRequiredService<IApiVersionDescriptionProvider>();
 				var appSettings = serviceProvider.GetRequiredService<AppSettings>();
 
 				foreach (ApiVersionDescription apiDescriptiontion in apiDescProvider.ApiVersionDescriptions)
-			{
-				var openApiInfo = new OpenApiInfo
 				{
-					Title = $"{appSettings.AppName} {apiDescriptiontion.GroupName}",
-					Version = apiDescriptiontion.ApiVersion.ToString(),
+					var openApiInfo = new OpenApiInfo
+					{
+						Title = $"{appSettings.AppName} {apiDescriptiontion.GroupName}",
+						Version = apiDescriptiontion.ApiVersion.ToString(),
 						Description = apiDescriptiontion.IsDeprecated
 						? ApplicationSettings.ApiVersionDeprecated
 						: string.Empty
-				};
+					};
 
-				options.SwaggerDoc(apiDescriptiontion.GroupName, openApiInfo);
-			}
+					options.SwaggerDoc(apiDescriptiontion.GroupName, openApiInfo);
+				}
 			})
 		);
 	}
@@ -209,5 +209,40 @@ public static class ServiceCollectionExtensions
 		})
 		.AddEntityFrameworkStores<ApplicationDbContext>()
 		.AddDefaultTokenProviders();
+	}
+
+	/// <summary>
+	/// Configures and adds Jason Web Token authentication.
+	/// </summary>
+	public static void AddJwtAuthentication(this IServiceCollection services)
+	{
+		services.AddSingleton<IConfigureOptions<JwtBearerOptions>>(serviceProvider =>
+			new ConfigureNamedOptions<JwtBearerOptions>(
+				JwtBearerDefaults.AuthenticationScheme,
+				options =>
+				{
+					var appSettings = serviceProvider.GetRequiredService<AppSettings>();
+
+					options.TokenValidationParameters = new TokenValidationParameters
+					{
+						ValidateIssuer = true,
+						ValidateAudience = true,
+						ValidateLifetime = true,
+						ValidateIssuerSigningKey = true,
+
+						ValidIssuer = appSettings.AppName,
+						ValidAudience = appSettings.JwtSettings.Audience,
+						IssuerSigningKey = new SymmetricSecurityKey(appSettings.JwtSettings.Key)
+					};
+				}
+			)
+		);
+
+		services.AddAuthentication(options =>
+		{
+			options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+			options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+		})
+		.AddJwtBearer();
 	}
 }

@@ -13,6 +13,7 @@ builder.Services.AddDependencyInjection();
 builder.Services.AddGlobalExceptionHandling();
 builder.Services.AddAuthentication();
 builder.Services.AddIdentityConfiguration();
+builder.Services.AddJwtAuthentication();
 
 WebApplication app = builder.Build();
 

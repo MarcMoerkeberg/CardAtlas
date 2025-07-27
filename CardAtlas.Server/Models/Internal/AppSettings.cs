@@ -19,5 +19,4 @@ public record JwtSettings
 	public required string Secret { get; init; }
 	public byte[] Key => Encoding.UTF8.GetBytes(Secret);
 	public required string Audience { get; init; }
-	public required TimeSpan TimeToLive { get; init; }
 }
