@@ -120,4 +120,7 @@
   <data name="InvalidPassword" xml:space="preserve">
     <value>Password must contain between 8 and 40 characters and include a lowercase letter, an uppercase letter, a digit and a special character.</value>
   </data>
+  <data name="InvalidSignInCredentials" xml:space="preserve">
+    <value>Wrong email or password.</value>
+  </data>
 </root>

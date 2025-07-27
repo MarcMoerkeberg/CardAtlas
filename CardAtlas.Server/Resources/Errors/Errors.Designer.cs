@@ -133,6 +133,15 @@ namespace CardAtlas.Server.Resources.Errors {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No roles assigned.
+        /// </summary>
+        internal static string NoRolesAssigned {
+            get {
+                return ResourceManager.GetString("NoRolesAssigned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not Found.
         /// </summary>
         internal static string NotFound {
@@ -147,6 +156,33 @@ namespace CardAtlas.Server.Resources.Errors {
         internal static string Unauthorized {
             get {
                 return ResourceManager.GetString("Unauthorized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User with email &apos;{0}&apos; is not assigned to any roles..
+        /// </summary>
+        internal static string UserHasNoRolesWithEmail {
+            get {
+                return ResourceManager.GetString("UserHasNoRolesWithEmail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User not found.
+        /// </summary>
+        internal static string UserNotFound {
+            get {
+                return ResourceManager.GetString("UserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No user with email &apos;{0}&apos; was found..
+        /// </summary>
+        internal static string UserNotFoundWithEmail {
+            get {
+                return ResourceManager.GetString("UserNotFoundWithEmail", resourceCulture);
             }
         }
     }

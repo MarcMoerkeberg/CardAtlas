@@ -141,10 +141,22 @@
   <data name="MergingIdsAreNotEqual" xml:space="preserve">
     <value>Expected the ids of both objects to be equal to ensure the wrong entity isn't updated by mistake.</value>
   </data>
+  <data name="NoRolesAssigned" xml:space="preserve">
+    <value>No roles assigned</value>
+  </data>
   <data name="NotFound" xml:space="preserve">
     <value>Not Found</value>
   </data>
   <data name="Unauthorized" xml:space="preserve">
     <value>Unauthorized</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>User not found</value>
+  </data>
+  <data name="UserHasNoRolesWithEmail" xml:space="preserve">
+    <value>User with email '{0}' is not assigned to any roles.</value>
+  </data>
+  <data name="UserNotFoundWithEmail" xml:space="preserve">
+    <value>No user with email '{0}' was found.</value>
   </data>
 </root>

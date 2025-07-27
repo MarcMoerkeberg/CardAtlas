@@ -68,5 +68,14 @@ namespace CardAtlas.Server.Resources.Errors {
                 return ResourceManager.GetString("InvalidPassword", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrong email or password..
+        /// </summary>
+        public static string InvalidSignInCredentials {
+            get {
+                return ResourceManager.GetString("InvalidSignInCredentials", resourceCulture);
+            }
+        }
     }
 }
