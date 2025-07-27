@@ -17,7 +17,7 @@ public class AuthenticationService : IAuthenticationService
 		_userRepository = userRepository;
 	}
 
-	public async Task CreateUserAsync(SignUpDTO signUpDTO)
+	public async Task<IdentityResult> CreateUserAsync(SignUpDTO signUpDTO)
 	{
 		User newUser = UserMapper.FromDTO(signUpDTO);
 
@@ -27,6 +27,6 @@ public class AuthenticationService : IAuthenticationService
 			roles: Roles.DefaultRoles
 		);
 
-		throw new NotImplementedException();
+		return createUserResult;
 	}
 }
