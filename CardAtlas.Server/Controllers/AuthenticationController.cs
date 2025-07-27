@@ -2,57 +2,42 @@
 using CardAtlas.Server.Models.DTOs.Request;
 using CardAtlas.Server.Resources.Errors;
 using CardAtlas.Server.Services.Interfaces;
-using CardAtlas.Server.Validators;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CardAtlas.Server.Controllers
+
+namespace CardAtlas.Server.Controllers;
+
+[ApiController]
+[ApiVersion("1.0")]
+[Route("api/[controller]")]
+public class AuthenticationController : ApiControllerBase
 {
-	[ApiController]
-	[ApiVersion("1.0")]
-	[Route("api/[controller]/[action]")]
-	public class AuthenticationController : ControllerBase
+	private readonly IAuthenticationService _authenticationService;
+
+	public AuthenticationController(IAuthenticationService authenticationService)
 	{
-		private readonly IAuthenticationService _authenticationService;
+		_authenticationService = authenticationService;
+	}
 
-		public AuthenticationController(IAuthenticationService authenticationService)
+	[Route("SignIn")]
+	[HttpPost]
+	public async Task<IActionResult> Authorize([FromBody] SignInDTO signInDTO)
+	{
+		bool validSigninCredentials = await _authenticationService.VerifyUserCredentials(signInDTO);
+		if (!validSigninCredentials)
 		{
-			_authenticationService = authenticationService;
+			//TODO: Add logging
+			return UnauthorizedProblem(ValidationErrors.InvalidSignInCredentials);
 		}
 
-		[HttpPost]
-		public string SignIn([FromBody] string email, string password)
-		{
-			throw new NotImplementedException();
-		}
+		string jwtToken = await _authenticationService.CreateToken(signInDTO.Email);
 
-		[HttpPost]
-		public async Task<ActionResult> SignUp(SignUpDTO signUpDTO)
-		{
-			if (!StringValidator.IsValidPassword(signUpDTO))
-			{
-				return BadRequest(ValidationErrors.InvalidPassword);
-			}
+		return Ok(jwtToken);
+	}
 
-			IdentityResult userCreationResult = await _authenticationService.CreateUserAsync(signUpDTO);
-			if (!userCreationResult.Succeeded)
-			{
-				return Conflict(userCreationResult.Errors);
-			}
-
-			return Created();
-		}
-
-		[HttpPost]
-		public string SignOut()
-		{
-			throw new NotImplementedException();
-		}
-
-		[HttpPost]
-		public string ResetPassword([FromBody] string email)
-		{
-			throw new NotImplementedException();
-		}
+	[HttpPost("SignOut")]
+	public string Deauthorize()
+	{
+		throw new NotImplementedException();
 	}
 }
