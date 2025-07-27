@@ -11,7 +11,7 @@ namespace CardAtlas.Server.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/[controller]")]
-public class UsersController : ControllerBase
+public class UsersController : ApiControllerBase
 {
 	private readonly IUsersService _userService;
 
@@ -22,17 +22,20 @@ public class UsersController : ControllerBase
 
 	[Route("[action]")]
 	[HttpPost]
-	public async Task<ActionResult> SignUp(SignUpDTO signUpDTO)
+	public async Task<IActionResult> SignUp(SignUpDTO signUpDTO)
 	{
 		if (!StringValidator.IsValidPassword(signUpDTO))
 		{
-			return BadRequest(ValidationErrors.InvalidPassword);
+			//TODO: Add logging
+			return BadRequestProblem(ValidationErrors.InvalidPassword);
 		}
 
 		IdentityResult userCreationResult = await _userService.CreateUserAsync(signUpDTO);
 		if (!userCreationResult.Succeeded)
 		{
-			return Conflict(userCreationResult.Errors);
+			//TODO: Add logging
+			string errorDetails = string.Join(Environment.NewLine, userCreationResult.Errors);
+			return ConflictProblem(errorDetails);
 		}
 
 		return Created();
