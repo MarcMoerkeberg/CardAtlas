@@ -24,10 +24,31 @@ public class GlobalExceptionHandler : IExceptionHandler
 	{
 		ProblemDetails problemDetails = exception switch
 		{
-			KeyNotFoundException => CreateProblemDetails(HttpStatusCode.NotFound, Errors.NotFound, exception),
-			ArgumentException => CreateProblemDetails(HttpStatusCode.BadRequest, Errors.BadRequest, exception),
-			UnauthorizedAccessException => CreateProblemDetails(HttpStatusCode.Unauthorized, Errors.Unauthorized, exception),
-			_ => CreateProblemDetails(HttpStatusCode.InternalServerError, Errors.InternalServerError, exception),
+			KeyNotFoundException => CreateProblemDetails(
+				status: HttpStatusCode.NotFound,
+				title: Errors.NotFound,
+				exception: exception
+			),
+			ArgumentException => CreateProblemDetails(
+				status: HttpStatusCode.BadRequest,
+				title: Errors.BadRequest,
+				exception: exception
+			),
+			UnauthorizedAccessException => CreateProblemDetails(
+				status: HttpStatusCode.Unauthorized,
+				title: Errors.Unauthorized,
+				exception: exception
+			),
+			HttpException httpException => CreateProblemDetails(
+				status: httpException.StatusCodeEnum,
+				title: httpException.Title,
+				exception: httpException
+			),
+			_ => CreateProblemDetails(
+				status: HttpStatusCode.InternalServerError,
+				title: Errors.InternalServerError,
+				exception: exception
+			),
 		};
 
 		problemDetails.Instance = httpContext.Request.Path;
