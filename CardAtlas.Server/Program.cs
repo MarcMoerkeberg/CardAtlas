@@ -1,10 +1,9 @@
 using CardAtlas.Server.Extensions;
-using CardAtlas.Server.Models.Internal;
 using Hellang.Middleware.ProblemDetails;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<AppSettings>(builder.Configuration);
+builder.Services.ConfigureAppSettings(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddVersioning();

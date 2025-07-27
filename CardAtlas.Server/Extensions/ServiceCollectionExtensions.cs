@@ -12,43 +12,38 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CardAtlas.Server.Extensions;
 
 public static class ServiceCollectionExtensions
 {
 	private static readonly ApiVersion _defaultApiVersion = new(1, 0);
-	private static AppSettings? _appSettings;
 
 	/// <summary>
-	/// Returns the <see cref="AppSettings"/> object from the <see cref="IServiceCollection"/>.<br/>
-	/// Throws a <see cref="NullReferenceException"/> if the <see cref="AppSettings"/> object is null. This is usually due to an invalid appsettings.json file or the buildprovider not being configured.
+	/// Configures <see cref="AppSettings"/> for the service provider.
 	/// </summary>
-	/// <exception cref="NullReferenceException"></exception>
-	private static AppSettings GetAppSettings(IServiceCollection services)
+	public static void ConfigureAppSettings(this IServiceCollection services, IConfiguration config)
 	{
-		if (_appSettings is null)
-		{
-			AppSettings? appSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AppSettings>>().Value;
-
-			if (appSettings is null) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
-			if (string.IsNullOrEmpty(appSettings.AppName)) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
-			if (appSettings.ConnectionStrings is null) throw new NullReferenceException(Errors.ErrorInitializingConnectionStrings);
-
-			_appSettings = appSettings;
+		services
+			.AddOptions<AppSettings>()
+			.Bind(config)
+			.ValidateDataAnnotations()
+			.ValidateOnStart()
+			.Services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IOptions<AppSettings>>().Value!);
 		}
-
-		return _appSettings;
-	}
 
 	/// <summary>
 	/// Adds the database context and connection for <see cref="ApplicationDbContext"/>.
 	/// </summary>
 	public static void AddDatabaseContext(this IServiceCollection services)
 	{
-		AppSettings appSettings = GetAppSettings(services);
-		Action<DbContextOptionsBuilder> dbContextOptions = options =>
+		Action<IServiceProvider, DbContextOptionsBuilder> dbContextOptions = (serviceProvider, options) =>
+		{
+			AppSettings appSettings = serviceProvider.GetRequiredService<AppSettings>();
+
 		options.UseSqlServer(appSettings.ConnectionStrings.Database, sqlServerOptions =>
 			sqlServerOptions.EnableRetryOnFailure(
 				maxRetryCount: 5,
@@ -56,6 +51,7 @@ public static class ServiceCollectionExtensions
 				errorNumbersToAdd: null
 			)
 		);
+		};
 
 		services.AddDbContextFactory<ApplicationDbContext>(dbContextOptions, lifetime: ServiceLifetime.Scoped);
 		services.AddDbContext<ApplicationDbContext>(dbContextOptions);
@@ -66,23 +62,29 @@ public static class ServiceCollectionExtensions
 	/// </summary>
 	public static void AddSwagger(this IServiceCollection services)
 	{
-		IReadOnlyList<ApiVersionDescription> apiDescriptiontions = services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>().ApiVersionDescriptions;
-		AppSettings appSettings = GetAppSettings(services);
+		services.AddSwaggerGen();
 
-		services.AddSwaggerGen(options =>
+		services.AddSingleton<IConfigureOptions<SwaggerGenOptions>>(serviceProvider =>
+			new ConfigureOptions<SwaggerGenOptions>(options =>
 		{
-			foreach (ApiVersionDescription apiDescriptiontion in apiDescriptiontions)
+				var apiDescProvider = serviceProvider.GetRequiredService<IApiVersionDescriptionProvider>();
+				var appSettings = serviceProvider.GetRequiredService<AppSettings>();
+
+				foreach (ApiVersionDescription apiDescriptiontion in apiDescProvider.ApiVersionDescriptions)
 			{
 				var openApiInfo = new OpenApiInfo
 				{
 					Title = $"{appSettings.AppName} {apiDescriptiontion.GroupName}",
 					Version = apiDescriptiontion.ApiVersion.ToString(),
-					Description = apiDescriptiontion.IsDeprecated ? ApplicationSettings.ApiVersionDeprecated : string.Empty
+						Description = apiDescriptiontion.IsDeprecated
+						? ApplicationSettings.ApiVersionDeprecated
+						: string.Empty
 				};
 
 				options.SwaggerDoc(apiDescriptiontion.GroupName, openApiInfo);
 			}
-		});
+			})
+		);
 	}
 
 	/// <summary>
@@ -148,10 +150,10 @@ public static class ServiceCollectionExtensions
 	/// </summary>
 	private static void AddScryfallApi(IServiceCollection services)
 	{
-		AppSettings appSettings = GetAppSettings(services);
-
 		services.AddSingleton<ScryfallApi.IScryfallApi>(serviceProvider =>
 		{
+			AppSettings appSettings = serviceProvider.GetRequiredService<AppSettings>();
+
 			return new ScryfallApi.ScryfallApi(appSettings.AppName);
 		});
 	}
