@@ -39,7 +39,7 @@ public class AuthenticationService : IAuthenticationService
 	public async Task<string> CreateToken(string email)
 	{
 		IReadOnlyList<Claim>? claims = await _userRepository.GetClaimsAsync(email);
-		if (claims is null)//TODO: Add tests
+		if (claims is null)
 		{
 			throw new HttpException(
 				statusCode: HttpStatusCode.NotFound,
@@ -47,7 +47,7 @@ public class AuthenticationService : IAuthenticationService
 				title: Errors.UserNotFound
 			);
 		}
-		else if (!claims.Any(claim => claim.Type == ClaimTypes.Role))//TODO: Add tests
+		else if (!claims.Any(claim => claim.Type == ClaimTypes.Role))
 		{
 			throw new HttpException(
 				statusCode: HttpStatusCode.Forbidden,

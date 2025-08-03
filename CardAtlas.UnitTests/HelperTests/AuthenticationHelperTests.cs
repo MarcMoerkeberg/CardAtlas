@@ -1,6 +1,6 @@
 ﻿using CardAtlas.Server.Helpers;
 using CardAtlas.Server.Models.Internal;
-using CardAtlas.UnitTests.DataHelpers;
+using CardAtlas.UnitTests.TestHelpers;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 

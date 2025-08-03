@@ -1,6 +1,6 @@
 ﻿using CardAtlas.Server.Models.Internal;
 
-namespace CardAtlas.UnitTests.DataHelpers;
+namespace CardAtlas.UnitTests.TestHelpers;
 
 public static class ConfigurationDataHelper
 {
@@ -30,7 +30,7 @@ public static class ConfigurationDataHelper
 		return new JwtSettings
 		{
 			Audience = "audience",
-			Secret = "MyVerySecretKey",
+			Secret = "MyVerySecretKeyMyVerySecretKeyMyVerySecretKeyMyVerySecretKeyMyVerySecretKeyMyVerySecretKeyMyVerySecretKeyMyVerySecretKey",
 			TimeToLive = TimeSpan.FromMinutes(timeToLiveInMinutes)
 		};
 	}
