@@ -21,13 +21,16 @@ public static class AuthenticationHelper
 	/// Generates a <see cref="JwtSecurityToken"/> from the <paramref name="userClaims"/> and <paramref name="appSettings"/>.
 	/// </summary>
 	/// <returns>A new <see cref="JwtSecurityToken"/> populated with the <paramref name="userClaims"/> and <paramref name="appSettings"/>.</returns>
-	public static JwtSecurityToken GenerateSecurityToken(IEnumerable<Claim> userClaims, AppSettings appSettings)//TODO: add tests
+	public static JwtSecurityToken GenerateSecurityToken(IEnumerable<Claim> userClaims, AppSettings appSettings)
 	{
+		if (!userClaims.Any()) throw new ArgumentOutOfRangeException(nameof(userClaims), "Must contain at least one claim.");
+
 		return new JwtSecurityToken(
 			issuer: appSettings.AppName,
 			audience: appSettings.JwtSettings.Audience,
 			claims: userClaims,
-			expires: DateTime.Now.Add(appSettings.JwtSettings.TimeToLive),
+			notBefore: DateTime.UtcNow,
+			expires: DateTime.UtcNow.Add(appSettings.JwtSettings.TimeToLive),
 			signingCredentials: GetSigningCredentials(appSettings)
 		);
 	}
