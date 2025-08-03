@@ -15,12 +15,12 @@ public interface IUserRepository
 	/// <summary>
 	/// Returns all claims from the <see cref="User"/> with the associated <paramref name="email"/>.
 	/// </summary>
-	/// <returns>A list of <see cref="Claim"/> for the user associated with the <paramref name="email"/>; or null if no user is found.</returns>
-	Task<List<Claim>?> GetClaimsAsync(string email);
+	/// <returns>A readonly list of <see cref="Claim"/> for the user associated with the <paramref name="email"/>; or null if no user is found.</returns>
+	Task<IReadOnlyList<Claim>?> GetClaimsAsync(string email);
 
 	/// <summary>
 	/// Returns all claims associated with the <paramref name="user"/>.
 	/// </summary>
-	/// <returns>A list of <see cref="Claim"/> for the specified <paramref name="user"/>.</returns>
-	Task<List<Claim>> GetClaimsAsync(User user);
+	/// <returns>A readonly list of <see cref="Claim"/> for the specified <paramref name="user"/>.</returns>
+	Task<IReadOnlyList<Claim>> GetClaimsAsync(User user);
 }

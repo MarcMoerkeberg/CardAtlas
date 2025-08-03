@@ -46,7 +46,7 @@ public class UserRepository : IUserRepository
 		return IdentityResult.Success;
 	}
 
-	public async Task<List<Claim>?> GetClaimsAsync(string userEmail)
+	public async Task<IReadOnlyList<Claim>?> GetClaimsAsync(string userEmail)
 	{
 		User? user = await _userManager.FindByEmailAsync(userEmail);
 
@@ -55,9 +55,13 @@ public class UserRepository : IUserRepository
 			: await GetClaimsAsync(user);
 	}
 
-	public async Task<List<Claim>> GetClaimsAsync(User user)
+	public async Task<IReadOnlyList<Claim>> GetClaimsAsync(User user)
 	{
-		List<Claim> claims = new() { new Claim(ClaimTypes.Name, user.Email!) };
+		List<Claim> claims = new()
+		{
+			new Claim(ClaimTypes.Email, user.Email!),
+			new Claim(ClaimTypes.Name, user.DisplayName)
+		};
 
 		IList<string> roles = await _userManager.GetRolesAsync(user);
 		foreach (string role in roles)
