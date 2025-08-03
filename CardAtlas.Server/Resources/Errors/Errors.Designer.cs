@@ -22,7 +22,7 @@ namespace CardAtlas.Server.Resources.Errors {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Errors {
+    public class Errors {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace CardAtlas.Server.Resources.Errors {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CardAtlas.Server.Resources.Errors.Errors", typeof(Errors).Assembly);
@@ -51,7 +51,7 @@ namespace CardAtlas.Server.Resources.Errors {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to AppSettings.cs has not been configured from appsettings.json..
         /// </summary>
-        internal static string AppSettingsIsNotConfigured {
+        public static string AppSettingsIsNotConfigured {
             get {
                 return ResourceManager.GetString("AppSettingsIsNotConfigured", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Invalid Argument.
         /// </summary>
-        internal static string BadRequest {
+        public static string BadRequest {
             get {
                 return ResourceManager.GetString("BadRequest", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Could not initialize AppSettings from appsettings.json..
         /// </summary>
-        internal static string ErrorInitializingAppSettings {
+        public static string ErrorInitializingAppSettings {
             get {
                 return ResourceManager.GetString("ErrorInitializingAppSettings", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Could not initialize connectionstrings section from appsettings.json..
         /// </summary>
-        internal static string ErrorInitializingConnectionStrings {
+        public static string ErrorInitializingConnectionStrings {
             get {
                 return ResourceManager.GetString("ErrorInitializingConnectionStrings", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to An error occurred while loading interface types from the assembly..
         /// </summary>
-        internal static string FailedGettingInterfaces {
+        public static string FailedGettingInterfaces {
             get {
                 return ResourceManager.GetString("FailedGettingInterfaces", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Failed while loading types from assembly..
         /// </summary>
-        internal static string FailedLoadingTypesFromAssembly {
+        public static string FailedLoadingTypesFromAssembly {
             get {
                 return ResourceManager.GetString("FailedLoadingTypesFromAssembly", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Internal Server Error.
         /// </summary>
-        internal static string InternalServerError {
+        public static string InternalServerError {
             get {
                 return ResourceManager.GetString("InternalServerError", resourceCulture);
             }
@@ -126,7 +126,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Expected the ids of both objects to be equal to ensure the wrong entity isn&apos;t updated by mistake..
         /// </summary>
-        internal static string MergingIdsAreNotEqual {
+        public static string MergingIdsAreNotEqual {
             get {
                 return ResourceManager.GetString("MergingIdsAreNotEqual", resourceCulture);
             }
@@ -135,7 +135,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to No roles assigned.
         /// </summary>
-        internal static string NoRolesAssigned {
+        public static string NoRolesAssigned {
             get {
                 return ResourceManager.GetString("NoRolesAssigned", resourceCulture);
             }
@@ -144,7 +144,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Not Found.
         /// </summary>
-        internal static string NotFound {
+        public static string NotFound {
             get {
                 return ResourceManager.GetString("NotFound", resourceCulture);
             }
@@ -153,7 +153,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to Unauthorized.
         /// </summary>
-        internal static string Unauthorized {
+        public static string Unauthorized {
             get {
                 return ResourceManager.GetString("Unauthorized", resourceCulture);
             }
@@ -162,7 +162,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to User with email &apos;{0}&apos; is not assigned to any roles..
         /// </summary>
-        internal static string UserHasNoRolesWithEmail {
+        public static string UserHasNoRolesWithEmail {
             get {
                 return ResourceManager.GetString("UserHasNoRolesWithEmail", resourceCulture);
             }
@@ -171,7 +171,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to User not found.
         /// </summary>
-        internal static string UserNotFound {
+        public static string UserNotFound {
             get {
                 return ResourceManager.GetString("UserNotFound", resourceCulture);
             }
@@ -180,7 +180,7 @@ namespace CardAtlas.Server.Resources.Errors {
         /// <summary>
         ///   Looks up a localized string similar to No user with email &apos;{0}&apos; was found..
         /// </summary>
-        internal static string UserNotFoundWithEmail {
+        public static string UserNotFoundWithEmail {
             get {
                 return ResourceManager.GetString("UserNotFoundWithEmail", resourceCulture);
             }
