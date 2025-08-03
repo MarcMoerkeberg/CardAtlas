@@ -38,7 +38,7 @@ public class AuthenticationService : IAuthenticationService
 
 	public async Task<string> CreateToken(string email)
 	{
-		List<Claim>? claims = await _userRepository.GetClaimsAsync(email);
+		IReadOnlyList<Claim>? claims = await _userRepository.GetClaimsAsync(email);
 		if (claims is null)//TODO: Add tests
 		{
 			throw new HttpException(
