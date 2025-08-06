@@ -55,7 +55,8 @@ public static class EntityConfigurationHelper
 			roles.Add(new IdentityRole
 			{
 				Name = roleName,
-				NormalizedName = roleName.ToUpper()
+				NormalizedName = roleName.ToUpper(),
+				Id = Roles.GetRoleId(roleName)
 			});
 		}
 
