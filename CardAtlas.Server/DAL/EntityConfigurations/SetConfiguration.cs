@@ -11,7 +11,7 @@ public class SetConfiguration : IEntityTypeConfiguration<Set>
 		Set defaultSet = new Set
 		{
 			Id = Set.DefaultId,
-			Code = "Defaul",
+			Code = "Default",
 			SetTypeId = (int)SetTypeKind.NotImplemented,
 			SourceId = (int)SourceType.NotImplemented,
 			Name = "Unknown - Default set"

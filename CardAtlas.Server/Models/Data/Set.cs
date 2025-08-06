@@ -16,7 +16,7 @@ public class Set
 	public required string Name { get; set; }
 
 	[MinLength(3)]
-	[MaxLength(6)]
+	[MaxLength(7)]
 	public required string Code { get; set; }
 
 	[MinLength(3)]
