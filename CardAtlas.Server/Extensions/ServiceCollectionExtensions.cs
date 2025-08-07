@@ -9,6 +9,7 @@ using CardAtlas.Server.Models.Entities;
 using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Resources;
 using Hellang.Middleware.ProblemDetails;
+using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -120,6 +121,8 @@ public static class ServiceCollectionExtensions
 	/// </summary>
 	public static void AddDependencyInjection(this IServiceCollection services)
 	{
+		services.AddScoped<SmtpClient>();
+
 		AddScopedDependencies(services, "Services");
 		AddScopedDependencies(services, "Repositories");
 		AddScryfallApi(services);

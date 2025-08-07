@@ -12,24 +12,24 @@ public class OutboxChannelBackgroundService : BackgroundService
 {
 	private readonly int _maxRetryCount;
 	private readonly Channel<OutboxMessage> _outboxChannel;
-	private readonly IOutboxRepository _outboxRepository;
-	private readonly IOutboxService _outboxService;
+	private readonly IServiceScopeFactory _scopeFactory;
 
 	public OutboxChannelBackgroundService(
 		IOptions<AppSettings> appSettings,
 		Channel<OutboxMessage> outboxChannel,
-		IOutboxRepository outboxRepository,
-		IOutboxService outboxService)
+		IServiceScopeFactory scopeFactory)
 	{
 		_maxRetryCount = appSettings.Value.OutboxSettings.MaxRetryCount;
 		_outboxChannel = outboxChannel;
-		_outboxRepository = outboxRepository;
-		_outboxService = outboxService;
+		_scopeFactory = scopeFactory;
 	}
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
-		List<OutboxMessage> pendingMessages = await _outboxRepository.GetAsync(
+		using IServiceScope scope = _scopeFactory.CreateScope();
+		IOutboxRepository outboxRepository = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
+
+		List<OutboxMessage> pendingMessages = await outboxRepository.GetAsync(
 			isProcessed: false,
 			maxRetries: _maxRetryCount
 		);
@@ -48,7 +48,10 @@ public class OutboxChannelBackgroundService : BackgroundService
 		{
 			try
 			{
-				await _outboxService.ProcessMessage(message);
+				using IServiceScope scope = _scopeFactory.CreateScope();
+				IOutboxService outboxService = scope.ServiceProvider.GetRequiredService<IOutboxService>();
+
+				await outboxService.ProcessMessage(message);
 			}
 			catch (OperationCanceledException)
 			{
