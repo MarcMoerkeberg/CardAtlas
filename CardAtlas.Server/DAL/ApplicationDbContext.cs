@@ -1,6 +1,7 @@
 ﻿using CardAtlas.Server.Models.Data;
 using CardAtlas.Server.Models.Data.CardRelations;
 using CardAtlas.Server.Models.Data.Image;
+using CardAtlas.Server.Models.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,4 +44,6 @@ public class ApplicationDbContext : IdentityDbContext<User>
 	public DbSet<PromoType> PromoTypes { get; set; }
 	public DbSet<CardPromoType> CardPromoTypes { get; set; }
 	public DbSet<CardArtist> CardArtists { get; set; }
+	public DbSet<OutboxMessage> OutboxMessages { get; set; }
+	public DbSet<OutboxMessageType> OutboxMessageTypes { get; set; }
 }
