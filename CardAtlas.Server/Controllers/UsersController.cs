@@ -20,7 +20,7 @@ public class UsersController : ApiControllerBase
 		_userService = userService;
 	}
 
-	[Route("[action]")]
+	[Route(nameof(SignUp))]
 	[HttpPost]
 	public async Task<IActionResult> SignUp(SignUpDTO signUpDTO)
 	{
