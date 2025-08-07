@@ -160,6 +160,19 @@ namespace CardAtlas.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "OutboxMessageTypes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OutboxMessageTypes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PrintFinishes",
                 columns: table => new
                 {
@@ -326,6 +339,29 @@ namespace CardAtlas.Server.Migrations
                         name: "FK_AspNetUserTokens_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OutboxMessages",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MessageTypeId = table.Column<int>(type: "int", nullable: false),
+                    Payload = table.Column<string>(type: "nvarchar(1024)", maxLength: 1024, nullable: false),
+                    IsProcessed = table.Column<bool>(type: "bit", nullable: false),
+                    RetryCount = table.Column<int>(type: "int", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastModifiedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OutboxMessages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OutboxMessages_OutboxMessageTypes_MessageTypeId",
+                        column: x => x.MessageTypeId,
+                        principalTable: "OutboxMessageTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -891,6 +927,15 @@ namespace CardAtlas.Server.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "OutboxMessageTypes",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { -1, "NotImplemented" },
+                    { 1, "EmailConfirmation" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "PrintFinishes",
                 columns: new[] { "Id", "Name" },
                 values: new object[,]
@@ -1158,6 +1203,11 @@ namespace CardAtlas.Server.Migrations
                 column: "SourceId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OutboxMessages_MessageTypeId",
+                table: "OutboxMessages",
+                column: "MessageTypeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PromoTypes_SourceId",
                 table: "PromoTypes",
                 column: "SourceId");
@@ -1216,6 +1266,9 @@ namespace CardAtlas.Server.Migrations
                 name: "CardPromoTypes");
 
             migrationBuilder.DropTable(
+                name: "OutboxMessages");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
@@ -1259,6 +1312,9 @@ namespace CardAtlas.Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "PromoTypes");
+
+            migrationBuilder.DropTable(
+                name: "OutboxMessageTypes");
 
             migrationBuilder.DropTable(
                 name: "FrameLayouts");

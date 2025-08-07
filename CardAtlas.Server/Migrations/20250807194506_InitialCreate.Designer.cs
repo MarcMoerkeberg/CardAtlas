@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CardAtlas.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250806121312_InitialCreate")]
+    [Migration("20250807194506_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace CardAtlas.Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.7")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1410,6 +1410,69 @@ namespace CardAtlas.Server.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CardAtlas.Server.Models.Entities.OutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsProcessed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MessageTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MessageTypeId");
+
+                    b.ToTable("OutboxMessages");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Entities.OutboxMessageType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OutboxMessageTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "EmailConfirmation"
+                        },
+                        new
+                        {
+                            Id = -1,
+                            Name = "NotImplemented"
+                        });
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -1865,6 +1928,17 @@ namespace CardAtlas.Server.Migrations
                     b.Navigation("Source");
                 });
 
+            modelBuilder.Entity("CardAtlas.Server.Models.Entities.OutboxMessage", b =>
+                {
+                    b.HasOne("CardAtlas.Server.Models.Entities.OutboxMessageType", "MessageType")
+                        .WithMany("OutboxMessages")
+                        .HasForeignKey("MessageTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MessageType");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -2020,6 +2094,11 @@ namespace CardAtlas.Server.Migrations
             modelBuilder.Entity("CardAtlas.Server.Models.Data.Vendor", b =>
                 {
                     b.Navigation("CardPrices");
+                });
+
+            modelBuilder.Entity("CardAtlas.Server.Models.Entities.OutboxMessageType", b =>
+                {
+                    b.Navigation("OutboxMessages");
                 });
 #pragma warning restore 612, 618
         }
