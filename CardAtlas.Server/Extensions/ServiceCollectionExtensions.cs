@@ -1,9 +1,11 @@
 ﻿using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using CardAtlas.Server.BackgroundServices;
 using CardAtlas.Server.DAL;
 using CardAtlas.Server.Exceptions;
 using CardAtlas.Server.Helpers;
 using CardAtlas.Server.Models.Data;
+using CardAtlas.Server.Models.Entities;
 using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Resources;
 using Hellang.Middleware.ProblemDetails;
@@ -15,6 +17,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Threading.Channels;
 
 namespace CardAtlas.Server.Extensions;
 
@@ -121,6 +124,23 @@ public static class ServiceCollectionExtensions
 		AddScopedDependencies(services, "Repositories");
 		AddScryfallApi(services);
 		AddComparerDependencies(services);
+		AddBackgroundServiceDependencies(services);
+	}
+
+	/// <summary>
+	/// Adds BackgroundService dependencies.
+	/// </summary>
+	private static void AddBackgroundServiceDependencies(IServiceCollection services)
+	{
+		var outboxOptions = new UnboundedChannelOptions
+		{
+			SingleReader = true,
+			SingleWriter = false,
+		};
+		var outboxChannel = Channel.CreateUnbounded<OutboxMessage>(outboxOptions);
+
+		services.AddSingleton(outboxChannel);
+		services.AddHostedService<OutboxChannelBackgroundService>();
 	}
 
 	/// Adds scoped lifetime dependency injection for classes that implements one or more interfaces and lives within the CardAtlas.Server namespace.<br/>

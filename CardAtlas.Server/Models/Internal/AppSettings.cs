@@ -8,6 +8,7 @@ public class AppSettings
 	public required ConnectionStrings ConnectionStrings { get; init; }
 	public required JwtSettings JwtSettings { get; init; }
 	public required SmtpSettings SmtpSettings { get; init; }
+	public required OutboxSettings OutboxSettings { get; init; }
 }
 
 public record ConnectionStrings
@@ -31,4 +32,9 @@ public record SmtpSettings
 	public required string Password { get; init; }
 	public required string From { get; init; }
 	public required string FromName { get; init; }
+}
+
+public record OutboxSettings
+{
+	public required int MaxRetryCount { get; init; }
 }
