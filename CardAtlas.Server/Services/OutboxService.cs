@@ -1,4 +1,5 @@
-﻿using CardAtlas.Server.Models.Entities;
+﻿using CardAtlas.Server.Extensions;
+using CardAtlas.Server.Models.Entities;
 using CardAtlas.Server.Models.Internal;
 using CardAtlas.Server.Repositories.Interfaces;
 using CardAtlas.Server.Services.Interfaces;
@@ -108,7 +109,7 @@ public class OutboxService : IOutboxService
 
 		EmailResult emailResult = await _emailSender.SendEmailAsync(outboxEmail);
 
-		outboxMessage.LastModifiedDate = DateTime.UtcNow;
+		outboxMessage.LastModifiedDate = DateTime.UtcNow.Truncate(TimeSpan.FromSeconds(1));
 		if (emailResult.Succeeded)
 		{
 			outboxMessage.IsProcessed = true;

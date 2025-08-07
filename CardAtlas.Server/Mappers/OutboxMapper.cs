@@ -1,4 +1,5 @@
-﻿using CardAtlas.Server.Models.Entities;
+﻿using CardAtlas.Server.Extensions;
+using CardAtlas.Server.Models.Entities;
 using CardAtlas.Server.Models.Internal;
 using System.Text.Json;
 
@@ -26,7 +27,7 @@ public static class OutboxMapper
 		{
 			Payload = JsonSerializer.Serialize(payload),
 			MessageTypeId = (int)messageType,
-			CreatedDate = DateTime.UtcNow
+			CreatedDate = DateTime.UtcNow.Truncate(TimeSpan.FromSeconds(1))
 		};
 	}
 }
